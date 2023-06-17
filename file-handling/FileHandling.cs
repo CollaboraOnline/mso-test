@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace file_handling
 {
@@ -29,11 +30,17 @@ namespace file_handling
 
             if (!Directory.Exists(directoryPath))
                 return;
-            string[] files = System.IO.Directory.GetFiles(directoryPath, "*.failed");
+            string[] timeoutFiles = System.IO.Directory.GetFiles(directoryPath, "*.timeout");
+            string[] failedFiles = System.IO.Directory.GetFiles(directoryPath, "*.failed");
+
+            string[] files = failedFiles.Union(timeoutFiles).ToArray();
+
             for (int i = 0; i < files.Length; i++)
             {
                 string filename = Path.GetFileName(files[i]);
-                files[i] = filename.Substring(0, filename.Length - 12);
+
+                files[i] = filename.Substring(0, filename.Length - Path.GetExtension(filename).Length);
+                files[i] = files[i].Substring(0, files[i].Length - Path.GetExtension(files[i]).Length);
             }
 
             DirectoryInfo OriginDirInfo = Directory.CreateDirectory(Path.GetDirectoryName(@"original\" + application + @"\"));
