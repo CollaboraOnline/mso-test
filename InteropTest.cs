@@ -138,40 +138,25 @@ namespace mso_test
             return (false, "");
         }
 
-        public static void logInfo(string application, string failType, string msg)
-        {
-            string fileName = (failType == "conversion" ? "failed_conversion_" : "failed_files_") + application + ".txt";
-
-            using (FileStream fs = new FileStream(fileName, FileMode.Append))
-            {
-                byte[] info = new UTF8Encoding(true).GetBytes(msg + "\n");
-                fs.Write(info, 0, info.Length);
-            }
-        }
-
         public static async Task testDirectoriy(string application, DirectoryInfo dir, string convertTo)
         {
+            Console.WriteLine("\n\nStarting test directory " + dir.Name);
             FileInfo[] fileInfos = dir.GetFiles();
             var watch = new System.Diagnostics.Stopwatch();
             foreach (FileInfo file in fileInfos)
             {
-                if (!allowedExtension.Contains(file.Extension) ||
-                    File.Exists(Path.GetFullPath(@"converted\" + convertTo + @"\" + Path.GetFileNameWithoutExtension(file.Name) + "." + convertTo)) ||
-                    File.Exists(Path.GetFullPath(@"converted\" + convertTo + @"\" + Path.GetFileNameWithoutExtension(file.Name) + "." + convertTo + ".failed")))
+                if (!allowedExtension.Contains(file.Extension)) {
+                    Console.WriteLine("\nSkipping file " + file.Name);
                     continue;
+                }
 
-                Console.WriteLine("Starting test for " + file.Name);
+                Console.WriteLine("\nStarting test for " + file.Name);
                 watch.Restart();
                 Task<(bool, string)> DownloadResultTask = Task.Run(() => testFile(application, file.FullName));
-                if (!DownloadResultTask.Wait(180000))
+                if (!DownloadResultTask.Wait(60000))
                 {
-                    Console.WriteLine("Testing timeout");
+                    Console.WriteLine("Fail: Opening original file: " + file.FullName + " Test timed out");
                     restartApplication(application);
-                    try
-                    {
-                        System.IO.File.Move(file.FullName, file.FullName + ".timeout");
-                    }
-                    catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
                     continue;
                 }
 
@@ -183,20 +168,28 @@ namespace mso_test
                             return;
                         Task<(bool, string)> ConvertResultTask = Task.Run(() => testFile(application, task.Result));
 
-                        if (!ConvertResultTask.Wait(180000))
+                        if (!ConvertResultTask.Wait(30000))
                         {
-                            Console.WriteLine("Testing timeout");
+                            Console.WriteLine("Fail: Opening converted file: " + file.Name + " Converted test timed out");
                             restartApplication(application);
-                            try
-                            {
-                                System.IO.File.Move(task.Result, task.Result + ".timeout");
-                            }
-                            catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
+                        }
+
+                        if (ConvertResultTask.Result.Item1)
+                        {
+                            // passed
+                        }
+                        else
+                        {
+                            Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
                         }
                     });
                 }
+                else
+                {
+                    Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
+                }
                 watch.Stop();
-                Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms\n");
+                Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
             }
         }
 
@@ -241,19 +234,7 @@ namespace mso_test
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            Console.Error.WriteLine("Faild to convert " + fullFileName + ": " + response.StatusCode);
-
-                            if (response.StatusCode == HttpStatusCode.BadGateway)
-                            {
-                                try
-                                {
-                                    System.IO.File.Move(fullFileName, fullFileName + ".convfail");
-                                }
-                                catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
-
-                                logInfo(application, "conversion", fullFileName + ": " + response.StatusCode);
-                            }
-
+                            Console.Error.WriteLine("Fail: Converting file: " + fileName + "HTTP StatusCode: " + response.StatusCode);
                             return "";
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
@@ -265,7 +246,9 @@ namespace mso_test
                         }
                     }
                 }
-                catch (Exception ex) { Console.WriteLine(ex); }
+                catch (Exception ex) {
+                    Console.WriteLine("Fail: Converting file: " + fileName + " Exception during convert: " + ex.Message);
+                }
             }
             return "";
         }
@@ -306,15 +289,6 @@ namespace mso_test
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(doc);
                     doc = null;
                 }
-            }
-
-            if (!testResult)
-            {
-                try
-                {
-                    System.IO.File.Move(fileName, fileName + ".failed");
-                }
-                catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
             }
 
             return (testResult, errorMessage);
@@ -359,15 +333,6 @@ namespace mso_test
                 }
             }
 
-            if (!testResult)
-            {
-                try
-                {
-                    System.IO.File.Move(fileName, fileName + ".failed");
-                }
-                catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
-            }
-
             return (testResult, errorMessage);
         }
 
@@ -409,15 +374,6 @@ namespace mso_test
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(presentation);
                     presentation = null;
                 }
-            }
-
-            if (!testResult)
-            {
-                try
-                {
-                    System.IO.File.Move(fileName, fileName + ".failed");
-                }
-                catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
             }
 
             return (testResult, errorMessage);
