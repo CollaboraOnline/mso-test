@@ -155,7 +155,7 @@ namespace mso_test
                 Task<(bool, string)> DownloadResultTask = Task.Run(() => testFile(application, file.FullName));
                 if (!DownloadResultTask.Wait(60000))
                 {
-                    Console.WriteLine("Fail: Opening original file: " + file.FullName + " Test timed out");
+                    Console.WriteLine("Fail: Opening original file: " + file.Name + " Test timed out");
                     restartApplication(application);
                     continue;
                 }
@@ -234,7 +234,7 @@ namespace mso_test
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            Console.Error.WriteLine("Fail: Converting file: " + fileName + "HTTP StatusCode: " + response.StatusCode);
+                            Console.WriteLine("Fail: Converting file: " + fileName + " HTTP StatusCode: " + response.StatusCode);
                             return "";
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
