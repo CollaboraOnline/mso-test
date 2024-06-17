@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -152,6 +153,8 @@ namespace mso_test
 
                 Console.WriteLine("\nStarting test for " + file.Name);
                 watch.Restart();
+
+                // Open original file
                 Task<(bool, string)> DownloadResultTask = Task.Run(() => testFile(application, file.FullName));
                 if (!DownloadResultTask.Wait(timeout))
                 {
@@ -159,48 +162,42 @@ namespace mso_test
                     restartApplication(application);
                     continue;
                 }
-
-                if (DownloadResultTask.Result.Item1)
-                {
-                    var task = convertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo);
-                    if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
-                    {
-                        if (string.IsNullOrEmpty(task.Result))
-                        {
-                            continue;
-                        }
-                        Task<(bool, string)> ConvertResultTask = Task.Run(() => testFile(application, task.Result));
-
-                        if (!ConvertResultTask.Wait(timeout))
-                        {
-                            Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + timeout + "ms");
-                            restartApplication(application);
-                            continue;
-                        }
-
-                        if (ConvertResultTask.Result.Item1)
-                        {
-                            // passed
-                        }
-                        else
-                        {
-                            Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
-                            restartApplication(application);
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + timeout + "ms");
-                        continue;
-                    }
-                }
-                else
+                else if (!DownloadResultTask.Result.Item1)
                 {
                     Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
                     restartApplication(application);
                     continue;
                 }
+
+                // Convert file
+                Task<string> ConvertTask = Task.Run(() => convertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
+                if (!ConvertTask.Wait(timeout))
+                {
+                    Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + timeout + "ms");
+                    continue;
+                }
+                else if (string.IsNullOrEmpty(ConvertTask.Result))
+                {
+                    // Failure printed in convertFile
+                    continue;
+                }
+
+                // Open converted file
+                Task<(bool, string)> ConvertResultTask = Task.Run(() => testFile(application, ConvertTask.Result));
+                if (!ConvertResultTask.Wait(timeout))
+                {
+                    Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + timeout + "ms");
+                    restartApplication(application);
+                    continue;
+                }
+                else if (!ConvertResultTask.Result.Item1)
+                {
+                    Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
+                    restartApplication(application);
+                    continue;
+                }
+
+                // Passed
                 watch.Stop();
                 Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
             }
