@@ -79,7 +79,6 @@ namespace mso_test
 
         public static void restartApplication(string application)
         {
-            Console.WriteLine("Restarting application");
             quitApplication(application);
             startApplication(application);
         }
@@ -107,8 +106,8 @@ namespace mso_test
 
             if (args.Length <= 0)
             {
-                quitApplication(args[0]);
-                return;
+                Console.Error.WriteLine("Required argument word excel or powerpoint");
+                Environment.Exit(1);
             }
 
             startApplication(args[0]);
@@ -140,6 +139,7 @@ namespace mso_test
 
         public static async Task testDirectoriy(string application, DirectoryInfo dir, string convertTo)
         {
+            var timeout = 30000;
             Console.WriteLine("\n\nStarting test directory " + dir.Name);
             FileInfo[] fileInfos = dir.GetFiles();
             var watch = new System.Diagnostics.Stopwatch();
@@ -153,25 +153,29 @@ namespace mso_test
                 Console.WriteLine("\nStarting test for " + file.Name);
                 watch.Restart();
                 Task<(bool, string)> DownloadResultTask = Task.Run(() => testFile(application, file.FullName));
-                if (!DownloadResultTask.Wait(60000))
+                if (!DownloadResultTask.Wait(timeout))
                 {
-                    Console.WriteLine("Fail: Opening original file: " + file.Name + " Test timed out");
+                    Console.WriteLine("Fail: Opening original file timeout: " + file.Name + " Timed out after " + timeout + "ms");
                     restartApplication(application);
                     continue;
                 }
 
                 if (DownloadResultTask.Result.Item1)
                 {
-                    await convertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo).ContinueWith(task =>
+                    var task = convertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo);
+                    if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
                     {
                         if (string.IsNullOrEmpty(task.Result))
-                            return;
+                        {
+                            continue;
+                        }
                         Task<(bool, string)> ConvertResultTask = Task.Run(() => testFile(application, task.Result));
 
-                        if (!ConvertResultTask.Wait(30000))
+                        if (!ConvertResultTask.Wait(timeout))
                         {
-                            Console.WriteLine("Fail: Opening converted file: " + file.Name + " Converted test timed out");
+                            Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + timeout + "ms");
                             restartApplication(application);
+                            continue;
                         }
 
                         if (ConvertResultTask.Result.Item1)
@@ -181,12 +185,21 @@ namespace mso_test
                         else
                         {
                             Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
+                            restartApplication(application);
+                            continue;
                         }
-                    });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + timeout + "ms");
+                        continue;
+                    }
                 }
                 else
                 {
                     Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
+                    restartApplication(application);
+                    continue;
                 }
                 watch.Stop();
                 Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
@@ -227,7 +240,6 @@ namespace mso_test
                     { new ByteArrayContent(File.ReadAllBytes(fullFileName)), "data", Path.GetFileName(fullFileName) }
                 };
                 request.Content = multipartContent;
-
                 try
                 {
                     using (var response = await coolClient.SendAsync(request))
@@ -238,7 +250,6 @@ namespace mso_test
                             return "";
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
-
                         string convertedFilePath = @"converted\" + convertTo + @"\" + fileName + "." + convertTo;
                         using (FileStream fs = File.Open(convertedFilePath, FileMode.Create))
                         {
