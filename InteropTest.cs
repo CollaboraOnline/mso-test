@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using excel = Microsoft.Office.Interop.Excel;
 using powerPoint = Microsoft.Office.Interop.PowerPoint;
 using word = Microsoft.Office.Interop.Word;
+using Microsoft.Office.Interop.Excel;
+using System.Threading;
 
 namespace mso_test
 {
@@ -131,7 +133,7 @@ namespace mso_test
 
         //args can be word/excel/powerpoint
         //specified appropriate docs will be tested with the specified program
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
             ServicePointManager.Expect100Continue = false;
 
@@ -144,101 +146,106 @@ namespace mso_test
             var application = args[0];
             forceQuitAllApplication(application);
             startApplication(application);
-            await testDownloadedfiles(application);
+            TestDownloadedFiles(application);
 
             quitApplication(application);
         }
 
-        public static async Task<(bool, string)> testFile(string application, string fileName)
+        public static (bool, string) OpenFile(string application, string fileName)
         {
-            if (File.Exists(fileName + ".failed"))
-                return (false, "");
-
             if (application == "word")
             {
-                return TestWordDoc(fileName);
+                return OpenWordDoc(fileName);
             }
             else if (application == "excel")
             {
-                return TestExcelWorkbook(fileName);
+                return OpenExcelWorkbook(fileName);
             }
             else if (application == "powerpoint")
             {
-                return TestPowerPointPresentation(fileName);
+                return OpenPowerPointPresentation(fileName);
             }
-
-            return (false, "");
+            else
+            {
+                return (false, "");
+            }
         }
 
-        public static async Task testDirectoriy(string application, DirectoryInfo dir, string convertTo)
+        public static async void TestFile(string application, FileInfo file, string convertTo)
         {
-            var timeout = 30000;
+            Console.WriteLine("\nStarting test for " + file.Name);
+            var watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            var openTimeout = 10000;
+            var convertTimeout = 30000;
+
+            // Open original file
+            Task<(bool, string)> DownloadResultTask = Task.Run(() => OpenFile(application, file.FullName));
+            if (!DownloadResultTask.Wait(openTimeout))
+            {
+                Console.WriteLine("Fail: Opening original file timeout: " + file.Name + " Timed out after " + openTimeout + "ms");
+                restartApplication(application);
+                await DownloadResultTask;
+                return;
+            }
+            else if (!DownloadResultTask.Result.Item1)
+            {
+                Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
+                restartApplication(application);
+                return;
+            }
+
+            // Convert file
+            Task<string> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
+            if (!ConvertTask.Wait(convertTimeout))
+            {
+                Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + convertTimeout + "ms");
+                await ConvertTask;
+                return;
+            }
+            else if (string.IsNullOrEmpty(ConvertTask.Result))
+            {
+                // Failure printed in convertFile
+                return;
+            }
+
+            // Open converted file
+            Task<(bool, string)> ConvertResultTask = Task.Run(() => OpenFile(application, ConvertTask.Result));
+            if (!ConvertResultTask.Wait(openTimeout))
+            {
+                Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + openTimeout + "ms");
+                restartApplication(application);
+                await ConvertResultTask;
+                return;
+            }
+            else if (!ConvertResultTask.Result.Item1)
+            {
+                Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
+                restartApplication(application);
+                return;
+            }
+
+            // Passed
+            watch.Stop();
+            Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
+
+        }
+
+        public static void TestDirectory(string application, DirectoryInfo dir, string convertTo)
+        {
             Console.WriteLine("\n\nStarting test directory " + dir.Name);
             FileInfo[] fileInfos = dir.GetFiles();
-            var watch = new System.Diagnostics.Stopwatch();
             foreach (FileInfo file in fileInfos)
             {
                 if (!allowedExtension.Contains(file.Extension)) {
                     Console.WriteLine("\nSkipping file " + file.Name);
                     continue;
                 }
-
-                Console.WriteLine("\nStarting test for " + file.Name);
-                watch.Restart();
-
-                // Open original file
-                Task<(bool, string)> DownloadResultTask = Task.Run(() => testFile(application, file.FullName));
-                if (!DownloadResultTask.Wait(timeout))
-                {
-                    Console.WriteLine("Fail: Opening original file timeout: " + file.Name + " Timed out after " + timeout + "ms");
-                    restartApplication(application);
-                    await DownloadResultTask;
-                    continue;
-                }
-                else if (!DownloadResultTask.Result.Item1)
-                {
-                    Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
-                    restartApplication(application);
-                    continue;
-                }
-
-                // Convert file
-                Task<string> ConvertTask = Task.Run(() => convertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
-                if (!ConvertTask.Wait(timeout))
-                {
-                    Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + timeout + "ms");
-                    await ConvertTask;
-                    continue;
-                }
-                else if (string.IsNullOrEmpty(ConvertTask.Result))
-                {
-                    // Failure printed in convertFile
-                    continue;
-                }
-
-                // Open converted file
-                Task<(bool, string)> ConvertResultTask = Task.Run(() => testFile(application, ConvertTask.Result));
-                if (!ConvertResultTask.Wait(timeout))
-                {
-                    Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + timeout + "ms");
-                    restartApplication(application);
-                    await ConvertResultTask;
-                    continue;
-                }
-                else if (!ConvertResultTask.Result.Item1)
-                {
-                    Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
-                    restartApplication(application);
-                    continue;
-                }
-
-                // Passed
-                watch.Stop();
-                Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
+                TestFile(application, file, convertTo);
             }
         }
 
-        public static async Task testDownloadedfiles(string application)
+        public static void TestDownloadedFiles(string application)
         {
             DirectoryInfo downloadedDirInfo = new DirectoryInfo(@"download");
             if (!downloadedDirInfo.Exists)
@@ -251,20 +258,20 @@ namespace mso_test
             {
                 if (application == "word" && (dict.Name == "doc" || dict.Name == "docx" || dict.Name == "odt"))
                 {
-                    await testDirectoriy(application, dict, "docx");
+                    TestDirectory(application, dict, "docx");
                 }
                 else if (application == "excel" && (dict.Name == "xls" || dict.Name == "xlsx" || dict.Name == "ods"))
                 {
-                    await testDirectoriy(application, dict, "xlsx");
+                    TestDirectory(application, dict, "xlsx");
                 }
                 else if (application == "powerpoint" && (dict.Name == "ppt" || dict.Name == "pptx" || dict.Name == "odp"))
                 {
-                    await testDirectoriy(application, dict, "pptx");
+                    TestDirectory(application, dict, "pptx");
                 }
             }
         }
 
-        public static async Task<string> convertFile(string application, string fullFileName, string fileName, string convertTo)
+        public static async Task<string> ConvertFile(string application, string fullFileName, string fileName, string convertTo)
         {
             using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "/" + convertTo))
             {
@@ -297,7 +304,7 @@ namespace mso_test
             return "";
         }
 
-        private static (bool, string) TestWordDoc(string fileName)
+        private static (bool, string) OpenWordDoc(string fileName)
         {
             word.Document doc = null;
             bool testResult = true;
@@ -328,7 +335,7 @@ namespace mso_test
             return (testResult, errorMessage);
         }
 
-        private static (bool, string) TestExcelWorkbook(string fileName)
+        private static (bool, string) OpenExcelWorkbook(string fileName)
         {
             excel.Workbook wb = null;
             bool testResult = true;
@@ -360,7 +367,7 @@ namespace mso_test
             return (testResult, errorMessage);
         }
 
-        private static (bool, string) TestPowerPointPresentation(string fileName)
+        private static (bool, string) OpenPowerPointPresentation(string fileName)
         {
             powerPoint.Presentation presentation = null;
             bool testResult = true;
