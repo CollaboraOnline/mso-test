@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -24,6 +25,33 @@ namespace mso_test
         public static word.Application wordApp;
         public static excel.Application excelApp;
         public static powerPoint.Application powerPointApp;
+
+        /*
+         * Sometimes app.Quit() does not actually quit the application, or other instances of the application
+         * can be open, especially if a previous file errored or was interrupted. The open applications can
+         * cause issues when testing the next file. This force quits all instances by process name so that
+         * the next test file can be tested on a new instance of the application
+         */
+        public static void forceQuitAllApplication(string application)
+        {
+            if (application == "word")
+            {
+                application = "WINWORD";
+            }
+            else if (application == "excel")
+            {
+                application = "EXCEL";
+            }
+            else if (application == "powerpoint")
+            {
+                application = "POWERPNT";
+            }
+            Process[] processes = Process.GetProcessesByName(application);
+            foreach (Process p in processes)
+            {
+                try { p.Kill(); } catch { }
+            }
+        }
 
         public static void startApplication(string application)
         {
@@ -76,6 +104,8 @@ namespace mso_test
             wordApp = null;
             excelApp = null;
             powerPointApp = null;
+
+            forceQuitAllApplication(application);
         }
 
         public static void restartApplication(string application)
@@ -111,10 +141,12 @@ namespace mso_test
                 Environment.Exit(1);
             }
 
-            startApplication(args[0]);
-            await testDownloadedfiles(args[0]);
+            var application = args[0];
+            forceQuitAllApplication(application);
+            startApplication(application);
+            await testDownloadedfiles(application);
 
-            quitApplication(args[0]);
+            quitApplication(application);
         }
 
         public static async Task<(bool, string)> testFile(string application, string fileName)
@@ -160,6 +192,7 @@ namespace mso_test
                 {
                     Console.WriteLine("Fail: Opening original file timeout: " + file.Name + " Timed out after " + timeout + "ms");
                     restartApplication(application);
+                    await DownloadResultTask;
                     continue;
                 }
                 else if (!DownloadResultTask.Result.Item1)
@@ -174,6 +207,7 @@ namespace mso_test
                 if (!ConvertTask.Wait(timeout))
                 {
                     Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + timeout + "ms");
+                    await ConvertTask;
                     continue;
                 }
                 else if (string.IsNullOrEmpty(ConvertTask.Result))
@@ -188,6 +222,7 @@ namespace mso_test
                 {
                     Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + timeout + "ms");
                     restartApplication(application);
+                    await ConvertResultTask;
                     continue;
                 }
                 else if (!ConvertResultTask.Result.Item1)
@@ -208,6 +243,7 @@ namespace mso_test
             DirectoryInfo downloadedDirInfo = new DirectoryInfo(@"download");
             if (!downloadedDirInfo.Exists)
             {
+                Console.Error.WriteLine("Download directory does not exist: " + downloadedDirInfo.FullName);
                 return;
             }
             DirectoryInfo[] downloadedDictInfo = downloadedDirInfo.GetDirectories();
@@ -275,16 +311,6 @@ namespace mso_test
             {
                 testResult = false;
                 errorMessage = e.Message;
-                try
-                {
-                    // this statment does nothing, we just wanna make sure wordApp.Documents is valid
-                    // some docs may crash the app make Documents invalid, so here it may throw error so we restart the app
-                    var temp = wordApp.Documents;
-                }
-                catch
-                {
-                    restartApplication("word");
-                }
             }
             if (doc != null)
             {
@@ -316,16 +342,6 @@ namespace mso_test
             {
                 testResult = false;
                 errorMessage = e.Message;
-                try
-                {
-                    // this statment does nothing, we just wanna make sure excelApp.Workbooks is valid
-                    // some docs may crash the app make Workbooks invalid, so here it may throw error so we restart the app
-                    var temp = excelApp.Workbooks;
-                }
-                catch
-                {
-                    restartApplication("excel");
-                }
             }
 
             if (wb != null)
@@ -358,17 +374,6 @@ namespace mso_test
             {
                 testResult = false;
                 errorMessage = e.Message;
-
-                try
-                {
-                    // this statment does nothing, we just wanna make sure powerPointApp.Presentations is valid
-                    // some docs may crash the app make Presentations invalid, so here it may throw error so we restart the app
-                    var temp = powerPointApp.Presentations;
-                }
-                catch
-                {
-                    restartApplication("powerpoint");
-                }
             }
 
             if (presentation != null)
