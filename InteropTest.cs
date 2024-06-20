@@ -143,6 +143,11 @@ namespace mso_test
             ".pptx"
         };
 
+        public static HashSet<string> knownGoodFiles;
+        public static HashSet<string> failOpenOriginalFiles;
+        public static HashSet<string> failConvertFiles;
+        public static HashSet<string> failOpenConvertedFiles;
+
         //args can be word/excel/powerpoint
         //specified appropriate docs will be tested with the specified program
         private static void Main(string[] args)
@@ -154,6 +159,16 @@ namespace mso_test
                 Console.Error.WriteLine("Required argument word excel or powerpoint");
                 Environment.Exit(1);
             }
+
+            // These txt files must exist, but they can be empty
+            knownGoodFiles = ReadFileToSet("knownGoodFiles.txt");
+            Console.WriteLine($"Loaded list of {knownGoodFiles.Count} known good files");
+            failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
+            Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files that are known to fail to open in Office");
+            failConvertFiles = ReadFileToSet("failConvertFiles.txt");
+            Console.WriteLine($"Loaded list of {failConvertFiles.Count} files that are known to fail to convert");
+            failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
+            Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files that are known to fail to open after converting");
 
             var application = args[0];
             forceQuitAllApplication(application);
@@ -250,8 +265,29 @@ namespace mso_test
             FileInfo[] fileInfos = dir.GetFiles();
             foreach (FileInfo file in fileInfos)
             {
-                if (!allowedExtension.Contains(file.Extension)) {
-                    Console.WriteLine("\nSkipping file " + file.Name);
+                if (!allowedExtension.Contains(file.Extension))
+                {
+                    Console.WriteLine("\nSkipping non test file " + file.Name);
+                    continue;
+                }
+                if (knownGoodFiles.Contains(file.Name))
+                {
+                    Console.WriteLine("\nSkipping known good file " + file.Name);
+                    continue;
+                }
+                if (failOpenOriginalFiles.Contains(file.Name))
+                {
+                    Console.WriteLine("\nSkipping file that fails to open " + file.Name);
+                    continue;
+                }
+                if (failConvertFiles.Contains(file.Name))
+                {
+                    Console.WriteLine("\nSkipping file that fails to convert " + file.Name);
+                    continue;
+                }
+                if (failOpenConvertedFiles.Contains(file.Name))
+                {
+                    Console.WriteLine("\nSkipping file that fails to open after being converted " + file.Name);
                     continue;
                 }
                 TestFile(application, file, convertTo);
@@ -410,6 +446,20 @@ namespace mso_test
             }
 
             return (testResult, errorMessage);
+        }
+
+        public static HashSet<string> ReadFileToSet(string filename)
+        {
+            HashSet<string> set = new HashSet<string>();
+            using (StreamReader reader = new StreamReader(filename))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    set.Add(line.Trim());
+                }
+            }
+            return set;
         }
     }
 }
