@@ -204,51 +204,51 @@ namespace mso_test
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             var openTimeout = 10000;
-            var convertTimeout = 30000;
+            var convertTimeout = 60000;
 
             // Open original file
-            Task<(bool, string)> DownloadResultTask = Task.Run(() => OpenFile(application, file.FullName));
-            if (!DownloadResultTask.Wait(openTimeout))
+            Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
+            if (!OpenOriginalFileTask.Wait(openTimeout))
             {
                 Console.WriteLine("Fail; Opening original file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
                 restartApplication(application);
-                await DownloadResultTask;
+                await OpenOriginalFileTask;
                 return;
             }
-            else if (!DownloadResultTask.Result.Item1)
+            else if (!OpenOriginalFileTask.Result.Item1)
             {
-                Console.WriteLine("Fail; Opening original file; " + file.Name + "; " + DownloadResultTask.Result.Item2);
+                Console.WriteLine("Fail; Opening original file; " + file.Name + "; " + OpenOriginalFileTask.Result.Item2);
                 restartApplication(application);
                 return;
             }
 
             // Convert file
-            Task<string> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
+            Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
                 Console.WriteLine("Fail; Converting file timeout; " + file.Name + "; Test timed out after " + convertTimeout + "ms");
-                // TODO cancel ConvertTask
+                coolClient.CancelPendingRequests();
                 await ConvertTask;
                 return;
             }
-            else if (string.IsNullOrEmpty(ConvertTask.Result))
+            else if (!ConvertTask.Result.Item1)
             {
-                // Failure printed in ConvertFile
+                Console.WriteLine("Fail; Converting file; " + file.Name + "; " + ConvertTask.Result.Item3);
                 return;
             }
 
             // Open converted file
-            Task<(bool, string)> ConvertResultTask = Task.Run(() => OpenFile(application, ConvertTask.Result));
-            if (!ConvertResultTask.Wait(openTimeout))
+            Task<(bool, string)> OpenConvertedFileTask = Task.Run(() => OpenFile(application, ConvertTask.Result.Item2));
+            if (!OpenConvertedFileTask.Wait(openTimeout))
             {
                 Console.WriteLine("Fail; Opening converted file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
                 restartApplication(application);
-                await ConvertResultTask;
+                await OpenConvertedFileTask;
                 return;
             }
-            else if (!ConvertResultTask.Result.Item1)
+            else if (!OpenConvertedFileTask.Result.Item1)
             {
-                Console.WriteLine("Fail; Opening converted file; " + file.Name + "; " + ConvertResultTask.Result.Item2);
+                Console.WriteLine("Fail; Opening converted file; " + file.Name + "; " + OpenConvertedFileTask.Result.Item2);
                 restartApplication(application);
                 return;
             }
@@ -320,7 +320,10 @@ namespace mso_test
             }
         }
 
-        public static async Task<string> ConvertFile(string application, string fullFileName, string fileName, string convertTo)
+        /*
+         * Returns: (success, converted file name, error message)
+         */
+        public static async Task<(bool, string, string)> ConvertFile(string application, string fullFileName, string fileName, string convertTo)
         {
             using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "/" + convertTo))
             {
@@ -335,22 +338,21 @@ namespace mso_test
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            Console.WriteLine("Fail; Converting file; " + fileName + "; HTTP StatusCode: " + response.StatusCode);
-                            return "";
+                            return (false,"","HTTP StatusCode: " + response.StatusCode);
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
                         string convertedFilePath = @"converted\" + convertTo + @"\" + fileName + "." + convertTo;
                         using (FileStream fs = File.Open(convertedFilePath, FileMode.Create))
                         {
-                            return await response.Content.CopyToAsync(fs).ContinueWith(task => { return fs.Name; });
+                            await response.Content.CopyToAsync(fs);
+                            return (true, fs.Name, "");
                         }
                     }
                 }
                 catch (Exception ex) {
-                    Console.WriteLine("Fail; Converting file; " + fileName + "; Exception during convert: " + ex.Message);
+                    return (false, "", "Exception during convert: " + ex.Message);
                 }
             }
-            return "";
         }
 
         private static (bool, string) OpenWordDoc(string fileName)
