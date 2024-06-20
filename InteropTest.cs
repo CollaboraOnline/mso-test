@@ -195,14 +195,14 @@ namespace mso_test
             Task<(bool, string)> DownloadResultTask = Task.Run(() => OpenFile(application, file.FullName));
             if (!DownloadResultTask.Wait(openTimeout))
             {
-                Console.WriteLine("Fail: Opening original file timeout: " + file.Name + " Timed out after " + openTimeout + "ms");
+                Console.WriteLine("Fail; Opening original file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
                 restartApplication(application);
                 await DownloadResultTask;
                 return;
             }
             else if (!DownloadResultTask.Result.Item1)
             {
-                Console.WriteLine("Fail: Opening original file: " + file.Name + " " + DownloadResultTask.Result.Item2);
+                Console.WriteLine("Fail; Opening original file; " + file.Name + "; " + DownloadResultTask.Result.Item2);
                 restartApplication(application);
                 return;
             }
@@ -211,13 +211,14 @@ namespace mso_test
             Task<string> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
-                Console.WriteLine("Fail: Converting file timeout: " + file.Name + " Test timed out after " + convertTimeout + "ms");
+                Console.WriteLine("Fail; Converting file timeout; " + file.Name + "; Test timed out after " + convertTimeout + "ms");
+                // TODO cancel ConvertTask
                 await ConvertTask;
                 return;
             }
             else if (string.IsNullOrEmpty(ConvertTask.Result))
             {
-                // Failure printed in convertFile
+                // Failure printed in ConvertFile
                 return;
             }
 
@@ -225,21 +226,21 @@ namespace mso_test
             Task<(bool, string)> ConvertResultTask = Task.Run(() => OpenFile(application, ConvertTask.Result));
             if (!ConvertResultTask.Wait(openTimeout))
             {
-                Console.WriteLine("Fail: Opening converted file timeout: " + file.Name + " Timed out after " + openTimeout + "ms");
+                Console.WriteLine("Fail; Opening converted file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
                 restartApplication(application);
                 await ConvertResultTask;
                 return;
             }
             else if (!ConvertResultTask.Result.Item1)
             {
-                Console.WriteLine("Fail: Opening converted file: " + file.Name + " " + ConvertResultTask.Result.Item2);
+                Console.WriteLine("Fail; Opening converted file; " + file.Name + "; " + ConvertResultTask.Result.Item2);
                 restartApplication(application);
                 return;
             }
 
             // Passed
             watch.Stop();
-            Console.WriteLine(file.Name + $" testing took {watch.ElapsedMilliseconds} ms");
+            Console.WriteLine("Success; " + file.Name + $"; {watch.ElapsedMilliseconds}ms");
 
         }
 
@@ -298,7 +299,7 @@ namespace mso_test
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            Console.WriteLine("Fail: Converting file: " + fileName + " HTTP StatusCode: " + response.StatusCode);
+                            Console.WriteLine("Fail; Converting file; " + fileName + "; HTTP StatusCode: " + response.StatusCode);
                             return "";
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
@@ -310,7 +311,7 @@ namespace mso_test
                     }
                 }
                 catch (Exception ex) {
-                    Console.WriteLine("Fail: Converting file: " + fileName + " Exception during convert: " + ex.Message);
+                    Console.WriteLine("Fail; Converting file; " + fileName + "; Exception during convert: " + ex.Message);
                 }
             }
             return "";
