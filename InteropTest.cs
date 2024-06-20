@@ -57,25 +57,37 @@ namespace mso_test
 
         public static void startApplication(string application)
         {
-            if (application == "word")
+            try
             {
-                wordApp = new word.Application();
-                wordApp.DisplayAlerts = word.WdAlertLevel.wdAlertsNone;
-                wordApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
-            }
+                if (application == "word")
+                {
+                    wordApp = new word.Application();
+                    wordApp.DisplayAlerts = word.WdAlertLevel.wdAlertsNone;
+                    wordApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                }
 
-            if (application == "excel")
-            {
-                excelApp = new excel.Application();
-                excelApp.DisplayAlerts = false;
-                excelApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
-            }
+                if (application == "excel")
+                {
+                    excelApp = new excel.Application();
+                    excelApp.DisplayAlerts = false;
+                    excelApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                }
 
-            if (application == "powerpoint")
+                if (application == "powerpoint")
+                {
+                    powerPointApp = new powerPoint.Application();
+                    powerPointApp.DisplayAlerts = powerPoint.PpAlertLevel.ppAlertsNone;
+                    powerPointApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                }
+            }
+            catch (Exception ex)
             {
-                powerPointApp = new powerPoint.Application();
-                powerPointApp.DisplayAlerts = powerPoint.PpAlertLevel.ppAlertsNone;
-                powerPointApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                Console.WriteLine("Exception on startup:");
+                Console.WriteLine(ex.ToString());
+                System.Threading.Thread.Sleep(10000);
+                forceQuitAllApplication(application);
+                System.Threading.Thread.Sleep(10000);
+                startApplication(application);
             }
         }
 
