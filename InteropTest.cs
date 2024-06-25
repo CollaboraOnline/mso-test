@@ -143,10 +143,10 @@ namespace mso_test
             ".pptx"
         };
 
-        public static HashSet<string> knownGoodFiles;
-        public static HashSet<string> failOpenOriginalFiles;
-        public static HashSet<string> failConvertFiles;
-        public static HashSet<string> failOpenConvertedFiles;
+        public static HashSet<string> passFiles = new HashSet<string>();
+        public static HashSet<string> failOpenOriginalFiles = new HashSet<string>();
+        public static HashSet<string> failConvertFiles = new HashSet<string>();
+        public static HashSet<string> failOpenConvertedFiles = new HashSet<string>();
 
         //args can be word/excel/powerpoint
         //specified appropriate docs will be tested with the specified program
@@ -154,25 +154,39 @@ namespace mso_test
         {
             ServicePointManager.Expect100Continue = false;
 
-            if (args.Length <= 0)
+            HashSet<string> allowedApplications = new HashSet<string>() { "word", "excel", "powerpoint" };
+            if (args.Length <= 0 || !allowedApplications.Contains(args[0]))
             {
-                Console.Error.WriteLine("Required argument word excel or powerpoint");
+                Console.Error.WriteLine("Usage: mso-test.exe <application>");
+                Console.Error.WriteLine("    where <application> is \"word\" \"excel\" or \"powerpoint\"");
                 Environment.Exit(1);
             }
 
-            // These txt files must exist, but they can be empty
-            knownGoodFiles = ReadFileToSet("knownGoodFiles.txt");
-            Console.WriteLine($"Loaded list of {knownGoodFiles.Count} known good files");
-            failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
-            Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files that are known to fail to open in Office");
-            failConvertFiles = ReadFileToSet("failConvertFiles.txt");
-            Console.WriteLine($"Loaded list of {failConvertFiles.Count} files that are known to fail to convert");
-            failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
-            Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files that are known to fail to open after converting");
+            if (args.Contains("skipPass"))
+            {
+                passFiles = ReadFileToSet("passFiles.txt");
+                Console.WriteLine($"Loaded list of {passFiles.Count} known passing files");
+            }
+            if (args.Contains("skipFail") || args.Contains("skipFailOpenOriginalFiles"))
+            {
+                failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
+                Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files that are known to fail to open in Office");
+            }
+            if (args.Contains("skipFail") || args.Contains("skipFailConvertFiles"))
+            {
+                failConvertFiles = ReadFileToSet("failConvertFiles.txt");
+                Console.WriteLine($"Loaded list of {failConvertFiles.Count} files that are known to fail to convert");
+            }
+            if (args.Contains("skipFail") || args.Contains("skipFailOpenConvertedFiles"))
+            {
+                failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
+                Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files that are known to fail to open after converting");
+            }
 
             var application = args[0];
             forceQuitAllApplication(application);
             startApplication(application);
+
             TestDownloadedFiles(application);
 
             quitApplication(application);
@@ -270,9 +284,9 @@ namespace mso_test
                     Console.WriteLine("\nSkipping non test file " + file.Name);
                     continue;
                 }
-                if (knownGoodFiles.Contains(file.Name))
+                if (passFiles.Contains(file.Name))
                 {
-                    Console.WriteLine("\nSkipping known good file " + file.Name);
+                    Console.WriteLine("\nSkipping passing file " + file.Name);
                     continue;
                 }
                 if (failOpenOriginalFiles.Contains(file.Name))
