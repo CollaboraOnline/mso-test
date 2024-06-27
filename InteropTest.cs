@@ -6,19 +6,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using excel = Microsoft.Office.Interop.Excel;
 using powerPoint = Microsoft.Office.Interop.PowerPoint;
 using word = Microsoft.Office.Interop.Word;
-using Microsoft.Office.Interop.Excel;
-using System.Threading;
+using System.Linq;
 
 namespace mso_test
 {
@@ -165,22 +162,22 @@ namespace mso_test
             if (args.Contains("skipPass"))
             {
                 passFiles = ReadFileToSet("passFiles.txt");
-                Console.WriteLine($"Loaded list of {passFiles.Count} known passing files");
+                Console.WriteLine($"Loaded list of {passFiles.Count} files expected to pass");
             }
             if (args.Contains("skipFail") || args.Contains("skipFailOpenOriginalFiles"))
             {
                 failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
-                Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files that are known to fail to open in Office");
+                Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files expected to fail to open in Office");
             }
             if (args.Contains("skipFail") || args.Contains("skipFailConvertFiles"))
             {
                 failConvertFiles = ReadFileToSet("failConvertFiles.txt");
-                Console.WriteLine($"Loaded list of {failConvertFiles.Count} files that are known to fail to convert");
+                Console.WriteLine($"Loaded list of {failConvertFiles.Count} files expected to fail to convert");
             }
             if (args.Contains("skipFail") || args.Contains("skipFailOpenConvertedFiles"))
             {
                 failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
-                Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files that are known to fail to open after converting");
+                Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files expected to fail to open in Office after converting");
             }
 
             var application = args[0];
@@ -224,14 +221,14 @@ namespace mso_test
             Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
             if (!OpenOriginalFileTask.Wait(openTimeout))
             {
-                Console.WriteLine("Fail; Opening original file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
+                Console.WriteLine($"Fail opening original file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout}ms");
                 restartApplication(application);
                 await OpenOriginalFileTask;
                 return;
             }
             else if (!OpenOriginalFileTask.Result.Item1)
             {
-                Console.WriteLine("Fail; Opening original file; " + file.Name + "; " + OpenOriginalFileTask.Result.Item2);
+                Console.WriteLine($"Fail opening original file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenOriginalFileTask.Result.Item2}");
                 restartApplication(application);
                 return;
             }
@@ -240,14 +237,14 @@ namespace mso_test
             Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
-                Console.WriteLine("Fail; Converting file timeout; " + file.Name + "; Test timed out after " + convertTimeout + "ms");
+                Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout}ms");
                 coolClient.CancelPendingRequests();
                 await ConvertTask;
                 return;
             }
             else if (!ConvertTask.Result.Item1)
             {
-                Console.WriteLine("Fail; Converting file; " + file.Name + "; " + ConvertTask.Result.Item3);
+                Console.WriteLine($"Fail converting file; {file.Name}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
                 return;
             }
 
@@ -255,22 +252,20 @@ namespace mso_test
             Task<(bool, string)> OpenConvertedFileTask = Task.Run(() => OpenFile(application, ConvertTask.Result.Item2));
             if (!OpenConvertedFileTask.Wait(openTimeout))
             {
-                Console.WriteLine("Fail; Opening converted file timeout; " + file.Name + "; Timed out after " + openTimeout + "ms");
+                Console.WriteLine($"Fail opening converted file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout}ms");
                 restartApplication(application);
                 await OpenConvertedFileTask;
                 return;
             }
             else if (!OpenConvertedFileTask.Result.Item1)
             {
-                Console.WriteLine("Fail; Opening converted file; " + file.Name + "; " + OpenConvertedFileTask.Result.Item2);
+                Console.WriteLine($"Fail opening converted file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenConvertedFileTask.Result.Item2}");
                 restartApplication(application);
                 return;
             }
 
             // Passed
-            watch.Stop();
-            Console.WriteLine("Success; " + file.Name + $"; {watch.ElapsedMilliseconds}ms");
-
+            Console.WriteLine($"Pass; {file.Name}; {watch.ElapsedMilliseconds} ms");
         }
 
         public static void TestDirectory(string application, DirectoryInfo dir, string convertTo)
