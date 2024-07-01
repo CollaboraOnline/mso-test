@@ -109,7 +109,19 @@ namespace file_handling
                 {
                     try
                     {
+                        Console.WriteLine("Moving file " + file);
                         System.IO.File.Move(file, file.Substring(0, file.Length - ".failed".Length));
+                    }
+                    catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
+                }
+
+                string[] convfailfiles = System.IO.Directory.GetFiles(dir, "*.convfail");
+                foreach (string file in convfailfiles)
+                {
+                    try
+                    {
+                        Console.WriteLine("Moving file " + file);
+                        System.IO.File.Move(file, file.Substring(0, file.Length - ".convfail".Length));
                     }
                     catch (System.IO.IOException ex) { Console.WriteLine(ex.Message); }
                 }
