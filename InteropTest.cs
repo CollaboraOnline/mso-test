@@ -144,6 +144,11 @@ namespace mso_test
         public static HashSet<string> failOpenOriginalFiles = new HashSet<string>();
         public static HashSet<string> failConvertFiles = new HashSet<string>();
         public static HashSet<string> failOpenConvertedFiles = new HashSet<string>();
+        public static bool skipPass = false;
+        public static bool skipFailOpenOriginalFiles = false;
+        public static bool skipFailConvertFiles = false;
+        public static bool skipFailOpenConvertedFiles = false;
+        public static bool skipUnknown = false;
 
         //args can be word/excel/powerpoint
         //specified appropriate docs will be tested with the specified program
@@ -159,25 +164,34 @@ namespace mso_test
                 Environment.Exit(1);
             }
 
+            passFiles = ReadFileToSet("passFiles.txt");
+            Console.WriteLine($"Loaded list of {passFiles.Count} files expected to pass");
+            failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
+            Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files expected to fail to open in Office");
+            failConvertFiles = ReadFileToSet("failConvertFiles.txt");
+            Console.WriteLine($"Loaded list of {failConvertFiles.Count} files expected to fail to convert");
+            failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
+            Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files expected to fail to open in Office after converting");
+
             if (args.Contains("skipPass"))
             {
-                passFiles = ReadFileToSet("passFiles.txt");
-                Console.WriteLine($"Loaded list of {passFiles.Count} files expected to pass");
+                skipPass = true;
             }
             if (args.Contains("skipFail") || args.Contains("skipFailOpenOriginalFiles"))
             {
-                failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
-                Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files expected to fail to open in Office");
+                skipFailOpenOriginalFiles = true;
             }
             if (args.Contains("skipFail") || args.Contains("skipFailConvertFiles"))
             {
-                failConvertFiles = ReadFileToSet("failConvertFiles.txt");
-                Console.WriteLine($"Loaded list of {failConvertFiles.Count} files expected to fail to convert");
+                skipFailConvertFiles = true;
             }
             if (args.Contains("skipFail") || args.Contains("skipFailOpenConvertedFiles"))
             {
-                failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
-                Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files expected to fail to open in Office after converting");
+                skipFailOpenConvertedFiles = true;
+            }
+            if (args.Contains("skipUnknown"))
+            {
+                skipUnknown = true;
             }
 
             var application = args[0];
@@ -279,27 +293,46 @@ namespace mso_test
                     Console.WriteLine("\nSkipping non test file " + file.Name);
                     continue;
                 }
-                if (passFiles.Contains(file.Name))
+                else if (passFiles.Contains(file.Name) )
                 {
-                    Console.WriteLine("\nSkipping passing file " + file.Name);
+                    if (skipPass)
+                    {
+                        Console.WriteLine("\nSkipping passing file " + file.Name);
+                        continue;
+                    }
+                }
+                else if (failOpenOriginalFiles.Contains(file.Name))
+                {
+                    if (skipFailOpenOriginalFiles)
+                    {
+                        Console.WriteLine("\nSkipping file that fails to open " + file.Name);
+                        continue;
+                    }
+                }
+                else if (failConvertFiles.Contains(file.Name))
+                {
+                    if (skipFailConvertFiles)
+                    {
+                        Console.WriteLine("\nSkipping file that fails to convert " + file.Name);
+                        continue;
+                    }
+                }
+                else if (failOpenConvertedFiles.Contains(file.Name))
+                {
+                    if (skipFailOpenConvertedFiles)
+                    {
+                        Console.WriteLine("\nSkipping file that fails to open after being converted " + file.Name);
+                        continue;
+                    }
+                }
+                else if (skipUnknown)
+                {
+                    Console.WriteLine("\nSkipping unknown file " + file.Name);
                     continue;
                 }
-                if (failOpenOriginalFiles.Contains(file.Name))
-                {
-                    Console.WriteLine("\nSkipping file that fails to open " + file.Name);
-                    continue;
-                }
-                if (failConvertFiles.Contains(file.Name))
-                {
-                    Console.WriteLine("\nSkipping file that fails to convert " + file.Name);
-                    continue;
-                }
-                if (failOpenConvertedFiles.Contains(file.Name))
-                {
-                    Console.WriteLine("\nSkipping file that fails to open after being converted " + file.Name);
-                    continue;
-                }
+
                 TestFile(application, file, convertTo);
+
             }
         }
 
