@@ -225,7 +225,7 @@ namespace mso_test
 
         public static async void TestFile(string application, FileInfo file, string convertTo)
         {
-            Console.WriteLine("\nStarting test for " + file.Name);
+            Console.WriteLine("\nStarting test for " + file.Name + " at " + DateTime.Now.ToString("s"));
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             var openTimeout = 10000;
