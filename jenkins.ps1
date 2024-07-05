@@ -7,8 +7,8 @@ if ($app -ne "word" -and $app -ne "excel" -and $app -ne "powerpoint") {
 	exit 1
 }
 
-.\mso-test.exe "$app" | tee -filepath "output_$app.txt"
-$failures = Select-String -Path "output_$app.txt" -Pattern "Fail;"
+.\mso-test.exe "$app" skipFail | tee -filepath "output_$app.txt"
+$failures = Select-String -Path "output_$app.txt" -Pattern "Fail"
 
 if ($failures -ne $null) {
 	echo Failures:
