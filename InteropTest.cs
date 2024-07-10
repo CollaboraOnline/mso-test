@@ -125,7 +125,7 @@ namespace mso_test
             startApplication(application);
         }
 
-        public static HttpClient coolClient = new HttpClient() { BaseAddress = new Uri("https://staging.eu.collaboraonline.com/cool/convert-to") };
+        public static HttpClient coolClient = new HttpClient() { BaseAddress = new Uri("https://staging.eu.collaboraonline.com/") };
 
         public static HashSet<string> allowedExtension = new HashSet<string>()
         {
@@ -247,8 +247,38 @@ namespace mso_test
                 return;
             }
 
+            // Test convert service
+            bool serverStatus = false;
+            int count = 0;
+            while (!serverStatus)
+            {
+                if (count>=10)
+                {
+                    Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Server not available after 10 attempts");
+                    return;
+                }
+                Task<(bool, string)> TestConvertServiceTask = Task.Run(() => TestConvertService());
+                if (!TestConvertServiceTask.Wait(convertTimeout))
+                {
+                    Console.WriteLine($"Server not available timeout. Sleeping for 10s. Timed out after {convertTimeout}ms");
+                    coolClient.CancelPendingRequests();
+                    await TestConvertServiceTask;
+                    System.Threading.Thread.Sleep(100);
+                }
+                else if (!TestConvertServiceTask.Result.Item1)
+                {
+                    Console.WriteLine($"Server not available. Sleeping for 10s. {TestConvertServiceTask.Result.Item2}");
+                    System.Threading.Thread.Sleep(100);
+                }
+                else if (TestConvertServiceTask.Result.Item1)
+                {
+                    serverStatus = true;
+                }
+                count++;
+            }
+
             // Convert file
-            Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
+            Task <(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
                 Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout}ms");
@@ -367,7 +397,7 @@ namespace mso_test
          */
         public static async Task<(bool, string, string)> ConvertFile(string application, string fullFileName, string fileName, string convertTo)
         {
-            using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "/" + convertTo))
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "cool/convert-to/" + convertTo))
             {
                 var multipartContent = new MultipartFormDataContent
                 {
@@ -380,7 +410,7 @@ namespace mso_test
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            return (false,"","HTTP StatusCode: " + response.StatusCode);
+                            return (false, "", "HTTP StatusCode: " + response.StatusCode);
                         }
                         Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
                         string convertedFilePath = @"converted\" + convertTo + @"\" + fileName + "." + convertTo;
@@ -391,10 +421,36 @@ namespace mso_test
                         }
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     return (false, "", "Exception during convert: " + ex.Message);
                 }
             }
+        }
+
+        /*
+         * Returns: (success, error message)
+         */
+        public static async Task<(bool, string)> TestConvertService()
+        {
+            using (var request = new HttpRequestMessage(new HttpMethod("GET"), coolClient.BaseAddress + "hosting/capabilities"))
+            {
+                try
+                {
+                    using (var response = await coolClient.SendAsync(request))
+                    {
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            return (false, "HTTP StatusCode: " + response.StatusCode);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, "Exception during convert: " + ex.Message);
+                }
+            }
+            return (true, "");
         }
 
         private static (bool, string) OpenWordDoc(string fileName)
