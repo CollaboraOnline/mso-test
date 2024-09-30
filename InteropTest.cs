@@ -228,8 +228,8 @@ namespace mso_test
             Console.WriteLine("\nStarting test for " + file.Name + " at " + DateTime.Now.ToString("s"));
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            var openTimeout = 10000;
-            var convertTimeout = 60000;
+            TimeSpan openTimeout = TimeSpan.FromMilliseconds(10000);
+            TimeSpan convertTimeout = TimeSpan.FromMilliseconds(60000);
 
             // Open original file
             Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
@@ -263,12 +263,12 @@ namespace mso_test
                     Console.WriteLine($"Server not available timeout. Sleeping for 10s. Timed out after {convertTimeout}ms");
                     coolClient.CancelPendingRequests();
                     await TestConvertServiceTask;
-                    System.Threading.Thread.Sleep(100);
+                    System.Threading.Thread.Sleep(10000);
                 }
                 else if (!TestConvertServiceTask.Result.Item1)
                 {
                     Console.WriteLine($"Server not available. Sleeping for 10s. {TestConvertServiceTask.Result.Item2}");
-                    System.Threading.Thread.Sleep(100);
+                    System.Threading.Thread.Sleep(10000);
                 }
                 else if (TestConvertServiceTask.Result.Item1)
                 {
@@ -551,13 +551,19 @@ namespace mso_test
         public static HashSet<string> ReadFileToSet(string filename)
         {
             HashSet<string> set = new HashSet<string>();
-            using (StreamReader reader = new StreamReader(filename))
+            try
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                using (StreamReader reader = new StreamReader(filename))
                 {
-                    set.Add(line.Trim());
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        set.Add(line.Trim());
+                    }
                 }
+            }
+            catch (FileNotFoundException e)
+            {
             }
             return set;
         }
