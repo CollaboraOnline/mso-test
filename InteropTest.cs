@@ -16,14 +16,26 @@ using excel = Microsoft.Office.Interop.Excel;
 using powerPoint = Microsoft.Office.Interop.PowerPoint;
 using word = Microsoft.Office.Interop.Word;
 using System.Linq;
+using System.Text;
 
 namespace mso_test
 {
     internal class InteropTest
     {
+        const string converterBaseAddress = "https://staging-perf.eu.collaboraonline.com/";
+
+        public static FileStatistics fileStats = new FileStatistics();
+
         public static word.Application wordApp;
         public static excel.Application excelApp;
         public static powerPoint.Application powerPointApp;
+
+        public enum ApplicationType
+        {
+            Word,
+            Excel,
+            PowerPoint
+        }
 
         /*
          * Sometimes app.Quit() does not actually quit the application, or other instances of the application
@@ -31,85 +43,91 @@ namespace mso_test
          * cause issues when testing the next file. This force quits all instances by process name so that
          * the next test file can be tested on a new instance of the application
          */
-        public static void forceQuitAllApplication(string application)
+        public static void forceQuitAllApplication(ApplicationType application)
         {
-            if (application == "word")
+            string runningProcess = "";
+            if (application == ApplicationType.Word)
             {
-                application = "WINWORD";
+                runningProcess = "WINWORD";
             }
-            else if (application == "excel")
+            else if (application == ApplicationType.Excel)
             {
-                application = "EXCEL";
+                runningProcess = "EXCEL";
             }
-            else if (application == "powerpoint")
+            else if (application == ApplicationType.PowerPoint)
             {
-                application = "POWERPNT";
+                runningProcess = "POWERPNT";
             }
-            Process[] processes = Process.GetProcessesByName(application);
+            Process[] processes = Process.GetProcessesByName(runningProcess);
             foreach (Process p in processes)
             {
                 try { p.Kill(); } catch { }
             }
         }
 
-        public static void startApplication(string application)
+        public static bool startApplication(ApplicationType application)
         {
-            try
+            for (int maxTries = 0; maxTries < 5; maxTries++)
             {
-                if (application == "word")
+                try
                 {
-                    wordApp = new word.Application();
-                    wordApp.DisplayAlerts = word.WdAlertLevel.wdAlertsNone;
-                    wordApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
-                }
+                    if (application == ApplicationType.Word)
+                    {
+                        wordApp = new word.Application();
+                        wordApp.DisplayAlerts = word.WdAlertLevel.wdAlertsNone;
+                        wordApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                    }
 
-                if (application == "excel")
-                {
-                    excelApp = new excel.Application();
-                    excelApp.DisplayAlerts = false;
-                    excelApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
-                }
+                    if (application == ApplicationType.Excel)
+                    {
+                        excelApp = new excel.Application();
+                        excelApp.DisplayAlerts = false;
+                        excelApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                    }
 
-                if (application == "powerpoint")
+                    if (application == ApplicationType.PowerPoint)
+                    {
+                        powerPointApp = new powerPoint.Application();
+                        powerPointApp.DisplayAlerts = powerPoint.PpAlertLevel.ppAlertsNone;
+                        powerPointApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                    }
+
+                    return true;
+                }
+                catch (Exception ex)
                 {
-                    powerPointApp = new powerPoint.Application();
-                    powerPointApp.DisplayAlerts = powerPoint.PpAlertLevel.ppAlertsNone;
-                    powerPointApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                    Console.WriteLine("Exception on startup:");
+                    Console.WriteLine(ex.ToString());
+                    System.Threading.Thread.Sleep(10000);
+                    forceQuitAllApplication(application);
+                    System.Threading.Thread.Sleep(10000);
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception on startup:");
-                Console.WriteLine(ex.ToString());
-                System.Threading.Thread.Sleep(10000);
-                forceQuitAllApplication(application);
-                System.Threading.Thread.Sleep(10000);
-                startApplication(application);
-            }
+            return false;
         }
 
-        public static void quitApplication(string application)
+        public static void quitApplication(ApplicationType application)
         {
             try
             {
-                if (application == "word")
+                if (application == ApplicationType.Word)
                     wordApp.Quit();
 
-                if (application == "excel")
+                if (application == ApplicationType.Excel)
                     excelApp.Quit();
 
-                if (application == "powerpoint")
+                if (application == ApplicationType.PowerPoint)
                     powerPointApp.Quit();
             }
             catch
             {
-                if (application == "word")
+                if (application == ApplicationType.Word)
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(wordApp);
 
-                if (application == "excel")
+                if (application == ApplicationType.Excel)
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelApp);
 
-                if (application == "powerpoint")
+                if (application == ApplicationType.PowerPoint)
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(powerPointApp);
             }
             wordApp = null;
@@ -119,15 +137,25 @@ namespace mso_test
             forceQuitAllApplication(application);
         }
 
-        public static void restartApplication(string application)
+        public static void restartApplication(ApplicationType application)
         {
             quitApplication(application);
             startApplication(application);
         }
 
-        public static HttpClient coolClient = new HttpClient() { BaseAddress = new Uri("https://staging.eu.collaboraonline.com/") };
+        public static HttpClient coolClient = new HttpClient() { BaseAddress = new Uri(converterBaseAddress) };
 
-        public static HashSet<string> allowedExtension = new HashSet<string>()
+        public static SortedSet<string> nativeMSOExtensions = new SortedSet<string>()
+        {
+            ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt"
+        };
+
+        public static SortedSet<string> nativeMSOFileTypes = new SortedSet<string>()
+        {
+            "docx", "doc", "xlsx", "xls", "pptx", "ppt"
+        };
+
+        public static SortedSet<string> allowedExtension = new SortedSet<string>()
         {
             ".odt",
             ".docx",
@@ -140,38 +168,32 @@ namespace mso_test
             ".pptx"
         };
 
-        public static HashSet<string> passFiles = new HashSet<string>();
-        public static HashSet<string> failOpenOriginalFiles = new HashSet<string>();
-        public static HashSet<string> failConvertFiles = new HashSet<string>();
-        public static HashSet<string> failOpenConvertedFiles = new HashSet<string>();
+        public static Dictionary<ApplicationType, SortedSet<string>> fileTypesPerApp = new Dictionary<ApplicationType, SortedSet<string>>()
+        {
+            { ApplicationType.Word, new SortedSet<string> { "doc", "docx", "odt" } },
+            { ApplicationType.Excel, new SortedSet<string> { "xls", "xlsx", "ods" } },
+            { ApplicationType.PowerPoint, new SortedSet<string> { "ppt", "pptx", "odp" } }
+        };
+
         public static bool skipPass = false;
         public static bool skipFailOpenOriginalFiles = false;
         public static bool skipFailConvertFiles = false;
         public static bool skipFailOpenConvertedFiles = false;
         public static bool skipUnknown = false;
 
-        //args can be word/excel/powerpoint
-        //specified appropriate docs will be tested with the specified program
+        // args can be word/excel/powerpoint
+        // specified appropriate docs will be tested with the specified program
         private static void Main(string[] args)
         {
             ServicePointManager.Expect100Continue = false;
 
-            HashSet<string> allowedApplications = new HashSet<string>() { "word", "excel", "powerpoint" };
+            SortedSet<string> allowedApplications = new SortedSet<string>() { "word", "excel", "powerpoint" };
             if (args.Length <= 0 || !allowedApplications.Contains(args[0]))
             {
                 Console.Error.WriteLine("Usage: mso-test.exe <application>");
                 Console.Error.WriteLine("    where <application> is \"word\" \"excel\" or \"powerpoint\"");
                 Environment.Exit(1);
             }
-
-            passFiles = ReadFileToSet("passFiles.txt");
-            Console.WriteLine($"Loaded list of {passFiles.Count} files expected to pass");
-            failOpenOriginalFiles = ReadFileToSet("failOpenOriginalFiles.txt");
-            Console.WriteLine($"Loaded list of {failOpenOriginalFiles.Count} files expected to fail to open in Office");
-            failConvertFiles = ReadFileToSet("failConvertFiles.txt");
-            Console.WriteLine($"Loaded list of {failConvertFiles.Count} files expected to fail to convert");
-            failOpenConvertedFiles = ReadFileToSet("failOpenConvertedFiles.txt");
-            Console.WriteLine($"Loaded list of {failOpenConvertedFiles.Count} files expected to fail to open in Office after converting");
 
             if (args.Contains("skipPass"))
             {
@@ -194,26 +216,35 @@ namespace mso_test
                 skipUnknown = true;
             }
 
-            var application = args[0];
+            ApplicationType application = ApplicationType.Word;
+            if (args[0] == "word")
+                application = ApplicationType.Word;
+            else if (args[0] == "excel")
+                application = ApplicationType.Excel;
+            else if (args[0] == "powerpoint")
+                application = ApplicationType.PowerPoint;
+
             forceQuitAllApplication(application);
             startApplication(application);
 
             TestDownloadedFiles(application);
 
+            PresentResults(args[0]);
+
             quitApplication(application);
         }
 
-        public static (bool, string) OpenFile(string application, string fileName)
+        public static (bool, string) OpenFile(ApplicationType application, string fileName)
         {
-            if (application == "word")
+            if (application == ApplicationType.Word)
             {
                 return OpenWordDoc(fileName);
-            }
-            else if (application == "excel")
+            } 
+            else if (application == ApplicationType.Excel)
             {
                 return OpenExcelWorkbook(fileName);
             }
-            else if (application == "powerpoint")
+            else if (application == ApplicationType.PowerPoint)
             {
                 return OpenPowerPointPresentation(fileName);
             }
@@ -223,36 +254,59 @@ namespace mso_test
             }
         }
 
-        public static async void TestFile(string application, FileInfo file, string convertTo)
+        public static async void TestFile(ApplicationType application, FileInfo file, string fileType, string convertTo)
         {
             Console.WriteLine("\nStarting test for " + file.Name + " at " + DateTime.Now.ToString("s"));
-            var watch = new System.Diagnostics.Stopwatch();
+            Stopwatch watch = new System.Diagnostics.Stopwatch();
+            // Count total elapsed time for current file (in parts: open, test service, convert, open converted)
+            // Store convert and open converted times for total stats
+            long elapsedTime = 0;
             watch.Start();
             TimeSpan openTimeout = TimeSpan.FromMilliseconds(10000);
             TimeSpan convertTimeout = TimeSpan.FromMilliseconds(60000);
 
-            // Open original file
-            Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
-            if (!OpenOriginalFileTask.Wait(openTimeout))
+            // Open original file, only if it's a native format, and not known if it can be opened in MSO
+            if (nativeMSOExtensions.Contains(file.Extension))
             {
-                Console.WriteLine($"Fail opening original file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout}ms");
-                restartApplication(application);
-                await OpenOriginalFileTask;
-                return;
+                if (fileStats.isFailOpenOriginalFile(fileType, file.Name))
+                {
+                    Console.WriteLine($"Fail; Previously failed opening original file");
+                    return;
+                }
+
+                if (!fileStats.isPassOpenOriginalFile(fileType, file.Name))
+                {
+                    Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
+                    if (!OpenOriginalFileTask.Wait(openTimeout))
+                    {
+                        Console.WriteLine($"Fail opening original file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
+                        restartApplication(application);
+                        await OpenOriginalFileTask;
+                        fileStats.addToFailOpenOriginalFiles(fileType, file.Name);
+                        return;
+                    }
+                    else if (!OpenOriginalFileTask.Result.Item1)
+                    {
+                        Console.WriteLine($"Fail opening original file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenOriginalFileTask.Result.Item2}");
+                        restartApplication(application);
+                        fileStats.addToFailOpenOriginalFiles(fileType, file.Name);
+                        return;
+                    }
+
+                    fileStats.addToPassOpenOriginalFiles(fileType, file.Name);
+                }
             }
-            else if (!OpenOriginalFileTask.Result.Item1)
-            {
-                Console.WriteLine($"Fail opening original file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenOriginalFileTask.Result.Item2}");
-                restartApplication(application);
-                return;
-            }
+            else
+                fileStats.addToPassOpenOriginalFiles(fileType, file.Name);
 
             // Test convert service
+            elapsedTime += watch.ElapsedMilliseconds;
+            watch.Restart();
             bool serverStatus = false;
             int count = 0;
             while (!serverStatus)
             {
-                if (count>=10)
+                if (count >= 10)
                 {
                     Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Server not available after 10 attempts");
                     return;
@@ -260,7 +314,7 @@ namespace mso_test
                 Task<(bool, string)> TestConvertServiceTask = Task.Run(() => TestConvertService());
                 if (!TestConvertServiceTask.Wait(convertTimeout))
                 {
-                    Console.WriteLine($"Server not available timeout. Sleeping for 10s. Timed out after {convertTimeout}ms");
+                    Console.WriteLine($"Server not available timeout. Sleeping for 10s. Timed out after {convertTimeout.TotalMilliseconds} ms");
                     coolClient.CancelPendingRequests();
                     await TestConvertServiceTask;
                     System.Threading.Thread.Sleep(10000);
@@ -278,43 +332,62 @@ namespace mso_test
             }
 
             // Convert file
-            Task <(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), convertTo));
+            elapsedTime += watch.ElapsedMilliseconds;
+            watch.Restart();
+            Task <(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), fileType, convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
-                Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout}ms");
+                Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
                 coolClient.CancelPendingRequests();
                 await ConvertTask;
+                fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
+                fileStats.addToFailConvertFiles(fileType, file.Name);
                 return;
             }
             else if (!ConvertTask.Result.Item1)
             {
                 Console.WriteLine($"Fail converting file; {file.Name}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
+                fileStats.addToFailConvertFiles(fileType, file.Name);
                 return;
             }
+            fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
 
             // Open converted file
+            elapsedTime += watch.ElapsedMilliseconds;
+            watch.Restart();
             Task<(bool, string)> OpenConvertedFileTask = Task.Run(() => OpenFile(application, ConvertTask.Result.Item2));
             if (!OpenConvertedFileTask.Wait(openTimeout))
             {
-                Console.WriteLine($"Fail opening converted file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout}ms");
+                Console.WriteLine($"Fail opening converted file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
                 restartApplication(application);
                 await OpenConvertedFileTask;
+                fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
+                fileStats.addToFailOpenConvertedFiles(fileType, file.Name);
                 return;
             }
             else if (!OpenConvertedFileTask.Result.Item1)
             {
                 Console.WriteLine($"Fail opening converted file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenConvertedFileTask.Result.Item2}");
                 restartApplication(application);
+                fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
+                fileStats.addToFailOpenConvertedFiles(fileType, file.Name);
                 return;
             }
+            elapsedTime += watch.ElapsedMilliseconds;
+            fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
 
             // Passed
-            Console.WriteLine($"Pass; {file.Name}; {watch.ElapsedMilliseconds} ms");
+            Console.WriteLine($"Pass; {file.Name}; {elapsedTime} ms");
         }
 
-        public static void TestDirectory(string application, DirectoryInfo dir, string convertTo)
+        public static void TestDirectory(ApplicationType application, DirectoryInfo dir, string convertTo)
         {
             Console.WriteLine("\n\nStarting test directory " + dir.Name);
+            string fileType = dir.Name;
+            Debug.Assert(dir.Parent != null);
+            fileStats.initOpenOriginalFileLists(dir.Parent, fileType);
+
             FileInfo[] fileInfos = dir.GetFiles();
             foreach (FileInfo file in fileInfos)
             {
@@ -323,19 +396,17 @@ namespace mso_test
                     Console.WriteLine("\nSkipping non test file " + file.Name);
                     continue;
                 }
-                else if (passFiles.Contains(file.Name) )
+/*                else if (fileStats.isFailOpenOriginalFile(fileType, file.Name))
+                {
+                    // no point in trying converting a file that originally failed to open
+                    Console.WriteLine("\nSkipping file that fails to open " + file.Name);
+                    continue;
+                }
+                else if (fileStats.isPassOpenOriginalFile(fileType, file.Name))
                 {
                     if (skipPass)
                     {
                         Console.WriteLine("\nSkipping passing file " + file.Name);
-                        continue;
-                    }
-                }
-                else if (failOpenOriginalFiles.Contains(file.Name))
-                {
-                    if (skipFailOpenOriginalFiles)
-                    {
-                        Console.WriteLine("\nSkipping file that fails to open " + file.Name);
                         continue;
                     }
                 }
@@ -354,19 +425,22 @@ namespace mso_test
                         Console.WriteLine("\nSkipping file that fails to open after being converted " + file.Name);
                         continue;
                     }
-                }
+                }*/
                 else if (skipUnknown)
                 {
                     Console.WriteLine("\nSkipping unknown file " + file.Name);
                     continue;
                 }
 
-                TestFile(application, file, convertTo);
+                TestFile(application, file, fileType, convertTo);
 
             }
+
+            fileStats.saveOpenOriginalFileLists(dir.Parent, fileType);
+
         }
 
-        public static void TestDownloadedFiles(string application)
+        public static void TestDownloadedFiles(ApplicationType application)
         {
             DirectoryInfo downloadedDirInfo = new DirectoryInfo(@"download");
             if (!downloadedDirInfo.Exists)
@@ -377,15 +451,15 @@ namespace mso_test
             DirectoryInfo[] downloadedDictInfo = downloadedDirInfo.GetDirectories();
             foreach (DirectoryInfo dict in downloadedDictInfo)
             {
-                if (application == "word" && (dict.Name == "doc" || dict.Name == "docx" || dict.Name == "odt"))
+                if (application == ApplicationType.Word && fileTypesPerApp[application].Contains(dict.Name))
                 {
                     TestDirectory(application, dict, "docx");
                 }
-                else if (application == "excel" && (dict.Name == "xls" || dict.Name == "xlsx" || dict.Name == "ods"))
+                else if (application == ApplicationType.Excel && fileTypesPerApp[application].Contains(dict.Name))
                 {
                     TestDirectory(application, dict, "xlsx");
                 }
-                else if (application == "powerpoint" && (dict.Name == "ppt" || dict.Name == "pptx" || dict.Name == "odp"))
+                else if (application == ApplicationType.PowerPoint && fileTypesPerApp[application].Contains(dict.Name))
                 {
                     TestDirectory(application, dict, "pptx");
                 }
@@ -395,7 +469,7 @@ namespace mso_test
         /*
          * Returns: (success, converted file name, error message)
          */
-        public static async Task<(bool, string, string)> ConvertFile(string application, string fullFileName, string fileName, string convertTo)
+        public static async Task<(bool, string, string)> ConvertFile(ApplicationType application, string fullFileName, string fileName, string fileType, string convertTo)
         {
             using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "cool/convert-to/" + convertTo))
             {
@@ -412,8 +486,8 @@ namespace mso_test
                         {
                             return (false, "", "HTTP StatusCode: " + response.StatusCode);
                         }
-                        Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + convertTo + @"\"));
-                        string convertedFilePath = @"converted\" + convertTo + @"\" + fileName + "." + convertTo;
+                        Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + fileType + @"\"));
+                        string convertedFilePath = @"converted\" + fileType + @"\" + fileName + "." + convertTo;
                         using (FileStream fs = File.Open(convertedFilePath, FileMode.Create))
                         {
                             await response.Content.CopyToAsync(fs);
@@ -548,24 +622,49 @@ namespace mso_test
             return (testResult, errorMessage);
         }
 
-        public static HashSet<string> ReadFileToSet(string filename)
+        public static void PresentResults(string applicationName)
         {
-            HashSet<string> set = new HashSet<string>();
-            try
+            List<string> customSortedFileTypes = new List<string>()
             {
-                using (StreamReader reader = new StreamReader(filename))
-                {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        set.Add(line.Trim());
-                    }
-                }
-            }
-            catch (FileNotFoundException e)
+                "odt", "doc", "docx", "ods", "xls", "xlsx", "odp", "ppt", "pptx"
+            };
+            System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-US");
+            StringBuilder csv = new StringBuilder();
+            csv.AppendLine("Format,Total,Open failed,Total tested,Conversion failed,,Open failed after conversion");
+            foreach (string fileType in customSortedFileTypes)
             {
+                int failOpenFiles = fileStats.getFailOpenOriginalFilesNo(fileType);
+                // For ODF all files are added to PassOpenOriginalFiles, to have an accurate total
+                int passOpenFiles = fileStats.getPassOpenOriginalFilesNo(fileType);
+                int totalFiles = failOpenFiles + passOpenFiles;
+                // If no total files, it means nothing was tested
+                if (totalFiles == 0)
+                    continue;
+
+                int failConvertFiles = fileStats.getFailConvertFilesNo(fileType);
+                int failOpenConvertedFiles = fileStats.getFailOpenConvertedFilesNo(fileType);
+                // passOpenFiles are the total actually tested files (=100%)
+                string failConvertFilesPercentage = String.Format(culture, "{0:0.0}%", Convert.ToDouble(failConvertFiles) / passOpenFiles * 100);
+                string failOpenConvertedFilesPercentage = String.Format(culture, "{0:0.0}%", Convert.ToDouble(failOpenConvertedFiles) / passOpenFiles * 100);
+
+                csv.AppendLine(
+                    fileType.ToUpper() + "," + totalFiles + "," + (nativeMSOFileTypes.Contains(fileType) ? failOpenFiles.ToString() : "") + "," + passOpenFiles + "," +
+                    failConvertFiles + "," + failConvertFilesPercentage + "," + failOpenConvertedFiles + "," + failOpenConvertedFilesPercentage);
+                
+                Console.WriteLine("\nFormat:                  " + fileType.ToUpper());
+                Console.WriteLine("Total:                   " + totalFiles);
+                Console.WriteLine("Open failed:             " + (nativeMSOFileTypes.Contains(fileType) ? failOpenFiles.ToString() : "-"));
+                Console.WriteLine("Total tested:            " + passOpenFiles);
+                Console.WriteLine("Conversion failure:      " + failConvertFiles + " (" + failConvertFilesPercentage + ")");
+                //Console.WriteLine("Crash in MSO:            ");
+                Console.WriteLine("Open failed after conv.: " + failOpenConvertedFiles + " (" + failOpenConvertedFilesPercentage + ")");
+                Console.WriteLine("Time spent converting files         : " + fileStats.getTimeToConvert(fileType) / 1000 + " seconds");
+                Console.WriteLine("Time spent opening files after conv.: " + fileStats.getTimeToOpenConvertedFiles(fileType) / 1000 + " seconds");
+
+                fileStats.saveFailedFileLists(new DirectoryInfo(@"download"), fileType);
             }
-            return set;
+
+            File.WriteAllText(@"download\result-" + applicationName + ".csv", csv.ToString());
         }
     }
 }
