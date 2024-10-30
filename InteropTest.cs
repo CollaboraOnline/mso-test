@@ -546,6 +546,11 @@ namespace mso_test
             {
                 try
                 {
+                    FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
+                    if (!PDFexport.Exists)
+                        doc.ExportAsFixedFormat(PDFexport.FullName, word.WdExportFormat.wdExportFormatPDF);
+                    else
+                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                     doc.Close(SaveChanges: false);
                 }
                 catch
@@ -578,6 +583,11 @@ namespace mso_test
             {
                 try
                 {
+                    FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
+                    if (!PDFexport.Exists)
+                        wb.ExportAsFixedFormat(excel.XlFixedFormatType.xlTypePDF, Filename: PDFexport.FullName);
+                    else
+                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                     wb.Close(SaveChanges: false);
                 }
                 catch
@@ -610,6 +620,11 @@ namespace mso_test
             {
                 try
                 {
+                    FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
+                    if (!PDFexport.Exists)
+                        presentation.ExportAsFixedFormat2(PDFexport.FullName, powerPoint.PpFixedFormatType.ppFixedFormatTypePDF);
+                    else
+                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                     presentation.Close();
                 }
                 catch
