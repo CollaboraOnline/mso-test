@@ -274,7 +274,9 @@ namespace mso_test
                     return;
                 }
 
-                if (!fileStats.isPassOpenOriginalFile(fileType, file.Name))
+                // Use the PDF as sufficient proof that the original file can be opened.
+                FileInfo PDFfile = new FileInfo(file.FullName + "_mso.pdf");
+                if (!PDFfile.Exists)
                 {
                     Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName));
                     if (!OpenOriginalFileTask.Wait(openTimeout))
