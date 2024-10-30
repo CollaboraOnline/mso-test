@@ -333,10 +333,11 @@ namespace mso_test
                 count++;
             }
 
-            // Convert file
+            // Round-trip file to MSO format
             elapsedTime += watch.ElapsedMilliseconds;
             watch.Restart();
-            Task <(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, Path.GetFileNameWithoutExtension(file.Name), fileType, convertTo));
+            string convertedFileName = @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(file.Name) + "." + convertTo;
+            Task <(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(application, file.FullName, convertedFileName, fileType, convertTo));
             if (!ConvertTask.Wait(convertTimeout))
             {
                 Console.WriteLine($"Fail converting file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
@@ -354,6 +355,30 @@ namespace mso_test
                 return;
             }
             fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
+
+            // Make a PDF of the file (not using the round-tripped document, but using the originally provided document)
+            elapsedTime += watch.ElapsedMilliseconds;
+            watch.Restart();
+            convertedFileName = @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(file.Name) + ".pdf";
+            FileInfo PDFexport = new FileInfo(convertedFileName);
+            if (!PDFexport.Exists)
+            {
+                Task<(bool, string, string)> PDFTask = Task.Run(() => ConvertFile(application, file.FullName, convertedFileName, fileType, "pdf"));
+                if (!PDFTask.Wait(convertTimeout))
+                {
+                    Console.WriteLine($"Fail PDF export file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
+                    coolClient.CancelPendingRequests();
+                    await PDFTask;
+                    return;
+                }
+                else if (!PDFTask.Result.Item1)
+                {
+                    Console.WriteLine($"Fail creating PDF export; {file.Name}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                    return;
+                }
+            }
+            else
+                Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
 
             // Open converted file
             elapsedTime += watch.ElapsedMilliseconds;
@@ -471,7 +496,7 @@ namespace mso_test
         /*
          * Returns: (success, converted file name, error message)
          */
-        public static async Task<(bool, string, string)> ConvertFile(ApplicationType application, string fullFileName, string fileName, string fileType, string convertTo)
+        public static async Task<(bool, string, string)> ConvertFile(ApplicationType application, string fullFileName, string convertedFileName, string fileType, string convertTo)
         {
             using (var request = new HttpRequestMessage(new HttpMethod("POST"), coolClient.BaseAddress + "cool/convert-to/" + convertTo))
             {
@@ -488,9 +513,8 @@ namespace mso_test
                         {
                             return (false, "", "HTTP StatusCode: " + response.StatusCode);
                         }
-                        Directory.CreateDirectory(Path.GetDirectoryName(@"converted\" + fileType + @"\"));
-                        string convertedFilePath = @"converted\" + fileType + @"\" + fileName + "." + convertTo;
-                        using (FileStream fs = File.Open(convertedFilePath, FileMode.Create))
+                        Directory.CreateDirectory(Path.GetDirectoryName(convertedFileName));
+                        using (FileStream fs = File.Open(convertedFileName, FileMode.Create))
                         {
                             await response.Content.CopyToAsync(fs);
                             return (true, fs.Name, "");
