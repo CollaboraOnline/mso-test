@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 namespace mso_test
@@ -8,15 +7,22 @@ namespace mso_test
     internal class FileStatistics
     {
 
-        private Dictionary<string, SortedSet<string>> failOpenOriginalFiles = new Dictionary<string, SortedSet<string>>();
-        private Dictionary<string, SortedSet<string>> passOpenOriginalFiles = new Dictionary<string, SortedSet<string>>();
-        private Dictionary<string, SortedSet<string>> newFailOpenOriginalFiles = new Dictionary<string, SortedSet<string>>();
-        private Dictionary<string, SortedSet<string>> newPassOpenOriginalFiles = new Dictionary<string, SortedSet<string>>();
+        private Dictionary<string, HashSet<string>> failOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
+        private Dictionary<string, HashSet<string>> passOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
+        private Dictionary<string, HashSet<string>> newFailOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
+        private Dictionary<string, HashSet<string>> newPassOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
+        public Dictionary<string, int> currFailOpenOriginalFilesNo = new Dictionary<string, int>();
+        public Dictionary<string, int> currPassOpenOriginalFilesNo = new Dictionary<string, int>();
 
-        private Dictionary<string, SortedSet<string>> failConvertFiles = new Dictionary<string, SortedSet<string>>();
-        private Dictionary<string, SortedSet<string>> failOpenConvertedFiles = new Dictionary<string, SortedSet<string>>();
+        private Dictionary<string, long> timeToOpenOriginalFiles = new Dictionary<string, long>();
 
+        // Conversion might be done by multiple parallel tasks, let's lock the methods that manipulate the collections
+        private Dictionary<string, HashSet<string>> failConvertFiles = new Dictionary<string, HashSet<string>>();
         private Dictionary<string, long> timeToConvert = new Dictionary<string, long>();
+        private object failLock = new object();
+        private object timeLock = new object();
+
+        private Dictionary<string, HashSet<string>> failOpenConvertedFiles = new Dictionary<string, HashSet<string>>();
         private Dictionary<string, long> timeToOpenConvertedFiles = new Dictionary<string, long>();
 
         public void initOpenOriginalFileLists(DirectoryInfo baseDir, string typeName)
@@ -40,41 +46,74 @@ namespace mso_test
             if (failOpenConvertedFiles.ContainsKey(typeName))
                 WriteSetToFile(baseDir, typeName + "-failOpenConvertedFiles.txt", failOpenConvertedFiles[typeName]);
         }
+
+        public int getCurrFailOpenOriginalFilesNo(string typeName)
+        {
+            if (!currFailOpenOriginalFilesNo.ContainsKey(typeName))
+                return 0;
+            return currFailOpenOriginalFilesNo[typeName];
+        }
+
+        public int getCurrPassOpenOriginalFilesNo(string typeName)
+        {
+            if (!currPassOpenOriginalFilesNo.ContainsKey(typeName))
+                return 0;
+            return currPassOpenOriginalFilesNo[typeName];
+        }
+        public void incrCurrFailOpenOriginalFilesNo(string typeName)
+        {
+            if (!currFailOpenOriginalFilesNo.ContainsKey(typeName))
+                currFailOpenOriginalFilesNo.Add(typeName, 1);
+            else
+                currFailOpenOriginalFilesNo[typeName]++;
+        }
+
+        public void incrCurrPassOpenOriginalFilesNo(string typeName)
+        {
+            if (!currPassOpenOriginalFilesNo.ContainsKey(typeName))
+                currPassOpenOriginalFilesNo.Add(typeName, 1);
+            else
+                currPassOpenOriginalFilesNo[typeName]++;
+        }
+
         public void addToFailOpenOriginalFiles(string typeName, string fileName)
         {
             if (!failOpenOriginalFiles.ContainsKey(typeName))
-                failOpenOriginalFiles.Add(typeName, new SortedSet<string> { fileName });
+                failOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
             else
                 failOpenOriginalFiles[typeName].Add(fileName);
             if (!newFailOpenOriginalFiles.ContainsKey(typeName))
-                newFailOpenOriginalFiles.Add(typeName, new SortedSet<string> { fileName });
+                newFailOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
             else
                 newFailOpenOriginalFiles[typeName].Add(fileName);
         }
         public void addToPassOpenOriginalFiles(string typeName, string fileName)
         {
             if (!passOpenOriginalFiles.ContainsKey(typeName))
-                passOpenOriginalFiles.Add(typeName, new SortedSet<string> { fileName });
+                passOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
             else
                 passOpenOriginalFiles[typeName].Add(fileName);
             if (!newPassOpenOriginalFiles.ContainsKey(typeName))
-                newPassOpenOriginalFiles.Add(typeName, new SortedSet<string> { fileName });
+                newPassOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
             else
                 newPassOpenOriginalFiles[typeName].Add(fileName);
         }
 
         public void addToFailConvertFiles(string typeName, string fileName)
         {
-            if (!failConvertFiles.ContainsKey(typeName))
-                failConvertFiles.Add(typeName, new SortedSet<string> { fileName });
-            else
-                failConvertFiles[typeName].Add(fileName);
+            lock (failLock)
+            {
+                if (!failConvertFiles.ContainsKey(typeName))
+                    failConvertFiles.Add(typeName, new HashSet<string> { fileName });
+                else
+                    failConvertFiles[typeName].Add(fileName);
+            }
         }
 
         public void addToFailOpenConvertedFiles(string typeName, string fileName)
         {
             if (!failOpenConvertedFiles.ContainsKey(typeName))
-                failOpenConvertedFiles.Add(typeName, new SortedSet<string> { fileName });
+                failOpenConvertedFiles.Add(typeName, new HashSet<string> { fileName });
             else
                 failOpenConvertedFiles[typeName].Add(fileName);
         }
@@ -90,13 +129,6 @@ namespace mso_test
             if (!passOpenOriginalFiles.ContainsKey(typeName))
                 return false;
             return passOpenOriginalFiles[typeName].Contains(fileName);
-        }
-
-        public int getFailOpenOriginalFilesNo(string typeName)
-        {
-            if (!failOpenOriginalFiles.ContainsKey(typeName))
-                return 0;
-            return failOpenOriginalFiles[typeName].Count;
         }
         public int getPassOpenOriginalFilesNo(string typeName)
         {
@@ -117,12 +149,21 @@ namespace mso_test
             return failOpenConvertedFiles[typeName].Count;
         }
 
+        public void addTimeToOpenOriginalFiles(string typeName, long timeSpanInMs)
+        {
+            if (!timeToOpenOriginalFiles.ContainsKey(typeName))
+                timeToOpenOriginalFiles[typeName] = timeSpanInMs;
+            else
+                timeToOpenOriginalFiles[typeName] += timeSpanInMs;
+        }
+
         public void addTimeToConvert(string typeName, long timeSpanInMs)
         {
-            if (!timeToConvert.ContainsKey(typeName))
-                timeToConvert[typeName] = timeSpanInMs;
-            else
-                timeToConvert[typeName] += timeSpanInMs;
+            lock(timeLock)
+                if (!timeToConvert.ContainsKey(typeName))
+                    timeToConvert[typeName] = timeSpanInMs;
+                else
+                    timeToConvert[typeName] += timeSpanInMs;
         }
 
         public void addTimeToOpenConvertedFiles(string typeName, long timeSpanInMs)
@@ -131,6 +172,13 @@ namespace mso_test
                 timeToOpenConvertedFiles[typeName] = timeSpanInMs;
             else
                 timeToOpenConvertedFiles[typeName] += timeSpanInMs;
+        }
+
+        public long getTimeToOpenOriginalFiles(string typeName)
+        {
+            if (!timeToOpenOriginalFiles.ContainsKey(typeName))
+                return 0;
+            return timeToOpenOriginalFiles[typeName];
         }
 
         public long getTimeToConvert(string typeName)
@@ -146,9 +194,9 @@ namespace mso_test
                 return 0;
             return timeToOpenConvertedFiles[typeName];
         }
-        private static SortedSet<string> ReadFileToSet(string fileName)
+        public static HashSet<string> ReadFileToSet(string fileName)
         {
-            SortedSet<string> set = new SortedSet<string>();
+            HashSet<string> set = new HashSet<string>();
             try
             {
                 using (StreamReader reader = new StreamReader(fileName))
@@ -166,13 +214,14 @@ namespace mso_test
             return set;
         }
 
-        private static void WriteSetToFile(DirectoryInfo baseDir, string fileName, SortedSet<string> set)
+        public static void WriteSetToFile(DirectoryInfo baseDir, string fileName, HashSet<string> hashed)
         {
             try
             {
+                SortedSet<string> sorted = new SortedSet<string>(hashed);
                 using (StreamWriter writer = new StreamWriter(Path.Combine(baseDir.FullName, fileName)))
                 {
-                    foreach (string entry in set)
+                    foreach (string entry in sorted)
                     {
                         writer.WriteLine(entry);
                     }
