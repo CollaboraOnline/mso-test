@@ -34,6 +34,8 @@ namespace mso_test
     {
         // Application (= formats) to test
         public ApplicationType Application = ApplicationType.Undefined;
+        // Base directory of input/output data (except config)
+        public string BaseDir = "";
         // Perform conversion using online service
         public bool OnlineConverter = true;
         // Launch this amount of online converter tasks in parallel
@@ -48,6 +50,24 @@ namespace mso_test
         public int FilePeriod = 1;
         // Offset for period, eg. period 5, offset 3 will test every 5th file starting from the 4th (1st + 3)
         public int FileOffset = 0;
+        // Which steps to do: 1 (only initial open in MSO), 2 (initial open and conversion), 3 (all steps)
+        public int EndWithStep = 3;
+    }
+
+    internal class Logger
+    {
+        static StreamWriter logFile;
+        public static void Initialize(string fileName) { logFile = new StreamWriter(fileName, false); }
+
+        public static void Close() { if (logFile != null) { logFile.Close(); } }
+        public static void Write(string message)
+        {
+            if (logFile != null)
+            {
+                logFile.WriteLine(message);
+            }
+            Console.WriteLine(message);
+        }
     }
     internal class InteropTest
     {
@@ -120,8 +140,8 @@ namespace mso_test
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception on startup:");
-                    Console.WriteLine(ex.ToString());
+                    Logger.Write("Exception on startup:");
+                    Logger.Write(ex.ToString());
                     System.Threading.Thread.Sleep(10000);
                     forceQuitAllApplication(application);
                     System.Threading.Thread.Sleep(10000);
@@ -158,7 +178,9 @@ namespace mso_test
             excelApp = null;
             powerPointApp = null;
 
+            System.Threading.Thread.Sleep(10000);
             forceQuitAllApplication(application);
+            System.Threading.Thread.Sleep(10000);
         }
 
         public void restartApplication(ApplicationType application)
@@ -206,7 +228,7 @@ namespace mso_test
 
         public static Dictionary<ApplicationType, string> applicationNames = new Dictionary<ApplicationType, string>()
         {
-            { ApplicationType.Word, "`word" },
+            { ApplicationType.Word, "word" },
             { ApplicationType.Excel, "excel"},
             { ApplicationType.PowerPoint, "powerpoint" }
         };
@@ -249,6 +271,17 @@ namespace mso_test
                 }
             }
 
+            if (test.config.BaseDir != "")
+            {
+                if (!Directory.Exists(test.config.BaseDir))
+                {
+                    Console.Error.WriteLine($"ERROR: BaseDir is configured, but the path {test.config.BaseDir} doesn't exist");
+                    Environment.Exit(1);
+                }
+            }
+
+            Logger.Initialize(Path.Combine(test.config.BaseDir, "log.txt"));
+
             forceQuitAllApplication(test.config.Application);
             test.startApplication(test.config.Application);
 
@@ -257,8 +290,9 @@ namespace mso_test
             test.TestDownloadedFiles(test.config.Application);
             watch.Stop();
             test.PresentResults(test.config.Application);
-            Console.WriteLine("\nFinished in " + watch.ElapsedMilliseconds/1000 + " seconds");
-
+            Logger.Write("\nFinished in " + watch.ElapsedMilliseconds/1000 + " seconds");
+            Logger.Close();
+            
             test.quitApplication(test.config.Application);
         }
 
@@ -295,6 +329,10 @@ namespace mso_test
                     config.FilePeriod = configJson["FilePeriod"].GetValue<int>();
                 if (configJson["FileOffset"] != null)
                     config.FileOffset = configJson["FileOffset"].GetValue<int>();
+                if (configJson["BaseDir"] != null)
+                    config.BaseDir = configJson["BaseDir"].GetValue<string>();
+                if (configJson["EndWithStep"] != null && configJson["EndWithStep"].GetValue<int>() <= 3)
+                    config.EndWithStep = configJson["EndWithStep"].GetValue<int>();
             }
         }
         public (bool, string) OpenFile(ApplicationType application, string fileName, bool generatePDF)
@@ -318,12 +356,14 @@ namespace mso_test
         }
         public void TestDownloadedFiles(ApplicationType application)
         {
-            DirectoryInfo downloadedDirInfo = new DirectoryInfo(@"download");
+            DirectoryInfo downloadedDirInfo = new DirectoryInfo(Path.Combine(config.BaseDir, "download"));
             if (!downloadedDirInfo.Exists)
             {
                 Console.Error.WriteLine("Download directory does not exist: " + downloadedDirInfo.FullName);
                 return;
             }
+
+            Logger.Write("Starting tests for application: " + applicationNames[application]);
 
             ConcurrentQueue<(string, string)> filesToConvert = new ConcurrentQueue<(string, string)>();
             ConcurrentQueue<(string, string)> convertedFilesToTest = new ConcurrentQueue<(string, string)>();
@@ -336,13 +376,13 @@ namespace mso_test
 
                 string filesToSkipName = Path.Combine(downloadedDirInfo.FullName, "filestoskip.txt");
                 if (File.Exists(filesToSkipName))
-                    Console.WriteLine(@"The file download\filestoskip.txt exists, files listed there will be skipped.");
+                    Logger.Write(@"The file download\filestoskip.txt exists, files listed there will be skipped.");
                 HashSet<string> filesToSkip = FileStatistics.ReadFileToSet(filesToSkipName);
                 string filesToTestName = Path.Combine(downloadedDirInfo.FullName, "filestotest.txt");
                 if (File.Exists(filesToTestName))
-                    Console.WriteLine(@"The file download\filestotest.txt exists, and will be used to limit the files tested.");
+                    Logger.Write(@"The file download\filestotest.txt exists, and will be used to limit the files tested.");
                 HashSet<string> filesToTest = FileStatistics.ReadFileToSet(filesToTestName);
-                Console.WriteLine();
+                Logger.Write("\n");
 
                 var downloadedDictInfo = downloadedDirInfo.GetDirectories().OrderBy(d => d.Name);
                 int fileNo = 0;
@@ -369,7 +409,7 @@ namespace mso_test
 
                         if (!allowedExtension.Contains(file.Extension))
                         {
-                            Console.WriteLine($"{file.Name} - Skipping non test file");
+                            Logger.Write($"{file.Name} - Skipping non test file");
                             continue;
                         }
 
@@ -378,7 +418,7 @@ namespace mso_test
                         {
                             if (fileStats.isFailOpenOriginalFile(fileType, file.Name))
                             {
-                                Console.WriteLine($"{file.Name} - Fail; Previously failed opening original file");
+                                Logger.Write($"{file.Name} - Fail; Previously failed opening original file");
                                 continue;
                             }
 
@@ -387,12 +427,12 @@ namespace mso_test
                             bool testOriginal = (!config.GeneratePDF && !fileStats.isPassOpenOriginalFile(fileType, file.Name)) || (config.GeneratePDF && !PDFfile.Exists);
                             if (testOriginal)
                             {
-                                Console.WriteLine($"{file.Name} - Opening original file at {DateTime.Now.ToString("s")}");
+                                Logger.Write($"{file.Name} - Opening original file at {DateTime.Now.ToString("s")}");
                                 watch.Restart();
                                 Task<(bool, string)> OpenOriginalFileTask = Task.Run(() => OpenFile(application, file.FullName, config.GeneratePDF));
                                 if (!OpenOriginalFileTask.Wait(openTimeout))
                                 {
-                                    Console.WriteLine($"Fail opening original file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
+                                    Logger.Write($"Fail opening original file timeout; {file.Name}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
                                     restartApplication(application);
                                     OpenOriginalFileTask.Wait();
                                     fileStats.addTimeToOpenOriginalFiles(fileType, watch.ElapsedMilliseconds);
@@ -402,7 +442,7 @@ namespace mso_test
                                 }
                                 else if (!OpenOriginalFileTask.Result.Item1)
                                 {
-                                    Console.WriteLine($"Fail opening original file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenOriginalFileTask.Result.Item2}");
+                                    Logger.Write($"Fail opening original file; {file.Name}; {watch.ElapsedMilliseconds} ms; {OpenOriginalFileTask.Result.Item2}");
                                     restartApplication(application);
                                     fileStats.addTimeToOpenOriginalFiles(fileType, watch.ElapsedMilliseconds);
                                     fileStats.addToFailOpenOriginalFiles(fileType, file.Name);
@@ -417,14 +457,14 @@ namespace mso_test
                             }
                             else
                             {
-                                Console.WriteLine($"{file.Name} - Original file could be opened previously, skipping this step");
+                                Logger.Write($"{file.Name} - Original file could be opened previously, skipping this step");
                                 filesToConvert.Enqueue((fileType, file.Name));
                                 fileStats.incrCurrPassOpenOriginalFilesNo(fileType);
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"{file.Name} - Original is not native MSO file, skipping testing whether it can be opened in MSO");
+                            Logger.Write($"{file.Name} - Original is not native MSO file, skipping testing whether it can be opened in MSO");
                             filesToConvert.Enqueue((fileType, file.Name));
                             fileStats.incrCurrPassOpenOriginalFilesNo(fileType);
                             fileStats.addToPassOpenOriginalFiles(fileType, file.Name);
@@ -433,7 +473,16 @@ namespace mso_test
                     if (nativeMSOFileTypes.Contains(fileType))
                         fileStats.saveOpenOriginalFileLists(downloadedDirInfo, fileType);
                 }
+                testOriginalFilesCompleted = true;
+                Logger.Write("Finished first step: opening original files.");
             });
+
+            // Only want to build the list of test files that can be opened originally, and used for testing
+            if (config.EndWithStep == 1)
+            {
+                originalTest.Wait();
+                return;
+            }
 
             List<Task> convertFiles = new List<Task>();
             if (config.OnlineConverter)
@@ -455,17 +504,17 @@ namespace mso_test
                                 continue;
                             }
                             (string fileType, string fileName) = element;
-                            string fullFileName = @"download\" + fileType + @"\" + fileName;
+                            string fullFileName = Path.Combine(config.BaseDir, @"download\" + fileType + @"\" + fileName);
                             string convertTo = targetFormatPerApp[application];
-                            string convertedFileName = @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo;
-                            Console.WriteLine($"{fileName} - Converting file");
+                            string convertedFileName = Path.Combine(config.BaseDir, @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
+                            Logger.Write($"{fileName} - Converting file at {DateTime.Now.ToString("s")}");
 
                             // Round-trip file to MSO format
                             watch.Restart();
                             Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedFileName, fileType, convertTo));
                             if (!ConvertTask.Wait(convertTimeout))
                             {
-                                Console.WriteLine($"Fail converting file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
+                                Logger.Write($"Fail converting file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
                                 coolClient.CancelPendingRequests();
                                 ConvertTask.Wait();
                                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
@@ -474,7 +523,7 @@ namespace mso_test
                             }
                             else if (!ConvertTask.Result.Item1)
                             {
-                                Console.WriteLine($"Fail converting file; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                                Logger.Write($"Fail converting file; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
                                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
                                 fileStats.addToFailConvertFiles(fileType, fileName);
                                 continue;
@@ -486,27 +535,29 @@ namespace mso_test
                                 continue;
                             // Make a PDF of the file (not using the round-tripped document, but using the originally provided document)
                             //watch.Restart();
-                            convertedFileName = @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + ".pdf";
-                            FileInfo PDFexport = new FileInfo(convertedFileName);
+                            string convertedPDFFileName = Path.Combine(config.BaseDir, @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + ".pdf");
+                            FileInfo PDFexport = new FileInfo(convertedPDFFileName);
                             if (!PDFexport.Exists)
                             {
-                                Task<(bool, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedFileName, fileType, "pdf"));
+                                Task<(bool, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedPDFFileName, fileType, "pdf"));
                                 if (!PDFTask.Wait(convertTimeout))
                                 {
-                                    Console.WriteLine($"Fail PDF export file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
+                                    Logger.Write($"Fail PDF export file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
                                     coolClient.CancelPendingRequests();
                                     PDFTask.Wait();
                                     continue;
                                 }
                                 else if (!PDFTask.Result.Item1)
                                 {
-                                    Console.WriteLine($"Fail creating PDF export; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                                    Logger.Write($"Fail creating PDF export; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
                                     continue;
                                 }
                             }
                             else
-                                Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
+                                Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                         }
+                        conversionCompleted = true;
+                        Logger.Write("Finished task for second step: converting files.");
                     }));
                 }
             }
@@ -527,11 +578,11 @@ namespace mso_test
                             continue;
                         }
                         (string fileType, string fileName) = element;
-                        string fullFileName = @"download\" + fileType + @"\" + fileName;
+                        string fullFileName = Path.Combine(config.BaseDir, @"download\" + fileType + @"\" + fileName);
                         string convertTo = targetFormatPerApp[application];
-                        string targetDir = @"converted\" + fileType;
-                        string convertedFileName = targetDir + @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo;
-                        Console.WriteLine($"{fileName} - Converting file");
+                        string targetDir = Path.Combine(config.BaseDir, @"converted\" + fileType);
+                        string convertedFileName = Path.Combine(targetDir, @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
+                        Logger.Write($"{fileName} - Converting file");
 
                         // Round-trip file to MSO format in LO
                         watch.Restart();
@@ -563,22 +614,31 @@ namespace mso_test
                         fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
                         if (failed)
                         {
-                            Console.WriteLine(fileName + " - Error during conversion with LO, full command used:\n\t" + loName + " " + loParams);
+                            Logger.Write(fileName + " - Error during conversion with LO, full command used:\n\t" + loName + " " + loParams);
                             fileStats.addToFailConvertFiles(fileType, fileName);
                         }
                         else
                             convertedFilesToTest.Enqueue((fileType, fileName));
                     }
+                    conversionCompleted = true;
+                    Logger.Write("Finished task for second step: converting files.");
                 }));
             }
 
             // Only start 3rd phase after 1st is done, both use MSO
             originalTest.Wait();
-            testOriginalFilesCompleted = true;
+
+            // Only want to perform conversion eg. to build PDFs (skip step 3)
+            if (config.EndWithStep == 2)
+            {
+                Task.WaitAll(convertFiles.ToArray());
+                return;
+            }
+
             Task testConvertedFiles = Task.Run(() =>
             {
                 Stopwatch watch = new System.Diagnostics.Stopwatch();
-                DirectoryInfo convertedDirInfo = new DirectoryInfo(@"converted");
+                DirectoryInfo convertedDirInfo = new DirectoryInfo(Path.Combine(config.BaseDir, @"converted"));
                 while (true)
                 {
                     bool success = convertedFilesToTest.TryDequeue(out var element);
@@ -592,14 +652,14 @@ namespace mso_test
                     (string fileType, string origFileName) = element;
                     string convertTo = targetFormatPerApp[application];
                     string fullConvertedFileName = Path.Combine(convertedDirInfo.FullName, fileType + @"\" + Path.GetFileNameWithoutExtension(origFileName) + "." + convertTo);
-                    Console.WriteLine(origFileName + " - Testing converted file");
+                    Logger.Write(origFileName + " - Testing converted file");
 
                     // Open converted file
                     watch.Restart();
                     Task<(bool, string)> OpenConvertedFileTask = Task.Run(() => OpenFile(application, fullConvertedFileName, config.GeneratePDF));
                     if (!OpenConvertedFileTask.Wait(openTimeout))
                     {
-                        Console.WriteLine($"Fail opening converted file timeout; {origFileName}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
+                        Logger.Write($"Fail opening converted file timeout; {origFileName}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
                         restartApplication(application);
                         OpenConvertedFileTask.Wait();
                         fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
@@ -608,7 +668,7 @@ namespace mso_test
                     }
                     else if (!OpenConvertedFileTask.Result.Item1)
                     {
-                        Console.WriteLine($"Fail opening converted file; {origFileName}; {watch.ElapsedMilliseconds} ms; {OpenConvertedFileTask.Result.Item2}");
+                        Logger.Write($"Fail opening converted file; {origFileName}; {watch.ElapsedMilliseconds} ms; {OpenConvertedFileTask.Result.Item2}");
                         restartApplication(application);
                         fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
                         fileStats.addToFailOpenConvertedFiles(fileType, origFileName);
@@ -616,12 +676,11 @@ namespace mso_test
                     }
                     fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
 
-                    Console.WriteLine($"Pass; {origFileName}; {watch.ElapsedMilliseconds} ms (last step)");
+                    Logger.Write($"Pass; {origFileName}; {watch.ElapsedMilliseconds} ms (last step)");
                 }
+                Logger.Write("Finished third step: opening converted files.");
             });
-            foreach (Task task in convertFiles)
-                task.Wait();
-            conversionCompleted = true;
+            Task.WaitAll(convertFiles.ToArray());
             testConvertedFiles.Wait();
         }
 
@@ -700,7 +759,7 @@ namespace mso_test
                     if (!PDFexport.Exists)
                         doc.ExportAsFixedFormat(PDFexport.FullName, word.WdExportFormat.wdExportFormatPDF);
                     else
-                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
+                        Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
             catch (COMException e)
@@ -740,7 +799,7 @@ namespace mso_test
                     if (!PDFexport.Exists)
                         wb.ExportAsFixedFormat(excel.XlFixedFormatType.xlTypePDF, Filename: PDFexport.FullName);
                     else
-                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
+                        Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
             catch (COMException e)
@@ -780,7 +839,7 @@ namespace mso_test
                     if (!PDFexport.Exists)
                         presentation.ExportAsFixedFormat2(PDFexport.FullName, powerPoint.PpFixedFormatType.ppFixedFormatTypePDF);
                     else
-                        Console.WriteLine("\nDEBUG: PDF already exists for " + PDFexport.FullName);
+                        Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
             catch (COMException e)
@@ -813,7 +872,7 @@ namespace mso_test
             };
             System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-US");
             StringBuilder csv = new StringBuilder();
-            csv.AppendLine("Format,Total,Open failed,Total tested,Conversion failed,,Open failed after conversion");
+            csv.AppendLine("Format,Total,Open failed,Total tested,Conversion failed,,Open failed after conversion,,Total succeeded,");
             foreach (string fileType in customSortedFileTypes)
             {
                 int failOpenFiles = fileStats.getCurrFailOpenOriginalFilesNo(fileType);
@@ -834,25 +893,25 @@ namespace mso_test
 
                 csv.AppendLine(
                     fileType.ToUpper() + "," + totalFiles + "," + (nativeMSOFileTypes.Contains(fileType) ? failOpenFiles.ToString() : "") + "," + passOpenFiles + "," +
-                    failConvertFiles + "," + failConvertFilesPercentage + "," + failOpenConvertedFiles + "," + failOpenConvertedFilesPercentage);
+                    failConvertFiles + "," + failConvertFilesPercentage + "," + failOpenConvertedFiles + "," + failOpenConvertedFilesPercentage + "," + finalPassOpenFiles + "," + finalPassOpenFilesPercentage);
                 
-                Console.WriteLine("\nFormat:                  " + fileType.ToUpper());
-                Console.WriteLine("Total:                   " + totalFiles);
-                Console.WriteLine("Open failed:             " + (nativeMSOFileTypes.Contains(fileType) ? failOpenFiles.ToString() : "-"));
-                Console.WriteLine("Total tested:            " + passOpenFiles);
-                Console.WriteLine("Conversion failure:      " + failConvertFiles + " (" + failConvertFilesPercentage + ")");
-                //Console.WriteLine("Crash in MSO:            ");
-                Console.WriteLine("Open failed after conv.: " + failOpenConvertedFiles + " (" + failOpenConvertedFilesPercentage + ")");
-                Console.WriteLine("Total succeeded:         " + finalPassOpenFiles + " (" + finalPassOpenFilesPercentage + ")");
-                Console.WriteLine();
-                Console.WriteLine("Time spent opening original files   : " + fileStats.getTimeToOpenOriginalFiles(fileType) / 1000 + " seconds");
-                Console.WriteLine("Time spent converting files         : " + fileStats.getTimeToConvert(fileType) / 1000 + " seconds");
-                Console.WriteLine("Time spent opening files after conv.: " + fileStats.getTimeToOpenConvertedFiles(fileType) / 1000 + " seconds");
+                Logger.Write("\nFormat:                  " + fileType.ToUpper());
+                Logger.Write("Total:                   " + totalFiles);
+                Logger.Write("Open failed:             " + (nativeMSOFileTypes.Contains(fileType) ? failOpenFiles.ToString() : "-"));
+                Logger.Write("Total tested:            " + passOpenFiles);
+                Logger.Write("Conversion failure:      " + failConvertFiles + " (" + failConvertFilesPercentage + ")");
+                //Logger.Write("Crash in MSO:            ");
+                Logger.Write("Open failed after conv.: " + failOpenConvertedFiles + " (" + failOpenConvertedFilesPercentage + ")");
+                Logger.Write("Total succeeded:         " + finalPassOpenFiles + " (" + finalPassOpenFilesPercentage + ")");
+                Logger.Write("\n");
+                Logger.Write("Time spent opening original files   : " + fileStats.getTimeToOpenOriginalFiles(fileType) / 1000 + " seconds");
+                Logger.Write("Time spent converting files         : " + fileStats.getTimeToConvert(fileType) / 1000 + " seconds");
+                Logger.Write("Time spent opening files after conv.: " + fileStats.getTimeToOpenConvertedFiles(fileType) / 1000 + " seconds");
 
-                fileStats.saveFailedFileLists(new DirectoryInfo(@"download"), fileType);
+                fileStats.saveFailedFileLists(new DirectoryInfo(Path.Combine(config.BaseDir, "download")), fileType);
             }
 
-            File.WriteAllText(@"download\result-" + applicationNames[application] + ".csv", csv.ToString());
+            File.WriteAllText(Path.Combine(config.BaseDir, @"download\result-" + applicationNames[application] + ".csv"), csv.ToString());
         }
     }
 }
