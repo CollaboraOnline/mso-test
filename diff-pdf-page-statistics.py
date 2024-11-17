@@ -24,12 +24,13 @@
 #
 # False positives:
 #   - automatically updating fields: dates, =rand(), slide date/time ...
-#   - 
- 
+#   -
+
 import argparse
 import os
 import wand # pip install wand && OS_INSTALLER install imagemagick
 from wand.image import Image
+from wand.exceptions import PolicyError
 import time
 
 MAX_PAGES = 10 # limit PDF comparison to the first ten pages
@@ -95,17 +96,23 @@ def main():
     EXPORT_COMPARE = os.path.join(EXPORT_COMPARE_DIR, args.base_file + "_export-compare.png")
 
     # The "correct" PDF: created by MS Word of the original file
-    MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=150)
+    try:
+        MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=150)
+    except PolicyError:
+        print("Warning: Operation not allowed due to security policy restrictions for PDF files.")
+        print("Please modify the '/etc/ImageMagick-6/policy.xml' file to allow PDF processing.")
+        print("<policy domain=\"coder\" rights=\"read\" pattern=\"PDF\" />")
+        exit(1)
     MS_ORIG_PDF.transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.05)
 
     # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
     LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=150)
     LO_ORIG_PDF.transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
-  
+
     # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
     MS_CONV_PDF = Image(filename=MS_CONV, resolution=150)
     MS_CONV_PDF.transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
-    
+
     # A historical version of how it was displayed in Writer
     LO_PREV_PDF = Image()
     LO_PREV_PAGES = MAX_PAGES
@@ -160,7 +167,7 @@ def main():
             else:
                 RED_COLOR.append(HIST_COLORS[1])
             print("DEBUG: RED_COLOR  ", RED_COLOR[pgnum].normalized_string, " pixels[",MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0],"][", MS_ORIG_CONTENT[pgnum],"][",HIST_PIXELS[0],"]")
-       
+
     # Composed image: overlay red MS_ORIG with LO_ORIG
     IMPORT_IMAGE = MS_ORIG_PDF.clone()
     # Composed image: overlay red MS_ORIG with MS_CONV
@@ -170,7 +177,7 @@ def main():
     PREV_IMPORT_IMAGE = MS_ORIG_PDF.clone()
     # Composed image: overlay red MS_ORIG with MS_PREV
     PREV_EXPORT_IMAGE = MS_ORIG_PDF.clone()
-    
+
     # Composed image: overlay red LO_ORIG with LO_PREV
     # This is the visual key to the whole tool. The overlay should be identical except for import fixes or regressions
     IMPORT_COMPARE_IMAGE = LO_ORIG_PDF.clone()
@@ -247,7 +254,7 @@ def main():
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with LO_PREV
                 page.merge_layers('flatten')
                 page.alpha_channel = 'remove'
-       
+
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
             with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
@@ -264,9 +271,9 @@ def main():
                 page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.95)
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with MS_PREV
                 page.merge_layers('flatten')
-       
 
-    FORCE_SAVE = False    
+
+    FORCE_SAVE = False
     if (
         (IS_FILE_LO_PREV and IMPORT_RED > PREV_IMPORT_RED)
         or (IS_FILE_MS_PREV and EXPORT_RED > PREV_EXPORT_RED)
