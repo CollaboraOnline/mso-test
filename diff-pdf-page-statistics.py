@@ -31,6 +31,7 @@ import os
 import wand # pip install wand && OS_INSTALLER install imagemagick
 from wand.image import Image
 from wand.exceptions import PolicyError
+from wand.exceptions import CacheError
 import time
 
 MAX_PAGES = 10 # limit PDF comparison to the first ten pages
@@ -102,6 +103,11 @@ def main():
         print("Warning: Operation not allowed due to security policy restrictions for PDF files.")
         print("Please modify the '/etc/ImageMagick-6/policy.xml' file to allow PDF processing.")
         print("<policy domain=\"coder\" rights=\"read\" pattern=\"PDF\" />")
+        exit(1)
+    except CacheError as e:
+        print("Exception message: ", str(e))
+        print("You probably need to increase the cache allowed in /etc/ImageMagick-6/policy.xml")
+        print("<policy domain=\"resource\" name=\"disk\" value=\"16GiB\"/>")
         exit(1)
     MS_ORIG_PDF.transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.05)
 
