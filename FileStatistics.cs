@@ -9,10 +9,18 @@ namespace mso_test
 
         private Dictionary<string, HashSet<string>> failOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
         private Dictionary<string, HashSet<string>> passOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
-        private Dictionary<string, HashSet<string>> newFailOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
-        private Dictionary<string, HashSet<string>> newPassOpenOriginalFiles = new Dictionary<string, HashSet<string>>();
+        private HashSet<string> hasNewFailOpenOriginalFiles = new HashSet<string>();
+        private HashSet<string> hasNewPassOpenOriginalFiles = new HashSet<string>();
         public Dictionary<string, int> currFailOpenOriginalFilesNo = new Dictionary<string, int>();
         public Dictionary<string, int> currPassOpenOriginalFilesNo = new Dictionary<string, int>();
+        const string failOpenOrigNameSuffix = "-failOpenOriginalFiles.txt";
+        const string failOpenOrigNameTmpSuffix = "-failOpenOriginalFiles-tmp.txt";
+        const string passOpenOrigNameSuffix = "-passOpenOriginalFiles.txt";
+        const string passOpenOrigNameTmpSuffix = "-passOpenOriginalFiles-tmp.txt";
+
+        // Temporary file streams that are filled when adding new items, and deleted in the end
+        private Dictionary<string, StreamWriter> failOpenOriginalFilesTemp = new Dictionary<string, StreamWriter>();
+        private Dictionary<string, StreamWriter> passOpenOriginalFilesTemp = new Dictionary<string, StreamWriter>();
 
         private Dictionary<string, long> timeToOpenOriginalFiles = new Dictionary<string, long>();
 
@@ -27,16 +35,29 @@ namespace mso_test
 
         public void initOpenOriginalFileLists(DirectoryInfo baseDir, string typeName)
         {
-            failOpenOriginalFiles[typeName] = ReadFileToSet(Path.Combine(baseDir.FullName, typeName + "-failOpenOriginalFiles.txt"));
-            passOpenOriginalFiles[typeName] = ReadFileToSet(Path.Combine(baseDir.FullName, typeName + "-passOpenOriginalFiles.txt"));
+            failOpenOriginalFiles[typeName] = ReadFileToSet(Path.Combine(baseDir.FullName, typeName + failOpenOrigNameSuffix));
+            passOpenOriginalFiles[typeName] = ReadFileToSet(Path.Combine(baseDir.FullName, typeName + passOpenOrigNameSuffix));
+            // Set up temporary files based on existing list of passing/failing files
+            File.Delete(Path.Combine(baseDir.FullName, typeName + failOpenOrigNameTmpSuffix));
+            File.Delete(Path.Combine(baseDir.FullName, typeName + passOpenOrigNameTmpSuffix));
+            if (failOpenOriginalFiles[typeName].Count != 0)
+                WriteSetToFile(baseDir, typeName + failOpenOrigNameTmpSuffix, failOpenOriginalFiles[typeName]);
+            if (passOpenOriginalFiles[typeName].Count != 0)
+                WriteSetToFile(baseDir, typeName + passOpenOrigNameTmpSuffix, passOpenOriginalFiles[typeName]);
+            failOpenOriginalFilesTemp[typeName] = new StreamWriter(Path.Combine(baseDir.FullName, typeName + failOpenOrigNameTmpSuffix), true);
+            passOpenOriginalFilesTemp[typeName] = new StreamWriter(Path.Combine(baseDir.FullName, typeName + passOpenOrigNameTmpSuffix), true);
         }
 
         public void saveOpenOriginalFileLists(DirectoryInfo baseDir, string typeName)
         {
-            if (newFailOpenOriginalFiles.ContainsKey(typeName) && newFailOpenOriginalFiles[typeName].Count > 0)
-                WriteSetToFile(baseDir, typeName + "-failOpenOriginalFiles.txt", failOpenOriginalFiles[typeName]);
-            if (newPassOpenOriginalFiles.ContainsKey(typeName) && newPassOpenOriginalFiles[typeName].Count > 0)
-                WriteSetToFile(baseDir, typeName + "-passOpenOriginalFiles.txt", passOpenOriginalFiles[typeName]);
+            if (hasNewFailOpenOriginalFiles.Contains(typeName))
+                WriteSetToFile(baseDir, typeName + failOpenOrigNameSuffix, failOpenOriginalFiles[typeName]);
+            if (hasNewPassOpenOriginalFiles.Contains(typeName))
+                WriteSetToFile(baseDir, typeName + passOpenOrigNameSuffix, passOpenOriginalFiles[typeName]);
+            failOpenOriginalFilesTemp[typeName].Close();
+            File.Delete(Path.Combine(baseDir.FullName, typeName + failOpenOrigNameTmpSuffix));
+            passOpenOriginalFilesTemp[typeName].Close();
+            File.Delete(Path.Combine(baseDir.FullName, typeName + passOpenOrigNameTmpSuffix));
         }
 
         public void saveFailedFileLists(DirectoryInfo baseDir, string typeName)
@@ -79,24 +100,36 @@ namespace mso_test
         public void addToFailOpenOriginalFiles(string typeName, string fileName)
         {
             if (!failOpenOriginalFiles.ContainsKey(typeName))
-                failOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
-            else
-                failOpenOriginalFiles[typeName].Add(fileName);
-            if (!newFailOpenOriginalFiles.ContainsKey(typeName))
-                newFailOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
-            else
-                newFailOpenOriginalFiles[typeName].Add(fileName);
+                failOpenOriginalFiles.Add(typeName, new HashSet<string>());
+
+            bool newItem = failOpenOriginalFiles[typeName].Add(fileName);
+            if (newItem)
+            {
+                hasNewFailOpenOriginalFiles.Add(typeName);
+                if (failOpenOriginalFilesTemp.ContainsKey(typeName))
+                {
+                    failOpenOriginalFilesTemp[typeName].WriteLine(fileName);
+                    if (failOpenOriginalFiles[typeName].Count % 20 == 0)
+                        failOpenOriginalFilesTemp[typeName].Flush();
+                }
+            }
         }
         public void addToPassOpenOriginalFiles(string typeName, string fileName)
         {
             if (!passOpenOriginalFiles.ContainsKey(typeName))
-                passOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
-            else
-                passOpenOriginalFiles[typeName].Add(fileName);
-            if (!newPassOpenOriginalFiles.ContainsKey(typeName))
-                newPassOpenOriginalFiles.Add(typeName, new HashSet<string> { fileName });
-            else
-                newPassOpenOriginalFiles[typeName].Add(fileName);
+                passOpenOriginalFiles.Add(typeName, new HashSet<string>());
+
+            bool newItem = passOpenOriginalFiles[typeName].Add(fileName);
+            if (newItem)
+            {
+                hasNewPassOpenOriginalFiles.Add(typeName);
+                if (passOpenOriginalFilesTemp.ContainsKey(typeName))
+                {
+                    passOpenOriginalFilesTemp[typeName].WriteLine(fileName);
+                    if (passOpenOriginalFiles[typeName].Count % 1000 == 0)
+                        passOpenOriginalFilesTemp[typeName].Flush();
+                }
+            }
         }
 
         public void addToFailConvertFiles(string typeName, string fileName)
