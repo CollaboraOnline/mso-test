@@ -19,7 +19,6 @@ using System.Linq;
 using System.Text;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
-using System.Runtime.CompilerServices;
 
 namespace mso_test
 {
@@ -154,33 +153,39 @@ namespace mso_test
         {
             try
             {
-                if (application == ApplicationType.Word)
-                    wordApp.Quit();
+                // Quit() might not return at times for "bad" documents
+                //  this way the code always moves on and kills the app... the task might linger on(?)
+                try
+                {
+                    Task quitAppTask = Task.Run(() =>
+                    {
+                        if (application == ApplicationType.Word)
+                            wordApp.Quit();
 
-                if (application == ApplicationType.Excel)
-                    excelApp.Quit();
+                        if (application == ApplicationType.Excel)
+                            excelApp.Quit();
 
-                if (application == ApplicationType.PowerPoint)
-                    powerPointApp.Quit();
+                        if (application == ApplicationType.PowerPoint)
+                            powerPointApp.Quit();
+                    });
+                    quitAppTask.Wait(5000);
+                }
+                catch { }
             }
-            catch
-            {
-                if (application == ApplicationType.Word)
-                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(wordApp);
-
-                if (application == ApplicationType.Excel)
-                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelApp);
-
-                if (application == ApplicationType.PowerPoint)
-                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(powerPointApp);
-            }
+            catch { }
+            Object app = null;
+            if (application == ApplicationType.Word)
+                app = wordApp;
+            if (application == ApplicationType.Excel)
+                app = excelApp;
+            if (application == ApplicationType.PowerPoint)
+                app = powerPointApp;
+            if (app != null)
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(app);
             wordApp = null;
             excelApp = null;
             powerPointApp = null;
-
-            System.Threading.Thread.Sleep(10000);
             forceQuitAllApplication(application);
-            System.Threading.Thread.Sleep(10000);
         }
 
         public void restartApplication(ApplicationType application)
@@ -392,7 +397,8 @@ namespace mso_test
                         continue;
                     string fileType = dict.Name;
 
-                    fileStats.initOpenOriginalFileLists(downloadedDirInfo, fileType);
+                    if (nativeMSOFileTypes.Contains(fileType))
+                        fileStats.initOpenOriginalFileLists(downloadedDirInfo, fileType);
 
                     var fileInfos = dict.GetFiles().OrderBy(f => f.Name);
                     foreach (FileInfo file in fileInfos)
@@ -407,7 +413,8 @@ namespace mso_test
                         if (filesToTest.Count > 0 && !filesToTest.Contains(file.Name))
                             continue;
 
-                        if (!allowedExtension.Contains(file.Extension))
+                        // MSO lock file names end with the usual extension, but start with ~$
+                        if (!allowedExtension.Contains(file.Extension) || file.Name.StartsWith("~$"))
                         {
                             Logger.Write($"{file.Name} - Skipping non test file");
                             continue;
@@ -419,6 +426,7 @@ namespace mso_test
                             if (fileStats.isFailOpenOriginalFile(fileType, file.Name))
                             {
                                 Logger.Write($"{file.Name} - Fail; Previously failed opening original file");
+                                fileStats.incrCurrFailOpenOriginalFilesNo(fileType);
                                 continue;
                             }
 
