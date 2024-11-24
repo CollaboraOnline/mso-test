@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
+using System.Threading;
 
 namespace mso_test
 {
@@ -71,7 +72,7 @@ namespace mso_test
     internal class InteropTest
     {
         static TimeSpan openTimeout = TimeSpan.FromMilliseconds(30000);
-        static TimeSpan convertTimeout = TimeSpan.FromMilliseconds(60000);
+        static TimeSpan convertTimeout = TimeSpan.FromMilliseconds(100000);
 
         Configuration config = new Configuration();
         FileStatistics fileStats = new FileStatistics();
@@ -495,11 +496,12 @@ namespace mso_test
             List<Task> convertFiles = new List<Task>();
             if (config.OnlineConverter)
             {
+                HttpClient coolClient = new HttpClient() { BaseAddress = new Uri(config.OnlineConverterBaseURL) };
+                coolClient.Timeout = convertTimeout;
                 for (int i = 0; i < config.OnlineConverterTasks; i++)
                 {
-                    convertFiles.Add(Task.Run(() =>
+                    convertFiles.Add(Task.Run(async () =>
                     {
-                        HttpClient coolClient = new HttpClient() { BaseAddress = new Uri(config.OnlineConverterBaseURL) };
                         Stopwatch watch = new System.Diagnostics.Stopwatch();
                         while (true)
                         {
@@ -508,7 +510,7 @@ namespace mso_test
                                 break;
                             if (!success)
                             {
-                                System.Threading.Thread.Sleep(2000);
+                                await Task.Delay(2000);
                                 continue;
                             }
                             (string fileType, string fileName) = element;
@@ -520,16 +522,7 @@ namespace mso_test
                             // Round-trip file to MSO format
                             watch.Restart();
                             Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedFileName, fileType, convertTo));
-                            if (!ConvertTask.Wait(convertTimeout))
-                            {
-                                Logger.Write($"Fail converting file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
-                                coolClient.CancelPendingRequests();
-                                ConvertTask.Wait();
-                                fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
-                                fileStats.addToFailConvertFiles(fileType, fileName);
-                                continue;
-                            }
-                            else if (!ConvertTask.Result.Item1)
+                            if (!ConvertTask.Result.Item1)
                             {
                                 Logger.Write($"Fail converting file; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
                                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
@@ -548,14 +541,7 @@ namespace mso_test
                             if (!PDFexport.Exists)
                             {
                                 Task<(bool, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedPDFFileName, fileType, "pdf"));
-                                if (!PDFTask.Wait(convertTimeout))
-                                {
-                                    Logger.Write($"Fail PDF export file timeout; {fileName}; {watch.ElapsedMilliseconds} ms; Timed out after {convertTimeout.TotalMilliseconds} ms");
-                                    coolClient.CancelPendingRequests();
-                                    PDFTask.Wait();
-                                    continue;
-                                }
-                                else if (!PDFTask.Result.Item1)
+                                if (!PDFTask.Result.Item1)
                                 {
                                     Logger.Write($"Fail creating PDF export; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
                                     continue;
@@ -572,7 +558,7 @@ namespace mso_test
             else
             {
                 // Use LO as converter
-                convertFiles.Add(Task.Run(() =>
+                convertFiles.Add(Task.Run(async () =>
                 {
                     Stopwatch watch = new System.Diagnostics.Stopwatch();
                     while (true)
@@ -582,7 +568,7 @@ namespace mso_test
                             break;
                         if (!success)
                         {
-                            System.Threading.Thread.Sleep(2000);
+                            await Task.Delay(2000);
                             continue;
                         }
                         (string fileType, string fileName) = element;
@@ -643,7 +629,7 @@ namespace mso_test
                 return;
             }
 
-            Task testConvertedFiles = Task.Run(() =>
+            Task testConvertedFiles = Task.Run(async () =>
             {
                 Stopwatch watch = new System.Diagnostics.Stopwatch();
                 DirectoryInfo convertedDirInfo = new DirectoryInfo(Path.Combine(config.BaseDir, @"converted"));
@@ -654,13 +640,13 @@ namespace mso_test
                         break;
                     if (!success)
                     {
-                        System.Threading.Thread.Sleep(2000);
+                        await Task.Delay(2000);
                         continue;
                     }
                     (string fileType, string origFileName) = element;
                     string convertTo = targetFormatPerApp[application];
                     string fullConvertedFileName = Path.Combine(convertedDirInfo.FullName, fileType + @"\" + Path.GetFileNameWithoutExtension(origFileName) + "." + convertTo);
-                    Logger.Write(origFileName + " - Testing converted file");
+                    Logger.Write(origFileName + $" - Testing converted file at {DateTime.Now.ToString("s")}");
 
                     // Open converted file
                     watch.Restart();
@@ -704,10 +690,13 @@ namespace mso_test
                     { new ByteArrayContent(File.ReadAllBytes(fullFileName)), "data", Path.GetFileName(fullFileName) }
                 };
                 request.Content = multipartContent;
+                CancellationToken ctk = new CancellationToken();
                 try
                 {
-                    using (var response = await convertService.SendAsync(request))
+                    var convertResult = convertService.SendAsync(request, ctk);
+                    if (await Task.WhenAny(convertResult, Task.Delay(convertTimeout, ctk)) == convertResult)
                     {
+                        var response = await convertResult;
                         if (!response.IsSuccessStatusCode)
                         {
                             return (false, "", "HTTP StatusCode: " + response.StatusCode);
@@ -719,6 +708,7 @@ namespace mso_test
                             return (true, fs.Name, "");
                         }
                     }
+                    return (false, "", "Timed out during convert");
                 }
                 catch (Exception ex)
                 {
