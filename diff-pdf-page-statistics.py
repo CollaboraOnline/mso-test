@@ -36,12 +36,28 @@ import time
 
 MAX_PAGES = 10 # limit PDF comparison to the first ten pages
 
+def printdebug(debug, *args, **kwargs):
+    """
+    A conditional debug print function.
+    Prints messages only if the DEBUG variable is True.
+
+    Parameters:
+        *args: Positional arguments to pass to print().
+        **kwargs: Keyword arguments to pass to print().
+    """
+    if debug:
+        print(*args, **kwargs)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Look for import and export regressions.")
     parser.add_argument("--base_file", default="lorem ipsum.docx")
     parser.add_argument("--history_dir", default=".")
     parser.add_argument("--save_overlay", default=True)
+    parser.add_argument("--debug", default=False)
     args = parser.parse_args()
+
+    DEBUG = args.debug
 
     if (
         args.base_file == 'forum-mso-de-108371.xlsx' # =rand()
@@ -49,6 +65,7 @@ def main():
         print("SKIPPING FILE", args.base_file, ": determined to be unusable for testing...")
         exit(0)
 
+    print ("Processing: ", args.base_file)
     base_dir = "./"
     if args.history_dir == "." and not os.path.isdir('download') and os.path.isdir(os.path.join("..", 'download')):
         base_dir = "../"
@@ -141,7 +158,7 @@ def main():
         MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
 
     pages = min(MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), LO_PREV_PAGES, MS_PREV_PAGES)
-    print("DEBUG ", args.base_file, " pages[", pages, "] ", MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), len(LO_PREV_PDF.sequence), len(MS_PREV_PDF.sequence))
+    printdebug(DEBUG, "DEBUG ", args.base_file, " pages[", pages, "] ", MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), len(LO_PREV_PDF.sequence), len(MS_PREV_PDF.sequence))
 
     MS_ORIG_SIZE = []    # total number of pixels on the page
     MS_ORIG_CONTENT = [] # the number of non-background pixels
@@ -169,7 +186,7 @@ def main():
             HIST_COLORS = list(page.histogram.keys())
             HIST_PIXELS = list(page.histogram.values())
             MS_ORIG_CONTENT.append(min(HIST_PIXELS))
-            print ("DEBUG MS_WORD_ORIG ", args.base_file, " colorspace[" + page.colorspace +"] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] PIXELS ", HIST_PIXELS, " COLORS ", HIST_COLORS)
+            printdebug(DEBUG, "DEBUG MS_WORD_ORIG ", args.base_file, " colorspace[" + page.colorspace +"] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] PIXELS ", HIST_PIXELS, " COLORS ", HIST_COLORS)
 
             # assuming that the background is at least 50%. Might be a bad assumption - especially with presentations.
             # NOTE: this logic might not be necessary any more. I used it before removing the transparency - so perhaps I can always trust that 'red' will be 'red' now
@@ -177,7 +194,7 @@ def main():
                 RED_COLOR.append(HIST_COLORS[0])
             else:
                 RED_COLOR.append(HIST_COLORS[1])
-            print("DEBUG: RED_COLOR  ", RED_COLOR[pgnum].normalized_string, " pixels[",MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0],"][", MS_ORIG_CONTENT[pgnum],"][",HIST_PIXELS[0],"]")
+            printdebug(DEBUG, "DEBUG: RED_COLOR  ", RED_COLOR[pgnum].normalized_string, " pixels[",MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0],"][", MS_ORIG_CONTENT[pgnum],"][",HIST_PIXELS[0],"]")
 
     # Composed image: overlay red MS_ORIG with LO_ORIG
     IMPORT_IMAGE = MS_ORIG_PDF.clone()
@@ -202,14 +219,14 @@ def main():
             page.quantize(2)
             LO_ORIG_SIZE.append(page.height * page.width)
             LO_ORIG_CONTENT.append(min(list(page.histogram.values()))) # assuming that the background is more than 50%
-            print ("DEBUG LO_ORIG[", pgnum, "] size[", LO_ORIG_SIZE[pgnum], "] content[", LO_ORIG_CONTENT[pgnum], "] percent[", (LO_ORIG_CONTENT[pgnum] / LO_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
+            printdebug(DEBUG, "DEBUG LO_ORIG[", pgnum, "] size[", LO_ORIG_SIZE[pgnum], "] content[", LO_ORIG_CONTENT[pgnum], "] percent[", (LO_ORIG_CONTENT[pgnum] / LO_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
 
         tmp = MS_CONV_PDF.clone()
         with tmp.sequence[pgnum] as page:
             page.quantize(2)
             MS_CONV_SIZE.append(page.height * page.width)
             MS_CONV_CONTENT.append(min(list(page.histogram.values())))
-            print ("DEBUG MS_CONV[", pgnum, "] size[", MS_CONV_SIZE[pgnum], "] content[", MS_CONV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_CONV_CONTENT[pgnum] / MS_CONV_SIZE[pgnum], "]")
+            printdebug(DEBUG, "DEBUG MS_CONV[", pgnum, "] size[", MS_CONV_SIZE[pgnum], "] content[", MS_CONV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_CONV_CONTENT[pgnum] / MS_CONV_SIZE[pgnum], "]")
 
         if IS_FILE_LO_PREV:
             tmp = LO_PREV_PDF.clone()
@@ -217,7 +234,7 @@ def main():
                 page.quantize(2)
                 LO_PREV_SIZE.append(page.height * page.width)
                 LO_PREV_CONTENT.append(min(list(page.histogram.values())))
-                print ("DEBUG LO_PREV[", pgnum, "] size[", LO_PREV_SIZE[pgnum], "] content[", LO_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", LO_PREV_CONTENT[pgnum] / LO_PREV_SIZE[pgnum], "]")
+                printdebug(DEBUG, "DEBUG LO_PREV[", pgnum, "] size[", LO_PREV_SIZE[pgnum], "] content[", LO_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", LO_PREV_CONTENT[pgnum] / LO_PREV_SIZE[pgnum], "]")
 
         if IS_FILE_MS_PREV:
             tmp = MS_PREV_PDF.clone()
@@ -225,7 +242,7 @@ def main():
                 page.quantize(2)
                 MS_PREV_SIZE.append(page.height * page.width)
                 MS_PREV_CONTENT.append(min(list(page.histogram.values())))
-                print ("DEBUG MS_PREV[", pgnum, "] size[", MS_PREV_SIZE[pgnum], "] content[", MS_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_PREV_CONTENT[pgnum] / MS_PREV_SIZE[pgnum], "]")
+                printdebug(DEBUG, "DEBUG MS_PREV[", pgnum, "] size[", MS_PREV_SIZE[pgnum], "] content[", MS_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_PREV_CONTENT[pgnum] / MS_PREV_SIZE[pgnum], "]")
 
 
         with IMPORT_IMAGE.sequence[pgnum] as page:
@@ -236,7 +253,7 @@ def main():
         try:
             IMPORT_RED[pgnum] = IMPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
         except:
-            print("IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
+            printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         with EXPORT_IMAGE.sequence[pgnum] as page:
             page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
@@ -246,7 +263,7 @@ def main():
         try:
             EXPORT_RED[pgnum] = EXPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
         except:
-            print("EXPORT EXCEPTION: could not get red color from page ", pgnum)# , list(EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
+            printdebug(DEBUG, "EXPORT EXCEPTION: could not get red color from page ", pgnum)# , list(EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         PREV_IMPORT_RED.append(0)
         if IS_FILE_LO_PREV:
@@ -257,7 +274,7 @@ def main():
             try:
                 PREV_IMPORT_RED[pgnum] = PREV_IMPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
             except:
-                print("PREV_IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
+                printdebug(DEBUG, "PREV_IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.quantize(2)
@@ -275,7 +292,7 @@ def main():
             try:
                 PREV_EXPORT_RED[pgnum] = PREV_EXPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
             except:
-                print("PREV_EXPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
+                printdebug(DEBUG, "PREV_EXPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.quantize(2)
@@ -291,7 +308,7 @@ def main():
     ):
         FORCE_SAVE = True
     if args.save_overlay == True or FORCE_SAVE:
-        print ("DEBUG saving " + args.base_file +" IMPORT["+ str(IMPORT_RED)+ "] PREV["+str(PREV_IMPORT_RED) +"] EXPORT["+str(EXPORT_RED)+"] PREV["+str(PREV_EXPORT_RED)+"]")
+        printdebug(DEBUG, "DEBUG saving " + args.base_file +" IMPORT["+ str(IMPORT_RED)+ "] PREV["+str(PREV_IMPORT_RED) +"] EXPORT["+str(EXPORT_RED)+"] PREV["+str(PREV_EXPORT_RED)+"]")
         IMPORT_IMAGE.save(filename=IMPORT)
         EXPORT_IMAGE.save(filename=EXPORT)
         if IS_FILE_LO_PREV:
@@ -309,14 +326,14 @@ def main():
     while True:
         LOCK_FILE="diff-pdf-" + file_ext[1][1:] + "-statistics.lock"
         if os.path.isfile(LOCK_FILE):
-            print("DEBUG: waiting for file to unlock")
+            printdebug(DEBUG, "DEBUG: waiting for file to unlock")
         else:
             with open(LOCK_FILE, 'w') as f:
                 f.write(args.base_file)
             time.sleep(0.1) # one tenth of a second
             with open(LOCK_FILE, 'r') as f:
                 LOCK = f.read()
-                print ("DEBUG LOCK[", LOCK, "]")
+                printdebug(DEBUG, "DEBUG LOCK[", LOCK, "]")
                 if LOCK == args.base_file:
                     with open('diff-pdf-' + file_ext[1][1:] + '-import-statistics.csv', 'a') as f:
                         for pgnum in range(0, pages):
@@ -364,7 +381,7 @@ def main():
                         if IS_FILE_MS_PREV and len(MS_CONV_PDF.sequence) != MS_PREV_PAGES:
                            f.write(args.base_file + ",export,page count different from " + args.history_dir + '\n')
                         for pgnum in range(0, len(RED_COLOR)):
-                           print ("DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum))
+                           printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum))
                            if RED_COLOR[pgnum] != wand.color.Color('red'):
                                if MS_ORIG_SIZE[pgnum] != MS_ORIG_CONTENT[pgnum]: # false positive: blank page
                                    f.write(args.base_file + ",red color," + RED_COLOR/[pgnum] + '\n')
@@ -372,7 +389,7 @@ def main():
                     os.remove(LOCK_FILE)
                     return
                 else:
-                    print("DEBUG: not my lock after all - try again")
+                    printdebug(DEBUG, "DEBUG: not my lock after all - try again")
         time.sleep(1) # second
 
 
