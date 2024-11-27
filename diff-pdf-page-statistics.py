@@ -113,9 +113,40 @@ def main():
         os.makedirs(EXPORT_COMPARE_DIR)
     EXPORT_COMPARE = os.path.join(EXPORT_COMPARE_DIR, args.base_file + "_export-compare.png")
 
-    # The "correct" PDF: created by MS Word of the original file
     try:
+        # The "correct" PDF: created by MS Word of the original file
         MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=150)
+        MS_ORIG_PDF.transform_colorspace('gray')
+        MS_ORIG_PDF.transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.05)
+
+        # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
+        LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=150)
+        LO_ORIG_PDF.transform_colorspace('gray')
+        LO_ORIG_PDF.transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
+
+        # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
+        MS_CONV_PDF = Image(filename=MS_CONV, resolution=150)
+        MS_CONV_PDF.transform_colorspace('gray')
+        MS_CONV_PDF.transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
+
+        # A historical version of how it was displayed in Writer
+        LO_PREV_PDF = Image()
+        LO_PREV_PAGES = MAX_PAGES
+        if IS_FILE_LO_PREV:
+            LO_PREV_PDF = Image(filename=LO_PREV, resolution=150)
+            LO_PREV_PDF.transform_colorspace('gray')
+            LO_PREV_PDF.transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
+            LO_PREV_PAGES = len(LO_PREV_PDF.sequence)
+
+        # A historical version of how the round-tripped file was displayed in Word
+        MS_PREV_PDF = Image()
+        MS_PREV_PAGES = MAX_PAGES
+        if IS_FILE_MS_PREV:
+            MS_PREV_PDF = Image(filename=MS_PREV, resolution=150)
+            MS_PREV_PDF.transform_colorspace('gray')
+            MS_PREV_PDF.transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
+            MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
+
     except PolicyError:
         print("Warning: Operation not allowed due to security policy restrictions for PDF files.")
         print("Please modify the '/etc/ImageMagick-6/policy.xml' file to allow PDF processing.")
@@ -126,36 +157,6 @@ def main():
         print("You probably need to increase the cache allowed in /etc/ImageMagick-6/policy.xml")
         print("<policy domain=\"resource\" name=\"disk\" value=\"16GiB\"/>")
         exit(1)
-    MS_ORIG_PDF.transform_colorspace('gray')
-    MS_ORIG_PDF.transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.05)
-
-    # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
-    LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=150)
-    LO_ORIG_PDF.transform_colorspace('gray')
-    LO_ORIG_PDF.transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
-
-    # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
-    MS_CONV_PDF = Image(filename=MS_CONV, resolution=150)
-    MS_CONV_PDF.transform_colorspace('gray')
-    MS_CONV_PDF.transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
-
-    # A historical version of how it was displayed in Writer
-    LO_PREV_PDF = Image()
-    LO_PREV_PAGES = MAX_PAGES
-    if IS_FILE_LO_PREV:
-        LO_PREV_PDF = Image(filename=LO_PREV, resolution=150)
-        LO_PREV_PDF.transform_colorspace('gray')
-        LO_PREV_PDF.transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
-        LO_PREV_PAGES = len(LO_PREV_PDF.sequence)
-
-    # A historical version of how the round-tripped file was displayed in Word
-    MS_PREV_PDF = Image()
-    MS_PREV_PAGES = MAX_PAGES
-    if IS_FILE_MS_PREV:
-        MS_PREV_PDF = Image(filename=MS_PREV, resolution=150)
-        MS_PREV_PDF.transform_colorspace('gray')
-        MS_PREV_PDF.transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
-        MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
 
     pages = min(MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), LO_PREV_PAGES, MS_PREV_PAGES)
     printdebug(DEBUG, "DEBUG ", args.base_file, " pages[", pages, "] ", MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), len(LO_PREV_PDF.sequence), len(MS_PREV_PDF.sequence))
