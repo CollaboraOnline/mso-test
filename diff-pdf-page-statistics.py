@@ -116,17 +116,14 @@ def main():
     try:
         # The "correct" PDF: created by MS Word of the original file
         MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=150)
-        MS_ORIG_PDF.transform_colorspace('gray')
         MS_ORIG_PDF.transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.05)
 
         # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
         LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=150)
-        LO_ORIG_PDF.transform_colorspace('gray')
         LO_ORIG_PDF.transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
 
         # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
         MS_CONV_PDF = Image(filename=MS_CONV, resolution=150)
-        MS_CONV_PDF.transform_colorspace('gray')
         MS_CONV_PDF.transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
 
         # A historical version of how it was displayed in Writer
@@ -134,7 +131,6 @@ def main():
         LO_PREV_PAGES = MAX_PAGES
         if IS_FILE_LO_PREV:
             LO_PREV_PDF = Image(filename=LO_PREV, resolution=150)
-            LO_PREV_PDF.transform_colorspace('gray')
             LO_PREV_PDF.transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
             LO_PREV_PAGES = len(LO_PREV_PDF.sequence)
 
@@ -143,7 +139,6 @@ def main():
         MS_PREV_PAGES = MAX_PAGES
         if IS_FILE_MS_PREV:
             MS_PREV_PDF = Image(filename=MS_PREV, resolution=150)
-            MS_PREV_PDF.transform_colorspace('gray')
             MS_PREV_PDF.transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
             MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
 
@@ -247,6 +242,7 @@ def main():
 
 
         with IMPORT_IMAGE.sequence[pgnum] as page:
+            LO_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
             page.composite(LO_ORIG_PDF.sequence[pgnum])  # overlay (red) MS_ORIG with LO_ORIG
             page.merge_layers('flatten')
             page.alpha_channel = 'remove'
@@ -257,6 +253,7 @@ def main():
             printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         with EXPORT_IMAGE.sequence[pgnum] as page:
+            MS_CONV_PDF.sequence[pgnum].transform_colorspace('gray')
             page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
             page.merge_layers('flatten')
             page.alpha_channel = 'remove'
@@ -269,6 +266,7 @@ def main():
         PREV_IMPORT_RED.append(0)
         if IS_FILE_LO_PREV:
             with PREV_IMPORT_IMAGE.sequence[pgnum] as page:
+                LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with LO_PREV
                 page.merge_layers('flatten')
                 page.alpha_channel = 'remove'
@@ -287,6 +285,7 @@ def main():
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
             with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
+                MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_PREV
                 page.merge_layers('flatten')
                 page.alpha_channel = 'remove'
