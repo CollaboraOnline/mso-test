@@ -388,7 +388,7 @@ namespace mso_test
                 if (File.Exists(filesToTestName))
                     Logger.Write(@"The file download\filestotest.txt exists, and will be used to limit the files tested.");
                 HashSet<string> filesToTest = FileStatistics.ReadFileToSet(filesToTestName);
-                Logger.Write("\n");
+                Logger.Write("");
 
                 var downloadedDictInfo = downloadedDirInfo.GetDirectories().OrderBy(d => d.Name);
                 int fileNo = 0;
@@ -521,13 +521,18 @@ namespace mso_test
 
                             // Round-trip file to MSO format
                             watch.Restart();
-                            Task<(bool, string, string)> ConvertTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedFileName, fileType, convertTo));
+                            Task<(bool, int, string, string)> ConvertTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedFileName, fileType, convertTo));
                             if (!ConvertTask.Result.Item1)
                             {
-                                Logger.Write($"Fail converting file; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                                Logger.Write($"Fail converting file {fileName}; {ConvertTask.Result.Item2} tries; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item4}");
                                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
                                 fileStats.addToFailConvertFiles(fileType, fileName);
                                 continue;
+                            }
+                            else if (ConvertTask.Result.Item2 > 1)
+                            {
+                                // Passed after a service outage, log that
+                                Logger.Write($"Pass converting file {fileName}; {ConvertTask.Result.Item2} tries;");
                             }
                             fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
                             convertedFilesToTest.Enqueue((fileType, fileName));
@@ -540,15 +545,15 @@ namespace mso_test
                             FileInfo PDFexport = new FileInfo(convertedPDFFileName);
                             if (!PDFexport.Exists)
                             {
-                                Task<(bool, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedPDFFileName, fileType, "pdf"));
+                                Task<(bool, int, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedPDFFileName, fileType, "pdf"));
                                 if (!PDFTask.Result.Item1)
                                 {
-                                    Logger.Write($"Fail creating PDF export; {fileName}; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item3}");
+                                    Logger.Write($"Fail creating PDF export; {fileName}; {ConvertTask.Result.Item2} tries; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item4}");
                                     continue;
                                 }
                             }
                             else
-                                Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
+                                Logger.Write("DEBUG: PDF already exists for " + PDFexport.FullName);
                         }
                         conversionCompleted = true;
                         Logger.Write("Finished task for second step: converting files.");
@@ -681,65 +686,88 @@ namespace mso_test
         /*
          * Returns: (success, converted file name, error message)
          */
-        public static async Task<(bool, string, string)> ConvertFile(HttpClient convertService, ApplicationType application, string fullFileName, string convertedFileName, string fileType, string convertTo)
+        public static async Task<(bool, int, string, string)> ConvertFile(HttpClient convertService, ApplicationType application, string fullFileName, string convertedFileName, string fileType, string convertTo)
         {
-            using (var request = new HttpRequestMessage(new HttpMethod("POST"), convertService.BaseAddress + "cool/convert-to/" + convertTo))
+            const int maxConvertTries = 2;
+            const int maxTestTries = 5;
+            int totalTries = 0;
+            string message = "";
+            // If first conversion is unsuccessful, test the endpoint, and retry conversion if succesful
+            for (int numTries = 0; numTries < maxConvertTries; numTries++)
             {
-                var multipartContent = new MultipartFormDataContent
+                using (var request = new HttpRequestMessage(new HttpMethod("POST"), convertService.BaseAddress + "cool/convert-to/" + convertTo))
                 {
-                    { new ByteArrayContent(File.ReadAllBytes(fullFileName)), "data", Path.GetFileName(fullFileName) }
-                };
-                request.Content = multipartContent;
-                CancellationToken ctk = new CancellationToken();
-                try
-                {
-                    var convertResult = convertService.SendAsync(request, ctk);
-                    if (await Task.WhenAny(convertResult, Task.Delay(convertTimeout, ctk)) == convertResult)
+                    totalTries++;
+                    var multipartContent = new MultipartFormDataContent
                     {
-                        var response = await convertResult;
-                        if (!response.IsSuccessStatusCode)
+                        { new ByteArrayContent(File.ReadAllBytes(fullFileName)), "data", Path.GetFileName(fullFileName) }
+                    };
+                    request.Content = multipartContent;
+                    CancellationToken ctk = new CancellationToken();
+                    try
+                    {
+                        var convertResult = convertService.SendAsync(request, ctk);
+                        if (await Task.WhenAny(convertResult, Task.Delay(convertTimeout, ctk)) == convertResult)
                         {
-                            return (false, "", "HTTP StatusCode: " + response.StatusCode);
+                            var response = await convertResult;
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                message = "HTTP StatusCode: " + response.StatusCode;
+                            }
+                            Directory.CreateDirectory(Path.GetDirectoryName(convertedFileName));
+                            using (FileStream fs = File.Open(convertedFileName, FileMode.Create))
+                            {
+                                await response.Content.CopyToAsync(fs);
+                                return (true, totalTries, fs.Name, "");
+                            }
                         }
-                        Directory.CreateDirectory(Path.GetDirectoryName(convertedFileName));
-                        using (FileStream fs = File.Open(convertedFileName, FileMode.Create))
-                        {
-                            await response.Content.CopyToAsync(fs);
-                            return (true, fs.Name, "");
-                        }
+                        message = "Timed out during convert";
                     }
-                    return (false, "", "Timed out during convert");
-                }
-                catch (Exception ex)
-                {
-                    return (false, "", "Exception during convert: " + ex.Message);
-                }
-            }
-        }
-
-        /*
-         * Returns: (success, error message)
-         */
-        public static async Task<(bool, string)> TestConvertService(HttpClient convertService)
-        {
-            using (var request = new HttpRequestMessage(new HttpMethod("GET"), convertService.BaseAddress + "hosting/capabilities"))
-            {
-                try
-                {
-                    using (var response = await convertService.SendAsync(request))
+                    catch (Exception ex)
                     {
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            return (false, "HTTP StatusCode: " + response.StatusCode);
-                        }
+                        message = "Exception during convert: " + ex.Message;
                     }
                 }
-                catch (Exception ex)
+                // Last attempt, if it still failed, no need to test if the server is up
+                if (numTries == maxConvertTries - 1)
                 {
-                    return (false, "Exception during convert: " + ex.Message);
+                    break;
                 }
+                // Unsuccessful conversion, try capabilities endpoint a few times to see if it comes back before coming to conclusions
+                bool serviceSuccess = false;
+                int convertTries;
+                for (convertTries = 0; convertTries < maxTestTries; convertTries++)
+                {
+                    totalTries++;
+                    using (var request = new HttpRequestMessage(new HttpMethod("GET"), convertService.BaseAddress + "hosting/capabilities"))
+                    {
+                        try
+                        {
+                            using (var response = await convertService.SendAsync(request))
+                            {
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    serviceSuccess = true;
+                                    break;
+                                }
+                                // Service down, wait for it to come back
+                                await Task.Delay(convertTimeout);
+                            }
+                        }
+                        catch {
+                            // Service down, wait for it to come back
+                            await Task.Delay(convertTimeout);
+                        }
+                    }
+                }
+                // If conversion failed, but test try was OK right away, this is a real failure, break
+                if (serviceSuccess && convertTries == 0)
+                    break;
+                // If conversion failed, and all test tries failed, service is down, break
+                if (!serviceSuccess)
+                    break;
             }
-            return (true, "");
+            return (false, totalTries, "", message);
         }
 
         private (bool, string) OpenWordDoc(string fileName, bool generatePDF)
