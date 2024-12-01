@@ -57,6 +57,7 @@ namespace mso_test
     internal class Logger
     {
         static StreamWriter logFile;
+        private static object streamLock = new object();
         public static void Initialize(string fileName) { logFile = new StreamWriter(fileName, false); }
 
         public static void Close() { if (logFile != null) { logFile.Close(); } }
@@ -64,7 +65,8 @@ namespace mso_test
         {
             if (logFile != null)
             {
-                logFile.WriteLine(message);
+                lock (streamLock)
+                    logFile.WriteLine(message);
             }
             Console.WriteLine(message);
         }
@@ -496,8 +498,11 @@ namespace mso_test
             List<Task> convertFiles = new List<Task>();
             if (config.OnlineConverter)
             {
-                HttpClient coolClient = new HttpClient() { BaseAddress = new Uri(config.OnlineConverterBaseURL) };
-                coolClient.Timeout = convertTimeout;
+                HttpClient coolClient = new HttpClient()
+                {
+                    BaseAddress = new Uri(config.OnlineConverterBaseURL),
+                    Timeout = convertTimeout
+                };
                 for (int i = 0; i < config.OnlineConverterTasks; i++)
                 {
                     convertFiles.Add(Task.Run(async () =>
@@ -703,25 +708,33 @@ namespace mso_test
                         { new ByteArrayContent(File.ReadAllBytes(fullFileName)), "data", Path.GetFileName(fullFileName) }
                     };
                     request.Content = multipartContent;
-                    CancellationToken ctk = new CancellationToken();
                     try
                     {
+                        CancellationTokenSource ctks = new CancellationTokenSource();
+                        CancellationToken ctk = ctks.Token;
                         var convertResult = convertService.SendAsync(request, ctk);
-                        if (await Task.WhenAny(convertResult, Task.Delay(convertTimeout, ctk)) == convertResult)
+                        if (await Task.WhenAny(convertResult, Task.Delay(convertTimeout)) == convertResult)
                         {
                             var response = await convertResult;
                             if (!response.IsSuccessStatusCode)
                             {
                                 message = "HTTP StatusCode: " + response.StatusCode;
                             }
-                            Directory.CreateDirectory(Path.GetDirectoryName(convertedFileName));
-                            using (FileStream fs = File.Open(convertedFileName, FileMode.Create))
+                            else
                             {
-                                await response.Content.CopyToAsync(fs);
-                                return (true, totalTries, fs.Name, "");
+                                Directory.CreateDirectory(Path.GetDirectoryName(convertedFileName));
+                                using (FileStream fs = File.Open(convertedFileName, FileMode.Create))
+                                {
+                                    await response.Content.CopyToAsync(fs);
+                                    return (true, totalTries, fs.Name, "");
+                                }
                             }
                         }
-                        message = "Timed out during convert";
+                        else
+                        {
+                            ctks.Cancel();
+                            message = "Timed out during convert";
+                        }
                     }
                     catch (Exception ex)
                     {
