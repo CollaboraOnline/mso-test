@@ -24,7 +24,7 @@
 #
 # False positives:
 #   - automatically updating fields: dates, =rand(), slide date/time ...
-#   -
+#   - different font subsitutions
 
 import argparse
 import os
@@ -94,24 +94,18 @@ def main():
     IMPORT_DIR = os.path.join(base_dir, "converted", "import", file_ext[1][1:])
     if not os.path.isdir(IMPORT_DIR):
         os.makedirs(IMPORT_DIR)
-    IMPORT = os.path.join(IMPORT_DIR, args.base_file + "_import.png")
-    PREV_IMPORT = os.path.join(IMPORT_DIR, args.base_file + "_prev-import.png")
 
     EXPORT_DIR = os.path.join(base_dir, "converted", "export", file_ext[1][1:])
     if not os.path.isdir(EXPORT_DIR):
         os.makedirs(EXPORT_DIR)
-    EXPORT = os.path.join(EXPORT_DIR, args.base_file + "_export.png")
-    PREV_EXPORT = os.path.join(EXPORT_DIR, args.base_file + "_prev-export.png")
 
     IMPORT_COMPARE_DIR = os.path.join(base_dir, "converted", "import-compare", file_ext[1][1:])
     if not os.path.isdir(IMPORT_COMPARE_DIR):
         os.makedirs(IMPORT_COMPARE_DIR)
-    IMPORT_COMPARE = os.path.join(IMPORT_COMPARE_DIR, args.base_file + "_import-compare.png")
 
     EXPORT_COMPARE_DIR = os.path.join(base_dir, "converted", "export-compare", file_ext[1][1:])
     if not os.path.isdir(EXPORT_COMPARE_DIR):
         os.makedirs(EXPORT_COMPARE_DIR)
-    EXPORT_COMPARE = os.path.join(EXPORT_COMPARE_DIR, args.base_file + "_export-compare.png")
 
     try:
         # The "correct" PDF: created by MS Word of the original file
@@ -308,14 +302,28 @@ def main():
         FORCE_SAVE = True
     if args.save_overlay == True or FORCE_SAVE:
         printdebug(DEBUG, "DEBUG saving " + args.base_file +" IMPORT["+ str(IMPORT_RED)+ "] PREV["+str(PREV_IMPORT_RED) +"] EXPORT["+str(EXPORT_RED)+"] PREV["+str(PREV_EXPORT_RED)+"]")
-        IMPORT_IMAGE.save(filename=IMPORT)
-        EXPORT_IMAGE.save(filename=EXPORT)
-        if IS_FILE_LO_PREV:
-            PREV_IMPORT_IMAGE.save(filename=PREV_IMPORT)
-            IMPORT_COMPARE_IMAGE.save(filename=IMPORT_COMPARE)
-        if IS_FILE_MS_PREV:
-            PREV_EXPORT_IMAGE.save(filename=PREV_EXPORT)
-            EXPORT_COMPARE_IMAGE.save(filename=EXPORT_COMPARE)
+        for pageToSave in range(0, pages):
+            with Image(IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
+                file_name=os.path.join(IMPORT_DIR, args.base_file + f"_import-{pageToSave}.png")
+                img_to_save.save(filename=file_name)
+            with Image(EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
+                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave}.png")
+                img_to_save.save(filename=file_name)
+
+            if IS_FILE_LO_PREV:
+                with Image(PREV_IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
+                    file_name=os.path.join(IMPORT_DIR, args.base_file + f"_prev-import-{pageToSave}.png")
+                    img_to_save.save(filename=file_name)
+                with Image(IMPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
+                    file_name=os.path.join(IMPORT_COMPARE_DIR, args.base_file + f"_import-compare-{pageToSave}.png")
+                    img_to_save.save(filename=file_name)
+            if IS_FILE_MS_PREV:
+                with Image(PREV_EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
+                    file_name=os.path.join(EXPORT_DIR, args.base_file + f"_prev-export-{pageToSave}.png")
+                    img_to_save.save(filename=file_name)
+                with Image(EXPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
+                    file_name=os.path.join(EXPORT_COMPARE_DIR, args.base_file + f"_export-compare-{pageToSave}.png")
+                    img_to_save.save(filename=file_name)
 
     # allow the script to run in parallel - wait for lock on report to be released.
     # if lock file exists, wait for one second and try again
