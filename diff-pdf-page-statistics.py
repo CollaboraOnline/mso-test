@@ -268,11 +268,11 @@ def main():
                 printdebug(DEBUG, "PREV_IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
+                page.alpha_channel = 'remove'
                 page.quantize(2)
                 page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.95)
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with LO_PREV
                 page.merge_layers('flatten')
-                page.alpha_channel = 'remove'
 
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
@@ -288,6 +288,7 @@ def main():
                 printdebug(DEBUG, "PREV_EXPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
+                page.alpha_channel = 'remove'
                 page.quantize(2)
                 page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.95)
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with MS_PREV
