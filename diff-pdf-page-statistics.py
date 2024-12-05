@@ -3,7 +3,7 @@
 #NOTE: you probably need to increase the cache allowed: /etc/ImageMagick-*/policy.xml
 #      <policy domain="resource" name="disk" value="16GiB"/>
 
-# find docx/ -name "*.docx" -execdir basename {} \; | xargs -L1 -I{} python3 ../diff-pdf-page-statistics.py --save_overlay=False  --base_file="{}"
+# find docx/ -name "*.docx" -execdir basename {} \; | xargs -L1 -I{} python3 ../diff-pdf-page-statistics.py --no_save_overlay  --base_file="{}"
 #       - delete any CSV files. Delete the import/export folders in converted
 #       - rename converted DOC/PPT/XLS pdfs from .docx_mso.pdf to .doc_mso.pdf, etc.
 
@@ -53,8 +53,8 @@ def main():
     parser = argparse.ArgumentParser(description="Look for import and export regressions.")
     parser.add_argument("--base_file", default="lorem ipsum.docx")
     parser.add_argument("--history_dir", default=".")
-    parser.add_argument("--save_overlay", default=True)
-    parser.add_argument("--debug", default=False)
+    parser.add_argument("--no_save_overlay", action="store_true") # default is false
+    parser.add_argument("--debug", action="store_true") # default is false
     args = parser.parse_args()
 
     DEBUG = args.debug
@@ -301,7 +301,7 @@ def main():
         or (IS_FILE_MS_PREV and EXPORT_RED > PREV_EXPORT_RED)
     ):
         FORCE_SAVE = True
-    if args.save_overlay == True or FORCE_SAVE:
+    if args.no_save_overlay == False or FORCE_SAVE:
         printdebug(DEBUG, "DEBUG saving " + args.base_file +" IMPORT["+ str(IMPORT_RED)+ "] PREV["+str(PREV_IMPORT_RED) +"] EXPORT["+str(EXPORT_RED)+"] PREV["+str(PREV_EXPORT_RED)+"]")
         for pageToSave in range(0, pages):
             with Image(IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
