@@ -392,7 +392,7 @@ def main():
                            printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum))
                            if RED_COLOR[pgnum] != wand.color.Color('red'):
                                if MS_ORIG_SIZE[pgnum] != MS_ORIG_CONTENT[pgnum]: # false positive: blank page
-                                   f.write(args.base_file + ",red color," + RED_COLOR[pgnum].normalized_string + '\n')
+                                   f.write(args.base_file + f",red color,page {pgnum}," + RED_COLOR[pgnum].normalized_string + '\n')
 
                     os.remove(LOCK_FILE)
                     return
