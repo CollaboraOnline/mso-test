@@ -385,9 +385,9 @@ def main():
 
                     with open('diff-pdf-' + file_ext[1][1:] + '-statistics-anomalies.csv', 'a') as f:
                         if IS_FILE_LO_PREV and len(LO_ORIG_PDF.sequence) != LO_PREV_PAGES:
-                           f.write(args.base_file + f",import,page count different from {args.history_dir} [{LO_PREV_PAGES}] and converted [{len(LO_ORIG_PDF.sequence)}]" + '\n')
+                            f.write(args.base_file + f",import,page count different from {args.history_dir} [{LO_PREV_PAGES}] and converted [{len(LO_ORIG_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
                         if IS_FILE_MS_PREV and len(MS_CONV_PDF.sequence) != MS_PREV_PAGES:
-                           f.write(args.base_file + f",export,page count different from {args.history_dir} [{MS_PREV_PAGES}] and converted [{len(MS_CONV_PDF.sequence)}]" + '\n')
+                            f.write(args.base_file + f",export,page count different from {args.history_dir} [{MS_PREV_PAGES}] and converted [{len(MS_CONV_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
                         for pgnum in range(0, len(RED_COLOR)):
                            printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum))
                            if RED_COLOR[pgnum] != wand.color.Color('red'):
