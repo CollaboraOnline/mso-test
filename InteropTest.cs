@@ -202,6 +202,47 @@ namespace mso_test
             startApplication(application);
         }
 
+        public void getLOParams(string formatTo, string targetDir, string fullOrigFileName, out string loName, out string loParams)
+        {
+            loName = Path.Combine(config.DesktopConverterLocation, "soffice.exe");
+            // In more recent versions --convert-to implies headless, but before 5.0 that doesn't seem to be the case
+            loParams = "--headless --convert-to " + formatTo + " --outdir " + targetDir + " " + fullOrigFileName;
+        }
+        public bool convertWithLO(string formatTo, string targetDir, string fullOrigFileName)
+        {
+            Process loProcess = new Process(); ;
+            string loName, loParams;
+            getLOParams(formatTo, targetDir, fullOrigFileName, out loName, out loParams);
+            loProcess.StartInfo.FileName = loName;
+            loProcess.StartInfo.Arguments = loParams;
+            loProcess.StartInfo.ErrorDialog = false;
+            loProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            loProcess.Start();
+            loProcess.WaitForExit((int)convertTimeout.TotalMilliseconds);
+
+            return killLOProcess(loProcess);
+
+        }
+
+        public static bool killLOProcess(Process loProcess)
+        {
+            if (loProcess != null && !loProcess.HasExited)
+            {
+                try
+                {
+                    loProcess.Kill();
+                    Process[] loBinProcesses = Process.GetProcessesByName("soffice.bin");
+                    foreach (Process p in loBinProcesses)
+                    {
+                        p.Kill();
+                    }
+                    return false;
+                }
+                catch { return false; }
+            }
+            return true;
+        }
+
         public static SortedSet<string> nativeMSOExtensions = new SortedSet<string>()
         {
             ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt"
@@ -547,7 +588,8 @@ namespace mso_test
                 (string fileType, string fileName) = element;
                 string fullFileName = Path.Combine(config.BaseDir, @"download\" + fileType + @"\" + fileName);
                 string convertTo = targetFormatPerApp[application];
-                string convertedFileName = Path.Combine(config.BaseDir, @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
+                string targetDir = Path.Combine(config.BaseDir, @"converted\" + fileType);
+                string convertedFileName = Path.Combine(targetDir, Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
                 Logger.Write($"{fileName} - Converting file at {DateTime.Now.ToString("s")}");
 
                 // Round-trip file to MSO format
@@ -572,7 +614,7 @@ namespace mso_test
                     continue;
                 // Make a PDF of the file (not using the round-tripped document, but using the originally provided document)
                 //watch.Restart();
-                string convertedPDFFileName = Path.Combine(config.BaseDir, @"converted\" + fileType + @"\" + Path.GetFileNameWithoutExtension(fileName) + ".pdf");
+                string convertedPDFFileName = Path.Combine(targetDir, Path.GetFileNameWithoutExtension(fileName) + ".pdf");
                 FileInfo PDFexport = new FileInfo(convertedPDFFileName);
                 if (!PDFexport.Exists)
                 {
@@ -612,39 +654,32 @@ namespace mso_test
 
                 // Round-trip file to MSO format in LO
                 watch.Restart();
-                string loName = Path.Combine(config.DesktopConverterLocation, "soffice.exe");
-                // In more recent versions --convert-to implies headless, but before 5.0 that doesn't seem to be the case
-                string loParams = "--headless --convert-to " + convertTo + " --outdir " + targetDir + " " + fullFileName;
-                Process loProcess = new Process();
-                loProcess.StartInfo.FileName = loName;
-                loProcess.StartInfo.Arguments = loParams;
-                loProcess.StartInfo.ErrorDialog = false;
-                loProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                loProcess.Start();
-                loProcess.WaitForExit((int)convertTimeout.TotalMilliseconds);
-                bool failed = false;
-                if (!loProcess.HasExited)
-                {
-                    try
-                    {
-                        loProcess.Kill();
-                        Process[] loBinProcesses = Process.GetProcessesByName("soffice.bin");
-                        foreach (Process p in loBinProcesses)
-                        {
-                            p.Kill();
-                        }
-                        failed = true;
-                    }
-                    catch { failed = true; }
-                }
+                success = convertWithLO(convertTo, targetDir, fullFileName);
                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
-                if (failed)
+                if (!success)
                 {
+                    string loName, loParams;
+                    getLOParams(convertTo, targetDir, fullFileName, out loName, out loParams);
                     Logger.Write(fileName + " - Error during conversion with LO, full command used:\n\t" + loName + " " + loParams);
                     fileStats.addToFailConvertFiles(fileType, fileName);
                 }
                 else
                     convertedFilesToTest.Enqueue((fileType, fileName));
+
+                if (!config.GeneratePDF)
+                    continue;
+                // Make a PDF of the file (not using the round-tripped document, but using the originally provided document)
+                //watch.Restart();
+                string convertedPDFFileName = Path.Combine(targetDir, Path.GetFileNameWithoutExtension(fileName) + ".pdf");
+                FileInfo PDFexport = new FileInfo(convertedPDFFileName);
+                if (!PDFexport.Exists)
+                {
+                    success = convertWithLO("pdf", targetDir, fullFileName);
+                    if (!success)
+                        Logger.Write($"Fail creating PDF export; {fileName}");
+                }
+                else
+                    Logger.Write("DEBUG: PDF already exists for " + PDFexport.FullName);
             }
             conversionCompleted = true;
             Logger.Write("Finished task for second step: converting files.");
@@ -697,7 +732,7 @@ namespace mso_test
         }
 
         /*
-         * Returns: (success/failurr, number of tries, converted file name, error message)
+         * Returns: (success/failure, number of tries, converted file name, error message)
          */
         public static async Task<(bool, int, string, string)> ConvertFile(HttpClient convertService, ApplicationType application, string fullFileName, string convertedFileName, string fileType, string convertTo)
         {
