@@ -30,6 +30,7 @@ import argparse
 import os
 import wand # pip install wand && OS_INSTALLER install imagemagick
 from wand.image import Image
+from wand.display import display
 from wand.exceptions import PolicyError
 from wand.exceptions import CacheError
 import time
@@ -231,11 +232,14 @@ def main():
 
 
         with IMPORT_IMAGE.sequence[pgnum] as page:
-            LO_ORIG_PDF.transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
+            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
             LO_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+            #display(Image(page))  #debug
+            #display(Image(LO_ORIG_PDF.sequence[pgnum]))  #debug
             page.composite(LO_ORIG_PDF.sequence[pgnum])  # overlay (red) MS_ORIG with LO_ORIG
             page.merge_layers('flatten')
             page.alpha_channel = 'remove'
+            #display(Image(page))  #debug
         IMPORT_RED.append(0)
         try:
             IMPORT_RED[pgnum] = IMPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
@@ -243,7 +247,7 @@ def main():
             printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         with EXPORT_IMAGE.sequence[pgnum] as page:
-            MS_CONV_PDF.transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
+            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
             MS_CONV_PDF.sequence[pgnum].transform_colorspace('gray')
             page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
             page.merge_layers('flatten')
@@ -257,7 +261,7 @@ def main():
         PREV_IMPORT_RED.append(0)
         if IS_FILE_LO_PREV:
             with PREV_IMPORT_IMAGE.sequence[pgnum] as page:
-                LO_PREV_PDF.transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
+                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
                 LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with LO_PREV
                 page.merge_layers('flatten')
@@ -277,7 +281,7 @@ def main():
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
             with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
-                MS_PREV_PDF.transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
+                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
                 MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_PREV
                 page.merge_layers('flatten')
