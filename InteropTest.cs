@@ -341,6 +341,8 @@ namespace mso_test
 
             Logger.Initialize(Path.Combine(test.config.BaseDir, "log.txt"));
 
+            test.GetCOOLVersionData();
+
             forceQuitAllApplication(test.config.Application);
             startApplication(test.config.Application);
 
@@ -413,6 +415,38 @@ namespace mso_test
                 return (false, "");
             }
         }
+
+        public void GetCOOLVersionData()
+        {
+            if (!config.OnlineConverter)
+                return;
+
+            using (HttpClient coolClient = new HttpClient())
+            {
+                try
+                {
+                    Uri baseUrl = new Uri(config.OnlineConverterBaseURL);
+                    Uri capUrl = new Uri(baseUrl, "hosting/capabilities");
+                    HttpResponseMessage response = coolClient.GetAsync(capUrl).Result;
+                    response.EnsureSuccessStatusCode();
+                    string jsonResponseText = response.Content.ReadAsStringAsync().Result;
+                    JsonNode jsonResponse = JsonNode.Parse(jsonResponseText);
+
+                    StringBuilder csv = new StringBuilder();
+                    csv.AppendLine("productVersion,productVersionHash");
+                    string productVersion = jsonResponse["productVersion"].GetValue<string>();
+                    string productVersionHash = jsonResponse["productVersionHash"].GetValue<string>();
+                    csv.AppendLine($"{productVersion},{productVersionHash}");
+                    File.WriteAllText(Path.Combine(config.BaseDir, @"download\version.csv"), csv.ToString());
+                }
+                catch
+                {
+                    Console.Error.WriteLine("ERROR: Error when checking online converter availability, aborting.");
+                    Environment.Exit(1);
+                }
+            }
+        }
+
         public void TestDownloadedFiles(ApplicationType application)
         {
             DirectoryInfo downloadedDirInfo = new DirectoryInfo(Path.Combine(config.BaseDir, "download"));
