@@ -350,7 +350,7 @@ def main():
                     with open('diff-pdf-' + file_ext[1][1:] + '-import-statistics.csv', 'a') as f:
                         for pgnum in range(0, pages):
                             OUT_STRING = [ args.base_file ]
-                            OUT_STRING.append(str(pgnum))
+                            OUT_STRING.append(str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
                             OUT_STRING.append(str(MS_ORIG_SIZE[pgnum]))
                             OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum]))
                             OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]))
@@ -370,7 +370,7 @@ def main():
                     with open('diff-pdf-' + file_ext[1][1:] + '-export-statistics.csv', 'a') as f:
                         for pgnum in range(0, pages):
                             OUT_STRING = [ args.base_file ]
-                            OUT_STRING.append(str(pgnum))
+                            OUT_STRING.append(str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
                             OUT_STRING.append(str(MS_ORIG_SIZE[pgnum]))
                             OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum]))
                             OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]))
@@ -393,7 +393,7 @@ def main():
                         if IS_FILE_MS_PREV and len(MS_CONV_PDF.sequence) != MS_PREV_PAGES:
                             f.write(args.base_file + f",export,page count different from {args.history_dir} [{MS_PREV_PAGES}] and converted [{len(MS_CONV_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
                         for pgnum in range(0, len(RED_COLOR)):
-                           printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum))
+                           printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
                            if RED_COLOR[pgnum] != wand.color.Color('red'):
                                if MS_ORIG_SIZE[pgnum] != MS_ORIG_CONTENT[pgnum]: # false positive: blank page
                                    f.write(args.base_file + f",red color,page {pgnum}," + RED_COLOR[pgnum].normalized_string + '\n')
