@@ -168,7 +168,7 @@ def main():
             MS_ORIG_SIZE.append(page.height * page.width)
             page.alpha_channel = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
             page.quantize(2)                      # reduced to two colors (assume background and non-background)
-            page.opaque_paint('black', 'red', fuzz=MS_ORIG_PDF.quantum_range * 0.95)
+            page.opaque_paint('black', 'red', fuzz=MS_ORIG_PDF.quantum_range * 0.90)
             HIST_COLORS = list(page.histogram.keys())
             HIST_PIXELS = list(page.histogram.values())
             MS_ORIG_CONTENT.append(min(HIST_PIXELS))
@@ -232,7 +232,7 @@ def main():
 
 
         with IMPORT_IMAGE.sequence[pgnum] as page:
-            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.05)
+            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.10)
             LO_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
             #display(Image(page))  #debug
             #display(Image(LO_ORIG_PDF.sequence[pgnum]))  #debug
@@ -247,7 +247,7 @@ def main():
             printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         with EXPORT_IMAGE.sequence[pgnum] as page:
-            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.05)
+            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.10)
             MS_CONV_PDF.sequence[pgnum].transform_colorspace('gray')
             page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
             page.merge_layers('flatten')
@@ -261,7 +261,7 @@ def main():
         PREV_IMPORT_RED.append(0)
         if IS_FILE_LO_PREV:
             with PREV_IMPORT_IMAGE.sequence[pgnum] as page:
-                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.05)
+                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
                 LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with LO_PREV
                 page.merge_layers('flatten')
@@ -274,14 +274,14 @@ def main():
             with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.alpha_channel = 'remove'
                 page.quantize(2)
-                page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.95)
+                page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.90)
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with LO_PREV
                 page.merge_layers('flatten')
 
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
             with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
-                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.05)
+                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
                 MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_PREV
                 page.merge_layers('flatten')
@@ -294,7 +294,7 @@ def main():
             with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.alpha_channel = 'remove'
                 page.quantize(2)
-                page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.95)
+                page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.90)
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with MS_PREV
                 page.merge_layers('flatten')
 
