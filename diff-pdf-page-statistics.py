@@ -60,8 +60,29 @@ def main():
     DEBUG = args.debug
     MAX_PAGES = int(args.max_page)
 
+    # Exclude notorious false positives that have no redeeming value in constantly brought to the attention of QA
     if (
         args.base_file == 'forum-mso-de-108371.xlsx' # =rand()
+        or args.base_file == 'forum-mso-de-70016.docx' # =rand()
+        or args.base_file == 'forum-mso-en-1268.docx' # =rand()
+        or args.base_file == 'forum-fr-9115.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-17720.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-79405.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-90801.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-92011.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-92780.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-10944.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-282494.docx' # date/time/temp-filename field
+        or args.base_file == 'tdf130041-1.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-16236.docx' # effective duplicate
+        or args.base_file == 'forum-fr-16238.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-54647.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-126251.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-139701.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-3785.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-3786.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-5125.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-5126.docx' # effective duplicate
     ):
         print("SKIPPING FILE", args.base_file, ": determined to be unusable for testing...")
         exit(0)
