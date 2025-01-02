@@ -35,8 +35,6 @@ from wand.exceptions import PolicyError
 from wand.exceptions import CacheError
 import time
 
-MAX_PAGES = 10 # limit PDF comparison to the first ten pages
-
 def printdebug(debug, *args, **kwargs):
     """
     A conditional debug print function.
@@ -54,11 +52,13 @@ def main():
     parser = argparse.ArgumentParser(description="Look for import and export regressions.")
     parser.add_argument("--base_file", default="lorem ipsum.docx")
     parser.add_argument("--history_dir", default=".")
+    parser.add_argument("--max_page", default="10") # limit PDF comparison to the first ten pages
     parser.add_argument("--no_save_overlay", action="store_true") # default is false
     parser.add_argument("--debug", action="store_true") # default is false
     args = parser.parse_args()
 
     DEBUG = args.debug
+    MAX_PAGES = int(args.max_page)
 
     if (
         args.base_file == 'forum-mso-de-108371.xlsx' # =rand()
