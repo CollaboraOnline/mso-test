@@ -174,8 +174,9 @@ def main():
     PREV_IMPORT_RED = []
     PREV_EXPORT_RED = []
 
+    MS_ORIG_RED = MS_ORIG_PDF.clone()
     for pgnum in range(0, pages):
-        with MS_ORIG_PDF.sequence[pgnum] as page: # need this 'with' clause so that MS_ORIG_PDF is actually updated with the following changes
+        with MS_ORIG_RED.sequence[pgnum] as page: # need this 'with' clause so that MS_ORIG_RED is actually updated with the following changes
             MS_ORIG_SIZE.append(page.height * page.width)
             page.alpha_channel = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
             page.quantize(2)                      # reduced to two colors (assume background and non-background)
@@ -194,20 +195,20 @@ def main():
             printdebug(DEBUG, "DEBUG: RED_COLOR  ", RED_COLOR[pgnum].normalized_string, " pixels[",MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0],"][", MS_ORIG_CONTENT[pgnum],"][",HIST_PIXELS[0],"]")
 
     # Composed image: overlay red MS_ORIG with LO_ORIG
-    IMPORT_IMAGE = MS_ORIG_PDF.clone()
+    IMPORT_IMAGE = MS_ORIG_RED.clone()
     # Composed image: overlay red MS_ORIG with MS_CONV
-    EXPORT_IMAGE = MS_ORIG_PDF.clone()
+    EXPORT_IMAGE = MS_ORIG_RED.clone()
 
     # Composed image: overlay red MS_ORIG with LO_PREV
-    PREV_IMPORT_IMAGE = MS_ORIG_PDF.clone()
+    PREV_IMPORT_IMAGE = MS_ORIG_RED.clone()
     # Composed image: overlay red MS_ORIG with MS_PREV
-    PREV_EXPORT_IMAGE = MS_ORIG_PDF.clone()
+    PREV_EXPORT_IMAGE = MS_ORIG_RED.clone()
 
-    # Composed image: overlay red LO_ORIG with LO_PREV
-    # This is the visual key to the whole tool. The overlay should be identical except for import fixes or regressions
+    # Composed image: overlay red LO_ORIG and blue LO_PREV with gray MS_ORIG_PDF
+    # This is the visual key to the whole tool. The red/blue underlay should be identical except for import fixes or regressions
     IMPORT_COMPARE_IMAGE = LO_ORIG_PDF.clone()
-    # Composed image: overlay red MS_CONV with MS_PREV
-    # This is the visual key to the whole tool. The overlay should be identical except for export fixes or regressions
+    # Composed image: overlay red MS_CONV and blue MS_PREV with gray MS_ORIG_PDF
+    # This is the visual key to the whole tool. The red/blue underlay should be identical except for export fixes or regressions
     EXPORT_COMPARE_IMAGE = MS_CONV_PDF.clone()
 
     for pgnum in range(0, pages):
@@ -286,7 +287,12 @@ def main():
                 page.alpha_channel = 'remove'
                 page.quantize(2)
                 page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.90)
-                page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with LO_PREV
+                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
+                LO_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=LO_PREV_PDF.quantum_range * 0.90)
+                page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with (blue) LO_PREV
+                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
+                MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+                page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
                 page.merge_layers('flatten')
 
         PREV_EXPORT_RED.append(0)
@@ -306,7 +312,12 @@ def main():
                 page.alpha_channel = 'remove'
                 page.quantize(2)
                 page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.90)
-                page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with MS_PREV
+                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
+                MS_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=MS_PREV_PDF.quantum_range * 0.90)
+                page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with (blue) MS_PREV
+                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
+                MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+                page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
                 page.merge_layers('flatten')
 
 
