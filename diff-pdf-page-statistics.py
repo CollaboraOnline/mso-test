@@ -25,6 +25,8 @@
 # False positives:
 #   - automatically updating fields: dates, =rand(), slide date/time ...
 #   - different font subsitutions
+#   - blank pages
+#   - different DOCX format / compatibiltyMode
 
 import argparse
 import os
@@ -38,7 +40,7 @@ import time
 def printdebug(debug, *args, **kwargs):
     """
     A conditional debug print function.
-    Prints messages only if the DEBUG variable is True.
+    Prints messages only if the DEBUG variable was provided.
 
     Parameters:
         *args: Positional arguments to pass to print().
