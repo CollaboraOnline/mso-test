@@ -92,6 +92,17 @@ def main():
     MS_PREV = os.path.join(args.history_dir, file_ext[1][1:], args.base_file + "_mso.pdf")
     IS_FILE_MS_PREV = os.path.isfile(MS_PREV)
 
+    # MSO's PDF of the exported file needs to be manually renamed to match the base_file nane. Helpfully exit if we detect that has not occurred yet.
+    if file_ext[1] == ".doc" and not IS_FILE_MS_PREV and os.path.isfile(os.path.join(args.history_dir, file_ext[1][1:], file_ext[0] + ".docx_mso.pdf")):
+        print ("Previous MS converted PDF not renamed. rename s/.docx_mso.pdf/.doc_mso.pdf/ doc/*.docx_mso.pdf")
+        exit (1)
+    if file_ext[1] == ".xls" and not IS_FILE_MS_PREV and os.path.isfile(os.path.join(args.history_dir, file_ext[1][1:], file_ext[0] + ".xlsx_mso.pdf")):
+        print ("Previous MS converted PDF not renamed. rename s/.xlsx_mso.pdf/.xls_mso.pdf/ xls/*.xlsx_mso.pdf")
+        exit (1)
+    if file_ext[1] == ".ppt" and not IS_FILE_MS_PREV and os.path.isfile(os.path.join(args.history_dir, file_ext[1][1:], file_ext[0] + ".pptx_mso.pdf")):
+        print ("Previous MS converted PDF not renamed. rename s/.pptx_mso.pdf/.ppt_mso.pdf/ ppt/*.pptx_mso.pdf")
+        exit (1)
+
     IMPORT_DIR = os.path.join(base_dir, "converted", "import", file_ext[1][1:])
     if not os.path.isdir(IMPORT_DIR):
         os.makedirs(IMPORT_DIR)
