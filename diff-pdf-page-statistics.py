@@ -310,22 +310,20 @@ def main():
                 page.merge_layers('flatten')
 
 
-    FORCE_SAVE = False
-    if (
-        (IS_FILE_LO_PREV and IMPORT_RED > PREV_IMPORT_RED)
-        or (IS_FILE_MS_PREV and EXPORT_RED > PREV_EXPORT_RED)
-    ):
-        FORCE_SAVE = True
-    if args.no_save_overlay == False or FORCE_SAVE:
-        printdebug(DEBUG, "DEBUG saving " + args.base_file +" IMPORT["+ str(IMPORT_RED)+ "] PREV["+str(PREV_IMPORT_RED) +"] EXPORT["+str(EXPORT_RED)+"] PREV["+str(PREV_EXPORT_RED)+"]")
-        for pageToSave in range(0, pages):
+    for pageToSave in range(0, pages):
+        FORCE_SAVE_IMPORT = False
+        FORCE_SAVE_EXPORT = False
+        if args.no_save_overlay == True:
+            # Always provide pages that have more RED now than in the previous version - QA needs to check them out (at least the first one).
+            if IS_FILE_LO_PREV and IMPORT_RED[pageToSave] > PREV_IMPORT_RED[pageToSave]:
+                FORCE_SAVE_IMPORT = True
+            if IS_FILE_MS_PREV and EXPORT_RED[pageToSave] > PREV_EXPORT_RED[pageToSave]:
+                FORCE_SAVE_EXPORT = True
+        if args.no_save_overlay == False or FORCE_SAVE_IMPORT:
+            printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} IMPORT[{IMPORT_RED[pageToSave]} PREV[{PREV_IMPORT_RED[pageToSave]}]")
             with Image(IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
                 file_name=os.path.join(IMPORT_DIR, args.base_file + f"_import-{pageToSave}.png")
                 img_to_save.save(filename=file_name)
-            with Image(EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave}.png")
-                img_to_save.save(filename=file_name)
-
             if IS_FILE_LO_PREV:
                 with Image(PREV_IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
                     file_name=os.path.join(IMPORT_DIR, args.base_file + f"_prev-import-{pageToSave}.png")
@@ -333,6 +331,12 @@ def main():
                 with Image(IMPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
                     file_name=os.path.join(IMPORT_COMPARE_DIR, args.base_file + f"_import-compare-{pageToSave}.png")
                     img_to_save.save(filename=file_name)
+
+        if args.no_save_overlay == False or FORCE_SAVE_EXPORT:
+            printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} EXPORT[{EXPORT_RED[pageToSave]} PREV[{PREV_EXPORT_RED[pageToSave]}]")
+            with Image(EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
+                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave}.png")
+                img_to_save.save(filename=file_name)
             if IS_FILE_MS_PREV:
                 with Image(PREV_EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
                     file_name=os.path.join(EXPORT_DIR, args.base_file + f"_prev-export-{pageToSave}.png")
