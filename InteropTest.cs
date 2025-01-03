@@ -209,7 +209,7 @@ namespace mso_test
             // Prior to LO 25.8, "--convert-to docx" always resulted in using the Word 2007 filter (and after 7.6 always output compatiblityMode 12),
             // So force using the modern filter (compat15 since 7.0 in 2020) to ensure equivalent comparisons.
             if (formatTo == "docx")
-                formatTo = @"""docx:Office Open XML Text"""
+                formatTo = @"""docx:Office Open XML Text""";
             // In more recent versions --convert-to implies headless, but before 5.0 that doesn't seem to be the case
             loParams = "--headless --convert-to " + formatTo + " --outdir " + targetDir + " " + fullOrigFileName;
         }
