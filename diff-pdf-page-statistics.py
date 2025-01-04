@@ -439,6 +439,12 @@ def main():
                             f.write(args.base_file + f",import,page count different from {args.history_dir} [{LO_PREV_PAGES}] and converted [{len(LO_ORIG_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
                         if IS_FILE_MS_PREV and len(MS_CONV_PDF.sequence) != MS_PREV_PAGES:
                             f.write(args.base_file + f",export,page count different from {args.history_dir} [{MS_PREV_PAGES}] and converted [{len(MS_CONV_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
+                        # Although absolute wrongs normally shouldn't be reported (only report a change from previous version) - wrong page count was requested to be an exception.
+                        if len(LO_ORIG_PDF.sequence) != len(MS_ORIG_PDF.sequence):
+                            f.write(args.base_file + f",import, absolute page count, {len(LO_ORIG_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
+                        if len(MS_CONV_PDF.sequence) != len(MS_ORIG_PDF.sequence):
+                            f.write(args.base_file + f",export, absolute page count, {len(MS_CONV_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
+
                         for pgnum in range(0, len(RED_COLOR)):
                            printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
                            if RED_COLOR[pgnum] != wand.color.Color('red'):
