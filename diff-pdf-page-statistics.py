@@ -199,8 +199,8 @@ def main():
     for pgnum in range(0, pages):
         with MS_ORIG_RED.sequence[pgnum] as page: # need this 'with' clause so that MS_ORIG_RED is actually updated with the following changes
             MS_ORIG_SIZE.append(page.height * page.width)
-            page.alpha_channel = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
             page.quantize(2)                      # reduced to two colors (assume background and non-background)
+            page.alpha_channl = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
             page.opaque_paint('black', 'red', fuzz=MS_ORIG_PDF.quantum_range * 0.90)
             HIST_COLORS = list(page.histogram.keys())
             HIST_PIXELS = list(page.histogram.values())
