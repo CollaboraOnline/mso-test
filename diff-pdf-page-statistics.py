@@ -54,6 +54,7 @@ def main():
     parser.add_argument("--history_dir", default=".")
     parser.add_argument("--max_page", default="10") # limit PDF comparison to the first ten pages
     parser.add_argument("--no_save_overlay", action="store_true") # default is false
+    parser.add_argument("--resolution", default="150")
     parser.add_argument("--debug", action="store_true") # default is false
     args = parser.parse_args()
 
@@ -142,26 +143,26 @@ def main():
 
     try:
         # The "correct" PDF: created by MS Word of the original file
-        MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=150)
+        MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=int(args.resolution))
 
         # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
-        LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=150)
+        LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=int(args.resolution))
 
         # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
-        MS_CONV_PDF = Image(filename=MS_CONV, resolution=150)
+        MS_CONV_PDF = Image(filename=MS_CONV, resolution=int(args.resolution))
 
         # A historical version of how it was displayed in Writer
         LO_PREV_PDF = Image()
         LO_PREV_PAGES = MAX_PAGES
         if IS_FILE_LO_PREV:
-            LO_PREV_PDF = Image(filename=LO_PREV, resolution=150)
+            LO_PREV_PDF = Image(filename=LO_PREV, resolution=int(args.resolution))
             LO_PREV_PAGES = len(LO_PREV_PDF.sequence)
 
         # A historical version of how the round-tripped file was displayed in Word
         MS_PREV_PDF = Image()
         MS_PREV_PAGES = MAX_PAGES
         if IS_FILE_MS_PREV:
-            MS_PREV_PDF = Image(filename=MS_PREV, resolution=150)
+            MS_PREV_PDF = Image(filename=MS_PREV, resolution=int(args.resolution))
             MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
 
     except PolicyError:
