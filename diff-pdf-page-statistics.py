@@ -73,7 +73,7 @@ def main():
         or args.base_file == 'forum-mso-de-92011.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-92780.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-10944.docx' # date/time/temp-filename field
-        or args.base_file == 'forum-mso-en4-282494.docx' # date/time/temp-filename field
+        #or args.base_file == 'forum-mso-en4-282494.docx' # date/time/temp-filename field
         or args.base_file == 'tdf130041-1.docx' # date/time/temp-filename field
         or args.base_file == 'forum-fr-16236.docx' # effective duplicate
         or args.base_file == 'forum-fr-16238.docx' # effective duplicate
@@ -190,7 +190,6 @@ def main():
     MS_PREV_SIZE = []
     MS_PREV_CONTENT = []
 
-    RED_COLOR = []      # the exact color of red: used as the histogram key
     IMPORT_RED = []     # the number of red pixels on the page
     EXPORT_RED = []
     PREV_IMPORT_RED = []
@@ -200,21 +199,9 @@ def main():
     for pgnum in range(0, pages):
         with MS_ORIG_RED.sequence[pgnum] as page: # need this 'with' clause so that MS_ORIG_RED is actually updated with the following changes
             MS_ORIG_SIZE.append(page.height * page.width)
-            page.quantize(2)                      # reduced to two colors (assume background and non-background)
-            page.alpha_channl = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
+            page.transform_colorspace('gray')
+            page.alpha_channel = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
             page.opaque_paint('black', 'red', fuzz=MS_ORIG_PDF.quantum_range * 0.90)
-            HIST_COLORS = list(page.histogram.keys())
-            HIST_PIXELS = list(page.histogram.values())
-            MS_ORIG_CONTENT.append(min(HIST_PIXELS))
-            printdebug(DEBUG, "DEBUG MS_WORD_ORIG ", args.base_file, " colorspace[" + page.colorspace +"] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] PIXELS ", HIST_PIXELS, " COLORS ", HIST_COLORS)
-
-            # assuming that the background is at least 50%. Might be a bad assumption - especially with presentations.
-            # NOTE: this logic might not be necessary any more. I used it before removing the transparency - so perhaps I can always trust that 'red' will be 'red' now
-            if MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0]:
-                RED_COLOR.append(HIST_COLORS[0])
-            else:
-                RED_COLOR.append(HIST_COLORS[1])
-            printdebug(DEBUG, "DEBUG: RED_COLOR  ", RED_COLOR[pgnum].normalized_string, " pixels[",MS_ORIG_CONTENT[pgnum] == HIST_PIXELS[0],"][", MS_ORIG_CONTENT[pgnum],"][",HIST_PIXELS[0],"]")
 
     # Composed image: overlay red MS_ORIG with LO_ORIG
     IMPORT_IMAGE = MS_ORIG_RED.clone()
@@ -234,7 +221,14 @@ def main():
     EXPORT_COMPARE_IMAGE = MS_CONV_PDF.clone()
 
     for pgnum in range(0, pages):
-        tmp = LO_ORIG_PDF.clone()  # don't make changes to these PDF pages - just get statistics...
+        tmp = MS_ORIG_PDF.clone()  # don't make changes to these PDF pages - just get statistics...
+        with tmp.sequence[pgnum] as page:
+            page.quantize(2)
+            MS_ORIG_SIZE.append(page.height * page.width)
+            MS_ORIG_CONTENT.append(min(list(page.histogram.values()))) # assuming that the background is more than 50%
+            printdebug(DEBUG, "DEBUG LO_ORIG[", pgnum, "] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] percent[", (MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
+
+        tmp = LO_ORIG_PDF.clone()
         with tmp.sequence[pgnum] as page:
             page.quantize(2)
             LO_ORIG_SIZE.append(page.height * page.width)
@@ -266,48 +260,44 @@ def main():
 
 
         with IMPORT_IMAGE.sequence[pgnum] as page:
-            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.10)
             LO_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.10)
             #display(Image(page))  #debug
             #display(Image(LO_ORIG_PDF.sequence[pgnum]))  #debug
             page.composite(LO_ORIG_PDF.sequence[pgnum])  # overlay (red) MS_ORIG with LO_ORIG
             page.merge_layers('flatten')
-            page.alpha_channel = 'remove'
             #display(Image(page))  #debug
         IMPORT_RED.append(0)
         try:
-            IMPORT_RED[pgnum] = IMPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
+            IMPORT_RED[pgnum] = IMPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
         except:
             printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         with EXPORT_IMAGE.sequence[pgnum] as page:
-            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.10)
             MS_CONV_PDF.sequence[pgnum].transform_colorspace('gray')
+            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.10)
             page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
             page.merge_layers('flatten')
-            page.alpha_channel = 'remove'
         EXPORT_RED.append(0)
         try:
-            EXPORT_RED[pgnum] = EXPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
+            EXPORT_RED[pgnum] = EXPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
         except:
             printdebug(DEBUG, "EXPORT EXCEPTION: could not get red color from page ", pgnum)# , list(EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
         PREV_IMPORT_RED.append(0)
         if IS_FILE_LO_PREV:
             with PREV_IMPORT_IMAGE.sequence[pgnum] as page:
-                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
                 LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
+                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with LO_PREV
                 page.merge_layers('flatten')
-                page.alpha_channel = 'remove'
             try:
-                PREV_IMPORT_RED[pgnum] = PREV_IMPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
+                PREV_IMPORT_RED[pgnum] = PREV_IMPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
             except:
                 printdebug(DEBUG, "PREV_IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
-                page.alpha_channel = 'remove'
-                page.quantize(2)
+                page.transform_colorspace('gray')
                 page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.90)
                 LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
                 LO_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=LO_PREV_PDF.quantum_range * 0.90)
@@ -320,19 +310,17 @@ def main():
         PREV_EXPORT_RED.append(0)
         if IS_FILE_MS_PREV:
             with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
-                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
                 MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
+                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_PREV
                 page.merge_layers('flatten')
-                page.alpha_channel = 'remove'
             try:
-                PREV_EXPORT_RED[pgnum] = PREV_EXPORT_IMAGE.sequence[pgnum].histogram[RED_COLOR[pgnum]]
+                PREV_EXPORT_RED[pgnum] = PREV_EXPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
             except:
                 printdebug(DEBUG, "PREV_EXPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
 
             with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
-                page.alpha_channel = 'remove'
-                page.quantize(2)
+                page.transform_colorspace('gray')
                 page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.90)
                 MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
                 MS_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=MS_PREV_PDF.quantum_range * 0.90)
@@ -445,12 +433,6 @@ def main():
                             f.write(args.base_file + f",import, absolute page count, {len(LO_ORIG_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
                         if len(MS_CONV_PDF.sequence) != len(MS_ORIG_PDF.sequence):
                             f.write(args.base_file + f",export, absolute page count, {len(MS_CONV_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
-
-                        for pgnum in range(0, len(RED_COLOR)):
-                           printdebug(DEBUG, "DEBUG: red[", RED_COLOR[pgnum],"] compared to wand.color.Color('red') on page " + str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
-                           if RED_COLOR[pgnum] != wand.color.Color('red'):
-                               if MS_ORIG_SIZE[pgnum] != MS_ORIG_CONTENT[pgnum]: # false positive: blank page
-                                   f.write(args.base_file + f",red color,page {pgnum}," + RED_COLOR[pgnum].normalized_string + '\n')
 
                     os.remove(LOCK_FILE)
                     return
