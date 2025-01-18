@@ -4,7 +4,7 @@
 #      <policy domain="resource" name="disk" value="16GiB"/>
 
 # find docx/ -name "*.docx" -execdir basename {} \; | xargs -L1 -I{} python3 ../diff-pdf-page-statistics.py --no_save_overlay  --base_file="{}"
-#       - delete any CSV files. Delete the import/export folders in converted
+#       - first delete any CSV files. Delete the import/export folders in converted
 #       - rename converted DOC/PPT/XLS pdfs from .docx_mso.pdf to .doc_mso.pdf, etc.
 
 # WARNING: this is not a tool for administrative statistics; there are just too many false positives for counts of red dots to be meaningful.
@@ -23,8 +23,10 @@
 #   - look at the import/export overlay PNG results in the converted folder
 #
 # False positives:
+#   - shifting MSO layout - captured before the layout has been finalized
 #   - automatically updating fields: dates, =rand(), slide date/time ...
-#   - different font subsitutions
+#   - different font subsitutions (especially export, where Writer-chosen font is forced on round-trip)
+#   - compatibilityMode change: export forces a specific compatibility mode - which may be different from the original: reference META bug tdf#131304
 
 import argparse
 import os
@@ -54,7 +56,7 @@ def main():
     parser.add_argument("--history_dir", default=".")
     parser.add_argument("--max_page", default="10") # limit PDF comparison to the first ten pages
     parser.add_argument("--no_save_overlay", action="store_true") # default is false
-    parser.add_argument("--resolution", default="150")
+    parser.add_argument("--resolution", default="75")
     parser.add_argument("--debug", action="store_true") # default is false
     args = parser.parse_args()
 
