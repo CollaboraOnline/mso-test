@@ -66,6 +66,8 @@ def main():
         args.base_file == 'forum-mso-de-108371.xlsx' # =rand()
         or args.base_file == 'forum-mso-de-70016.docx' # =rand()
         or args.base_file == 'forum-mso-en-1268.docx' # =rand()
+        or args.base_file == 'ooo34927-2.docx' # excessively font dependent
+        or args.base_file == 'fdo44257-1.docx' # constantly appears as false positive: 10 page OLE fallback images
         or args.base_file == 'forum-fr-9115.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-17720.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-108628.docx' # date/time/temp-filename field
@@ -105,6 +107,7 @@ def main():
         or args.base_file == 'forum-mso-de-90801.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-92011.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-92780.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-1239.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-2456.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-2675.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-10944.docx' # date/time/temp-filename field
@@ -129,6 +132,7 @@ def main():
         or args.base_file == 'tdf134901-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf137610-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf137610-3.docx' # date/time/temp-filename field
+        or args.base_file == 'fdo83312-6.docx' # effective duplicate
         or args.base_file == 'forum-fr-16236.docx' # effective duplicate
         or args.base_file == 'forum-fr-16238.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-54647.docx' # effective duplicate
@@ -138,6 +142,7 @@ def main():
         or args.base_file == 'forum-mso-en-3786.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-5125.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-5126.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-17298.docx' # effective duplicate
     ):
         print("SKIPPING FILE", args.base_file, ": determined to be unusable for testing...")
         exit(0)
