@@ -67,11 +67,76 @@ def main():
     if (
         args.base_file == 'forum-mso-de-108371.xlsx' # =rand()
         or args.base_file == 'forum-mso-de-70016.docx' # =rand()
+        # doc
+        or args.base_file == 'abi9483-1.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-5305.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-7782.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-9115.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-15987.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-15999.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-17699.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-17720.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo25601-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo39549-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo71302-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo74244-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo82047-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo88597-1.doc' # date/time/temp-filename field
+        or args.base_file == 'fdo66620-1.doc' # date/time/temp-filename field
+        or args.base_file == 'fdo35158-5.doc' # dup
+        or args.base_file == 'forum-mso-de-130689.doc' # dup
+        or args.base_file == 'forum-en-19554.doc' # dup
+        or args.base_file == 'forum-en-19562.doc' # dup
+        or args.base_file == 'moz1031624-4.doc' # dup
+        or args.base_file == 'moz1031624-5.doc' # dup
+        or args.base_file == 'abi9887-2.doc' # solid blue
+        or args.base_file == 'abi10025-3.doc' # solid blue
+        or args.base_file == 'lp332943-3.doc' # solid blue
+        or args.base_file == 'ooo23297-2.doc' # solid blue
+        or args.base_file == 'ooo23575-1.doc' # solid blue
+        or args.base_file == 'ooo25373-3.doc' # solid blue
+        or args.base_file == 'ooo25522-1.doc' # solid blue
+        or args.base_file == 'ooo29165-3.doc' # solid blue
+        or args.base_file == 'ooo29682-3.doc' # solid blue
+        or args.base_file == 'ooo33801-2.doc' # solid blue
+        or args.base_file == 'ooo35019-1.doc' # solid blue
+        or args.base_file == 'ooo35206-1.doc' # solid blue
+        or args.base_file == 'ooo39849-1.doc' # solid blue
+        or args.base_file == 'ooo40585-1.doc' # solid blue
+        or args.base_file == 'ooo42420-1.doc' # solid blue
+        or args.base_file == 'ooo45928-1.doc' # solid blue
+        or args.base_file == 'ooo46222-2.doc' # solid blue
+        or args.base_file == 'ooo51220-1.doc' # solid blue
+        or args.base_file == 'ooo57258-2.doc' # solid blue
+        or args.base_file == 'rhbz157925-1.doc' # solid blue
+        or args.base_file == 'rhbz158052-1.doc' # solid blue
+        or args.base_file == 'rhbz158066-2.doc' # solid blue
+        or args.base_file == 'rhbz160141-1.doc' # solid blue
+        or args.base_file == 'rhbz161432-1.doc' # solid blue
+        or args.base_file == 'rhbz163138-1.doc' # solid blue
+        or args.base_file == 'rhbz163670-2.doc' # solid blue
+        or args.base_file == 'rhbz164137-1.doc' # solid blue
+        or args.base_file == 'rhbz164152-1.doc' # solid blue
+        or args.base_file == 'rhbz164691-1.doc' # solid blue
+        or args.base_file == 'rhbz173474-1.doc' # solid blue
+        or args.base_file == 'rhbz183617-1.doc' # solid blue
+        #docx
         or args.base_file == 'forum-mso-en-1268.docx' # =rand()
         or args.base_file == 'ooo34927-2.docx' # excessively font dependent
+        or args.base_file == 'rhbz862326-1.docx' # extremely stupid document
         or args.base_file == 'fdo44257-1.docx' # constantly appears as false positive: 10 page OLE fallback images
-        or args.base_file == 'forum-fr-9115.doc' # date/time/temp-filename field
-        or args.base_file == 'forum-fr-17720.doc' # date/time/temp-filename field
+        or args.base_file == 'moz1564148-1.docx' # unusual font
+        or args.base_file == 'tdf106572-1.docx' # unusual font
+        or args.base_file == 'tdf112172-1.docx' # unusual font
+        or args.base_file == 'tdf104162-1.docx' # unusual font
+        or args.base_file == 'tdf115944-2.docx' # unusual font
+        or args.base_file == 'tdf115944-4.docx' # unusual font
+        or args.base_file == 'tdf118521-1.docx' # unusual font
+        or args.base_file == 'tdf118521-3.docx' # unusual font
+        or args.base_file == 'tdf118521-4.docx' # unusual font
+        or args.base_file == 'tdf121045-1.docx' # unusual font
+        or args.base_file == 'tdf128373-1.docx' # unusual font
+        or args.base_file == 'tdf131225-1.docx' # unusual font
         or args.base_file == 'forum-mso-de-108628.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-108634.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-136404.docx' # date/time/temp-filename field
@@ -131,6 +196,7 @@ def main():
         or args.base_file == 'forum-mso-en4-83520.docx' # date/time/temp-filename field
         or args.base_file == 'tdf116486-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf130041-1.docx' # date/time/temp-filename field
+        or args.base_file == 'tdf132475-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf134901-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf137610-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf137610-3.docx' # date/time/temp-filename field
@@ -145,6 +211,8 @@ def main():
         or args.base_file == 'forum-mso-en-5125.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-5126.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-17298.docx' # effective duplicate
+        or args.base_file == 'moz666767-2.docx' # effective duplicate
+        or args.base_file == 'rhbz663619-2.docx' # gradient
     ):
         print("SKIPPING FILE", args.base_file, ": determined to be unusable for testing...")
         exit(0)
