@@ -404,27 +404,27 @@ def main():
         if args.no_save_overlay == False or FORCE_SAVE_IMPORT:
             printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} IMPORT[{IMPORT_RED[pageToSave]} PREV[{PREV_IMPORT_RED[pageToSave]}]")
             with Image(IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                file_name=os.path.join(IMPORT_DIR, args.base_file + f"_import-{pageToSave}.png")
+                file_name=os.path.join(IMPORT_DIR, args.base_file + f"_import-{pageToSave+1}.png")
                 img_to_save.save(filename=file_name)
             if IS_FILE_LO_PREV:
                 with Image(PREV_IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(IMPORT_DIR, args.base_file + f"_prev-import-{pageToSave}.png")
+                    file_name=os.path.join(IMPORT_DIR, args.base_file + f"_prev-import-{pageToSave+1}.png")
                     img_to_save.save(filename=file_name)
                 with Image(IMPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(IMPORT_COMPARE_DIR, args.base_file + f"_import-compare-{pageToSave}.png")
+                    file_name=os.path.join(IMPORT_COMPARE_DIR, args.base_file + f"_import-compare-{pageToSave+1}.png")
                     img_to_save.save(filename=file_name)
 
         if args.no_save_overlay == False or FORCE_SAVE_EXPORT:
             printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} EXPORT[{EXPORT_RED[pageToSave]} PREV[{PREV_EXPORT_RED[pageToSave]}]")
             with Image(EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave}.png")
+                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave+1}.png")
                 img_to_save.save(filename=file_name)
             if IS_FILE_MS_PREV:
                 with Image(PREV_EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(EXPORT_DIR, args.base_file + f"_prev-export-{pageToSave}.png")
+                    file_name=os.path.join(EXPORT_DIR, args.base_file + f"_prev-export-{pageToSave+1}.png")
                     img_to_save.save(filename=file_name)
                 with Image(EXPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(EXPORT_COMPARE_DIR, args.base_file + f"_export-compare-{pageToSave}.png")
+                    file_name=os.path.join(EXPORT_COMPARE_DIR, args.base_file + f"_export-compare-{pageToSave+1}.png")
                     img_to_save.save(filename=file_name)
 
     # allow the script to run in parallel - wait for lock on report to be released.
