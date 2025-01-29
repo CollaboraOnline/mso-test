@@ -125,6 +125,8 @@ kde279268-1.odp
 kde280687-2.odp
 kde280712-1.odp
 kde282617-1.odp
+kde283984-1.odp
+kde288047-1.odp
 kde289369-1.odp
 lp120919-1.odp
 lp1239015-3.odp
@@ -140,7 +142,6 @@ moz904177-2.odp
 moz904177-3.odp
 moz904177-4.odp
 novell365427-1.odp
-novell389496-1.odp
 novell420913-5.odp
 novell480243-3.odp
 novell499135-1.odp
@@ -156,9 +157,13 @@ ooo103651-1.odp
 ooo103896-3.odp
 ooo104146-1.odp
 ooo105116-1.odp
+ooo105813-1.odp
+ooo105813-2.odp
+ooo106309-1.odp
 ooo106360-1.odp
 ooo106670-3.odp
 ooo106726-4.odp
+ooo106726-6.odp
 ooo107727-2.odp
 ooo107802-1.odp
 ooo110305-4.odp
@@ -190,6 +195,7 @@ ooo45294-1.odp
 ooo45433-1.odp
 ooo54593-2.odp
 ooo58156-1.odp
+ooo62630-1.odp
 ooo66256-1.odp
 ooo69236-1.odp
 ooo71781-1.odp
@@ -202,7 +208,6 @@ ooo74196-2.odp
 ooo75249-1.odp
 ooo75249-2.odp
 ooo75672-2.odp
-ooo75672-3.odp
 ooo76305-1.odp
 ooo76473-1.odp
 ooo78389-1.odp
@@ -248,6 +253,7 @@ tdf106254-1.odp
 tdf106452-1.odp
 tdf106699-1.odp
 tdf106892-1.odp
+tdf108037-1.odp
 tdf108685-1.odp
 tdf111860-1.odp
 tdf112587-1.odp
@@ -270,9 +276,11 @@ tdf123653-1.odp
 tdf124756-1.odp
 tdf124779-1.odp
 tdf124779-2.odp
+tdf124781-1.odp
 tdf125517-1.odp
 tdf126020-4.odp
 tdf127345-5.odp
+tdf127699-2.odp
 tdf130069-2.odp
 tdf130281-1.odp
 tdf130663-1.odp
@@ -285,7 +293,6 @@ tdf136152-1.odp
 tdf136301-1.odp
 tdf137571-1.odp
 tdf45534-2.odp
-tdf51119-4.odp
 tdf80236-1.odp
 tdf81391-1.odp
 tdf84703-1.odp

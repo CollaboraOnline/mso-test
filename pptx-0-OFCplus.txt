@@ -2,6 +2,7 @@ fdo42753-1.pptx
 fdo47464-1.pptx
 fdo48961-1.pptx
 fdo49050-1.pptx
+fdo49646-1.pptx
 fdo50260-1.pptx
 fdo64579-1.pptx
 fdo64579-3.pptx
@@ -13,6 +14,7 @@ forum-mso-de-71185.pptx
 forum-mso-de-71193.pptx
 forum-mso-en-17734.pptx
 forum-mso-en-5420.pptx
+forum-mso-en3-15931.pptx
 forum-mso-en4-574693.pptx
 kde286001-3.pptx
 novell370621-1.pptx
@@ -27,11 +29,13 @@ ooo119754-1.pptx
 ooo119782-1.pptx
 ooo96911-2.pptx
 rhbz710556-3.pptx
+rhbz988104-1.pptx
 tdf100926-1.pptx
 tdf101100-1.pptx
 tdf101100-7.pptx
 tdf104787-1.pptx
 tdf127275-1.pptx
+tdf128821-1.pptx
 tdf131553-1.pptx
 tdf134593-1.pptx
 tdf136910-1.pptx

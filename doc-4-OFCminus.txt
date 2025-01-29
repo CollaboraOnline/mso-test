@@ -1,0 +1,12 @@
+fdo84100-1.doc
+fdo86103-1.doc
+forum-mso-de-25710.doc
+forum-mso-en4-7137.doc
+forum-pl-2904.doc
+novell535477-1.doc
+ooo105188-1.doc
+ooo120163-1.doc
+ooo29774-1.doc
+ooo98294-1.doc
+ooo98294-2.doc
+tdf95986-1.doc

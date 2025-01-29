@@ -143,6 +143,7 @@ fdo48614-1.ods
 fdo48765-1.ods
 fdo48765-2.ods
 fdo48858-4.ods
+fdo48970-4.ods
 fdo49052-1.ods
 fdo49071-1.ods
 fdo49095-3.ods
@@ -166,9 +167,11 @@ fdo51512-1.ods
 fdo51614-3.ods
 fdo51614-4.ods
 fdo51855-2.ods
+fdo52060-1.ods
 fdo52529-1.ods
 fdo53079-1.ods
 fdo53156-1.ods
+fdo53339-1.ods
 fdo53428-1.ods
 fdo53576-1.ods
 fdo53839-5.ods
@@ -191,6 +194,8 @@ fdo54651-3.ods
 fdo54683-1.ods
 fdo54733-1.ods
 fdo54818-1.ods
+fdo54818-2.ods
+fdo54818-5.ods
 fdo54842-1.ods
 fdo54852-1.ods
 fdo54855-1.ods
@@ -233,10 +238,12 @@ fdo58741-1.ods
 fdo58858-3.ods
 fdo58858-4.ods
 fdo58858-5.ods
+fdo59023-1.ods
 fdo59084-1.ods
 fdo59159-1.ods
 fdo59325-1.ods
 fdo59325-2.ods
+fdo59360-1.ods
 fdo59391-1.ods
 fdo59568-1.ods
 fdo59583-1.ods
@@ -334,6 +341,7 @@ fdo73235-1.ods
 fdo73423-1.ods
 fdo73423-2.ods
 fdo73695-1.ods
+fdo73706-1.ods
 fdo73845-1.ods
 fdo74012-1.ods
 fdo74052-1.ods
@@ -460,6 +468,7 @@ fdo87487-2.ods
 fdo88665-2.ods
 gnome568928-1.ods
 gnome575600-1.ods
+gnome584771-1.ods
 gnome625332-1.ods
 gnome626632-1.ods
 gnome649827-1.ods
@@ -502,6 +511,7 @@ lp386106-2.ods
 lp386106-3.ods
 lp386444-1.ods
 lp390983-2.ods
+lp390983-3.ods
 lp400341-1.ods
 lp417625-1.ods
 lp46055-2.ods
@@ -541,7 +551,6 @@ novell636910-1.ods
 novell677893-1.ods
 novell677917-1.ods
 novell680485-1.ods
-novell713623-1.ods
 novell730048-1.ods
 novell75324-1.ods
 novell75330-1.ods
@@ -568,6 +577,7 @@ ooo102980-1.ods
 ooo102980-2.ods
 ooo102981-1.ods
 ooo102981-2.ods
+ooo103088-1.ods
 ooo103326-1.ods
 ooo103347-1.ods
 ooo103485-1.ods
@@ -957,7 +967,6 @@ tdf105158-1.ods
 tdf105686-1.ods
 tdf105813-1.ods
 tdf105813-2.ods
-tdf105912-1.ods
 tdf106214-3.ods
 tdf106346-1.ods
 tdf106523-14.ods
@@ -1235,6 +1244,7 @@ tdf92551-4.ods
 tdf92802-1.ods
 tdf92915-2.ods
 tdf92916-1.ods
+tdf93001-3.ods
 tdf93101-1.ods
 tdf93196-1.ods
 tdf93196-2.ods
@@ -1311,7 +1321,6 @@ tdf98912-1.ods
 tdf98970-1.ods
 tdf98990-1.ods
 tdf99039-1.ods
-tdf99238-1.ods
 tdf99367-1.ods
 tdf99380-1.ods
 tdf99461-1.ods

@@ -11,11 +11,13 @@ forum-mso-de-10080.ppt
 forum-mso-de-10082.ppt
 forum-mso-de-22306.ppt
 forum-mso-de-38427.ppt
+forum-mso-de-5905.ppt
 forum-mso-de-5907.ppt
 forum-mso-en-365.ppt
 kde239476-1.ppt
 kde239476-9.ppt
 kde244819-1.ppt
+kde276667-1.ppt
 kde317195-6.ppt
 lp256876-2.ppt
 lp308445-1.ppt
@@ -24,6 +26,7 @@ lp777195-2.ppt
 lp91723-1.ppt
 lp941827-2.ppt
 lp965336-1.ppt
+novell219637-2.ppt
 novell520556-2.ppt
 novell590442-1.ppt
 novell655408-2.ppt
@@ -60,6 +63,7 @@ ooo124624-1.ppt
 ooo23884-1.ppt
 ooo24019-1.ppt
 ooo24358-1.ppt
+ooo25287-1.ppt
 ooo25592-1.ppt
 ooo26700-1.ppt
 ooo28270-1.ppt
@@ -69,7 +73,9 @@ ooo37218-3.ppt
 ooo37221-3.ppt
 ooo45269-1.ppt
 ooo47281-1.ppt
+ooo48469-1.ppt
 ooo49966-1.ppt
+ooo53927-1.ppt
 ooo55345-1.ppt
 ooo56778-1.ppt
 ooo57618-1.ppt
@@ -79,6 +85,7 @@ ooo60059-1.ppt
 ooo61121-1.ppt
 ooo62106-1.ppt
 ooo63525-1.ppt
+ooo68936-4.ppt
 ooo74196-1.ppt
 ooo74255-1.ppt
 ooo76829-1.ppt

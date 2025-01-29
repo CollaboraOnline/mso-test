@@ -1,6 +1,7 @@
 abi4715-1.doc
 fdo41030-1.doc
 fdo51044-3.doc
+fdo57780-1.doc
 fdo80206-1.doc
 fdo84100-1.doc
 fdo86103-1.doc
@@ -11,6 +12,7 @@ forum-mso-de-17306.doc
 forum-mso-de-22995.doc
 forum-mso-de-33500.doc
 forum-mso-de-50053.doc
+forum-mso-de-73852.doc
 forum-mso-de-74072.doc
 forum-mso-en-24.doc
 forum-mso-en4-118770.doc
@@ -43,7 +45,9 @@ ooo40143-1.doc
 ooo50778-1.doc
 ooo60911-3.doc
 ooo60911-6.doc
+ooo61574-4.doc
 ooo66263-2.doc
+ooo69643-2.doc
 ooo71585-2.doc
 ooo74481-1.doc
 ooo83929-3.doc
