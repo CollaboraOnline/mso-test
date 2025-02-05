@@ -355,7 +355,7 @@ def main():
             page.quantize(2)
             MS_ORIG_SIZE.append(page.height * page.width)
             MS_ORIG_CONTENT.append(min(list(page.histogram.values()))) # assuming that the background is more than 50%
-            printdebug(DEBUG, "DEBUG LO_ORIG[", pgnum, "] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] percent[", (MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
+            printdebug(DEBUG, "DEBUG MS_ORIG[", pgnum, "] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] percent[", (MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
 
         tmp = LO_ORIG_PDF.clone()
         with tmp.sequence[pgnum] as page:
