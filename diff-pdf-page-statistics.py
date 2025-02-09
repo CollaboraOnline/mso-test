@@ -3,7 +3,7 @@
 #NOTE: you probably need to increase the cache allowed: /etc/ImageMagick-*/policy.xml
 #      <policy domain="resource" name="disk" value="16GiB"/>
 
-# find docx/ -name "*.docx" -execdir basename {} \; | xargs -L1 -I{} python3 ../diff-pdf-page-statistics.py --no_save_overlay  --base_file="{}"
+# find ../download/docx/ -name "*.docx" -execdir basename {} \; | xargs -L1 -I{} python3 ../diff-pdf-page-statistics.py --no_save_overlay  --base_file="{}"
 #       - first delete any CSV files. Delete the import/export folders in converted
 #       - rename converted DOC/PPT/XLS pdfs from .docx_mso.pdf to .doc_mso.pdf, etc.
 
