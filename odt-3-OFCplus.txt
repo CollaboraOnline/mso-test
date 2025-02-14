@@ -1,2 +1,14 @@
-fdo75893-1.odt
-ooo86396-1.odt
+fdo48011-1.odt
+fdo50057-5.odt
+fdo52080-1.odt
+forum-en-4320.odt
+forum-en-4385.odt
+novell407683-3.odt
+ooo126686-1.odt
+ooo52186-3.odt
+tdf117066-1.odt
+tdf120049-1.odt
+tdf93249-1.odt
+tdf93261-4.odt
+tdf97129-1.odt
+tdf98458-1.odt

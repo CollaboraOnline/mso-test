@@ -1,2 +1,12 @@
-fdo40459-1.ods
-tdf105912-1.ods
+fdo48970-4.ods
+fdo52060-1.ods
+fdo53339-1.ods
+fdo54818-2.ods
+fdo54818-5.ods
+fdo59023-1.ods
+fdo59360-1.ods
+fdo73706-1.ods
+gnome584771-1.ods
+lp390983-3.ods
+ooo103088-1.ods
+tdf93001-3.ods

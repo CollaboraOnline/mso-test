@@ -1,5 +1,6 @@
 abi4715-1.doc
 fdo41030-1.doc
+fdo42438-2.doc
 fdo51044-3.doc
 fdo57780-1.doc
 fdo80206-1.doc
@@ -27,7 +28,6 @@ lp384295-4.doc
 lp614956-6.doc
 moz495712-2.doc
 moz681732-7.doc
-novell535477-1.doc
 ooo104279-1.doc
 ooo105188-1.doc
 ooo117810-3.doc
@@ -38,7 +38,6 @@ ooo23501-1.doc
 ooo25518-1.doc
 ooo29774-1.doc
 ooo31490-1.doc
-ooo33751-1.doc
 ooo39201-1.doc
 ooo40058-1.doc
 ooo40143-1.doc
@@ -57,7 +56,5 @@ ooo98294-2.doc
 ooo98910-1.doc
 ooo98913-2.doc
 tdf100844-1.doc
-tdf118170-1.doc
-tdf118181-3.doc
 tdf136445-1.doc
 tdf95986-1.doc

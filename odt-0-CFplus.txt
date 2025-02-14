@@ -1,27 +1,23 @@
 abi10193-1.odt
 abi10268-1.odt
-abi11853-1.odt
 abi11899-3.odt
 abi11904-1.odt
 abi12855-1.odt
 abi13707-2.odt
-fdo31405-1.odt
 fdo34050-1.odt
 fdo36945-1.odt
 fdo41773-1.odt
 fdo42092-5.odt
+fdo43616-1.odt
 fdo44037-2.odt
 fdo45171-1.odt
 fdo46669-2.odt
 fdo47267-1.odt
-fdo52080-1.odt
 fdo55954-1.odt
 fdo56245-1.odt
-fdo56355-4.odt
 fdo58442-1.odt
 fdo59040-1.odt
 fdo59712-1.odt
-fdo59714-1.odt
 fdo61608-1.odt
 fdo62310-1.odt
 fdo62508-1.odt
@@ -29,6 +25,7 @@ fdo63293-1.odt
 fdo64916-1.odt
 fdo67675-1.odt
 fdo68375-1.odt
+fdo70358-1.odt
 fdo71992-3.odt
 fdo72985-1.odt
 fdo73805-1.odt
@@ -36,6 +33,7 @@ fdo76079-1.odt
 fdo76560-1.odt
 fdo76592-1.odt
 fdo76993-1.odt
+fdo77697-4.odt
 fdo78167-1.odt
 fdo78260-1.odt
 fdo79892-9.odt
@@ -70,7 +68,6 @@ forum-en-23064.odt
 forum-en-23228.odt
 forum-en-23452.odt
 forum-en-23514.odt
-forum-en-23589.odt
 forum-en-23979.odt
 forum-en-24437.odt
 forum-en-24895.odt
@@ -112,6 +109,7 @@ forum-en-33846.odt
 forum-en-33847.odt
 forum-en-34044.odt
 forum-en-34144.odt
+forum-en-342.odt
 forum-en-34494.odt
 forum-en-34505.odt
 forum-en-34554.odt
@@ -154,7 +152,6 @@ forum-en-43595.odt
 forum-en-43698.odt
 forum-en-43704.odt
 forum-en-43705.odt
-forum-en-4385.odt
 forum-en-43925.odt
 forum-en-44706.odt
 forum-en-4555.odt
@@ -163,6 +160,7 @@ forum-en-6188.odt
 forum-en-6231.odt
 forum-en-7278.odt
 forum-en-7529.odt
+forum-en-786.odt
 forum-en-8437.odt
 forum-en-9900.odt
 forum-es-5910.odt
@@ -185,8 +183,6 @@ forum-es-9203.odt
 forum-es-9350.odt
 forum-es-9394.odt
 forum-fr-10943.odt
-forum-fr-14629.odt
-forum-fr-2460.odt
 forum-fr-3119.odt
 forum-fr-31228.odt
 forum-fr-32112.odt
@@ -216,7 +212,6 @@ kde206129-1.odt
 kde210633-1.odt
 kde240353-2.odt
 kde248904-1.odt
-kde271928-1.odt
 kde280711-1.odt
 kde298689-1.odt
 kde304655-2.odt
@@ -224,6 +219,8 @@ kde326558-1.odt
 kde369571-2.odt
 lp1029039-1.odt
 lp1029039-2.odt
+lp278531-2.odt
+lp314659-1.odt
 lp591503-2.odt
 lp919659-1.odt
 novell585570-1.odt
@@ -237,7 +234,10 @@ ooo101484-1.odt
 ooo101954-1.odt
 ooo103256-1.odt
 ooo103927-1.odt
+ooo104107-1.odt
+ooo104141-1.odt
 ooo104715-1.odt
+ooo104925-1.odt
 ooo104981-1.odt
 ooo104981-2.odt
 ooo104984-2.odt
@@ -326,7 +326,6 @@ ooo49650-3.odt
 ooo50805-1.odt
 ooo50994-1.odt
 ooo51489-3.odt
-ooo52186-3.odt
 ooo52356-1.odt
 ooo52356-2.odt
 ooo52356-3.odt
@@ -343,6 +342,7 @@ ooo58148-2.odt
 ooo59003-1.odt
 ooo59051-1.odt
 ooo59587-1.odt
+ooo59688-1.odt
 ooo60594-20.odt
 ooo62113-1.odt
 ooo63309-3.odt
@@ -367,6 +367,7 @@ ooo67278-3.odt
 ooo70063-1.odt
 ooo70858-1.odt
 ooo72086-1.odt
+ooo73012-1.odt
 ooo73696-2.odt
 ooo73701-1.odt
 ooo74215-1.odt
@@ -382,6 +383,7 @@ ooo78311-2.odt
 ooo78549-1.odt
 ooo79291-2.odt
 ooo81265-1.odt
+ooo82788-1.odt
 ooo83911-1.odt
 ooo83911-2.odt
 ooo84834-1.odt
@@ -409,8 +411,6 @@ ooo98766-1.odt
 ooo99243-1.odt
 ooo99685-2.odt
 ooo99685-3.odt
-rhbz1124898-2.odt
-rhbz1286218-1.odt
 rhbz1527945-1.odt
 rhbz176223-1.odt
 rhbz490395-4.odt
@@ -419,7 +419,6 @@ rhbz959359-1.odt
 tdf101123-3.odt
 tdf101821-1.odt
 tdf101821-3.odt
-tdf104020-1.odt
 tdf104862-4.odt
 tdf105126-2.odt
 tdf105844-1.odt
@@ -451,7 +450,6 @@ tdf130868-2.odt
 tdf131622-1.odt
 tdf133856-1.odt
 tdf135347-1.odt
-tdf135784-1.odt
 tdf137123-1.odt
 tdf137230-2.odt
 tdf137530-1.odt
@@ -470,9 +468,11 @@ tdf89783-14.odt
 tdf89892-1.odt
 tdf89913-1.odt
 tdf90010-1.odt
+tdf92372-4.odt
 tdf93080-1.odt
 tdf93664-2.odt
 tdf93706-1.odt
+tdf93869-1.odt
 tdf94212-2.odt
 tdf95458-3.odt
 tdf95460-1.odt
@@ -484,6 +484,4 @@ tdf96323-1.odt
 tdf97129-1.odt
 tdf97466-1.odt
 tdf97613-1.odt
-tdf98458-1.odt
 tdf99686-1.odt
-tdf99722-1.odt

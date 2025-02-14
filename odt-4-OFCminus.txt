@@ -1,9 +1,1 @@
-fdo48011-1.odt
-fdo50057-5.odt
-fdo75893-1.odt
-novell622442-1.odt
-ooo107082-1.odt
-ooo44505-3.odt
-ooo86396-1.odt
-tdf103571-2.odt
-tdf93249-1.odt
+tdf93261-4.odt
