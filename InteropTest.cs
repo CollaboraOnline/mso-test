@@ -483,7 +483,7 @@ namespace mso_test
             else
             {
                 // Use LO as converter
-                convertFiles.Add(Task.Run(async () => ConvertFilesUsingLO(application)));
+                convertFiles.Add(Task.Run(() => ConvertFilesUsingLO(application)));
             }
 
             // Only start 3rd phase after 1st is done, both use MSO
@@ -611,7 +611,7 @@ namespace mso_test
             Logger.Write("Finished first step: opening original files.");
         }
 
-        private async void ConvertFiles(ApplicationType application, HttpClient coolClient)
+        private void ConvertFiles(ApplicationType application, HttpClient coolClient)
         {
             Stopwatch watch = new System.Diagnostics.Stopwatch();
             while (true)
@@ -621,7 +621,7 @@ namespace mso_test
                     break;
                 if (!success)
                 {
-                    await Task.Delay(2000);
+                    Task.Delay(2000);
                     continue;
                 }
                 (string fileType, string fileName) = element;
@@ -671,7 +671,7 @@ namespace mso_test
             Logger.Write("Finished task for second step: converting files.");
         }
 
-        private async void ConvertFilesUsingLO(ApplicationType application)
+        private void ConvertFilesUsingLO(ApplicationType application)
         {
             Stopwatch watch = new System.Diagnostics.Stopwatch();
             while (true)
@@ -681,7 +681,7 @@ namespace mso_test
                     break;
                 if (!success)
                 {
-                    await Task.Delay(2000);
+                    Task.Delay(2000);
                     continue;
                 }
                 (string fileType, string fileName) = element;
@@ -724,7 +724,7 @@ namespace mso_test
             Logger.Write("Finished task for second step: converting files.");
         }
 
-        private async void TestConvertedFiles(ApplicationType application)
+        private void TestConvertedFiles(ApplicationType application)
         {
             Stopwatch watch = new System.Diagnostics.Stopwatch();
             DirectoryInfo convertedDirInfo = new DirectoryInfo(Path.Combine(config.BaseDir, @"converted"));
@@ -735,7 +735,7 @@ namespace mso_test
                     break;
                 if (!success)
                 {
-                    await Task.Delay(2000);
+                    Task.Delay(2000);
                     continue;
                 }
                 (string fileType, string origFileName) = element;
