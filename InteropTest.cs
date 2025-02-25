@@ -213,7 +213,7 @@ namespace mso_test
             // In more recent versions --convert-to implies headless, but before 5.0 that doesn't seem to be the case
             loParams = "--headless --convert-to " + formatTo + " --outdir " + targetDir + " " + fullOrigFileName;
         }
-        public bool convertWithLO(string formatTo, string targetDir, string fullOrigFileName)
+        public bool convertWithLO(string formatTo, string targetDir, string fullOrigFileName, string fullConvertedFileName)
         {
             Process loProcess = new Process(); ;
             string loName, loParams;
@@ -225,7 +225,11 @@ namespace mso_test
             loProcess.Start();
             loProcess.WaitForExit((int)convertTimeout.TotalMilliseconds);
 
-            return killLOProcess(loProcess);
+            bool success = killLOProcess(loProcess);
+            // LO finishing might not mean successful conversion, if the file isn't there
+            if (success && !File.Exists(fullConvertedFileName))
+                success = false;
+            return success;
 
         }
 
@@ -688,12 +692,12 @@ namespace mso_test
                 string fullFileName = Path.Combine(config.BaseDir, @"download\" + fileType + @"\" + fileName);
                 string convertTo = targetFormatPerApp[application];
                 string targetDir = Path.Combine(config.BaseDir, @"converted\" + fileType);
-                string convertedFileName = Path.Combine(targetDir, @"\" + Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
+                string convertedFileName = Path.Combine(targetDir, Path.GetFileNameWithoutExtension(fileName) + "." + convertTo);
                 Logger.Write($"{fileName} - Converting file at {DateTime.Now.ToString("s")}");
 
                 // Round-trip file to MSO format in LO
                 watch.Restart();
-                success = convertWithLO(convertTo, targetDir, fullFileName);
+                success = convertWithLO(convertTo, targetDir, fullFileName, convertedFileName);
                 fileStats.addTimeToConvert(fileType, watch.ElapsedMilliseconds);
                 if (!success)
                 {
@@ -713,7 +717,7 @@ namespace mso_test
                 FileInfo PDFexport = new FileInfo(convertedPDFFileName);
                 if (!PDFexport.Exists)
                 {
-                    success = convertWithLO("pdf", targetDir, fullFileName);
+                    success = convertWithLO("pdf", targetDir, fullFileName, convertedPDFFileName);
                     if (!success)
                         Logger.Write($"Fail creating PDF export; {fileName}");
                 }
