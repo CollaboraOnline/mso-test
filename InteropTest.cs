@@ -481,7 +481,7 @@ namespace mso_test
                 };
                 for (int i = 0; i < config.OnlineConverterTasks; i++)
                 {
-                    convertFiles.Add(Task.Run(async () => ConvertFiles(application, coolClient)));
+                    convertFiles.Add(Task.Run(() => ConvertFiles(application, coolClient)));
                 }
             }
             else
@@ -500,7 +500,7 @@ namespace mso_test
                 return;
             }
 
-            Task testConvertedFiles = Task.Run(async () => TestConvertedFiles(application));
+            Task testConvertedFiles = Task.Run(() => TestConvertedFiles(application));
             Task.WaitAll(convertFiles.ToArray());
             testConvertedFiles.Wait();
         }
