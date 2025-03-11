@@ -402,6 +402,11 @@ namespace mso_test
         }
         public static (bool, string) OpenFile(ApplicationType application, string fileName, bool generatePDF)
         {
+            if (!File.Exists(fileName))
+            {
+                return (false, $"File {fileName} does not exist");
+            }
+
             if (application == ApplicationType.Word)
             {
                 return OpenWordDoc(fileName, generatePDF);
@@ -416,7 +421,7 @@ namespace mso_test
             }
             else
             {
-                return (false, "");
+                return (false, "Unknownn application");
             }
         }
 
@@ -887,7 +892,7 @@ namespace mso_test
                         Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
-            catch (COMException e)
+            catch (Exception e)
             {
                 testResult = false;
                 errorMessage = e.Message;
@@ -927,7 +932,7 @@ namespace mso_test
                         Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
-            catch (COMException e)
+            catch (Exception e)
             {
                 testResult = false;
                 errorMessage = e.Message;
@@ -967,7 +972,7 @@ namespace mso_test
                         Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
             }
-            catch (COMException e)
+            catch (Exception e)
             {
                 testResult = false;
                 errorMessage = e.Message;
