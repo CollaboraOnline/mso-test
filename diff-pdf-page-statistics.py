@@ -84,12 +84,15 @@ def main():
         or args.base_file == 'fdo39327-2.doc' # constantly appears as false positive
         or args.base_file == 'fdo44839-2.doc' # constantly appears as false positive
         or args.base_file == 'fdo55620-1.doc' # constantly appears as false positive
-        or args.base_file == 'forum-en-17173.doc' # constantly appears as false positive
         or args.base_file == 'forum-de3-351.doc' # constantly appears as false positive
+        or args.base_file == 'forum-en-17173.doc' # constantly appears as false positive
+        or args.base_file == 'forum-mso-en4-218597.doc' # constantly appears as false positive
         or args.base_file == 'ooo39362-1.doc' # constantly appears as false positive
         or args.base_file == 'ooo58118-1.doc' # constantly appears as false positive
         or args.base_file == 'ooo61574-4.doc' # constantly appears as false positive
         or args.base_file == 'ooo91654-1.doc' # constantly appears as false positive
+        or args.base_file == 'ooo101660-2.doc' # constantly appears as false positive
+        or args.base_file == 'ooo106353-1.doc' # constantly appears as false positive
         or args.base_file == 'fdo41765-1.doc' # constantly appears as false positive: OLE
         or args.base_file == 'forum-en-477.doc' # constantly appears as false positive: OLE
         or args.base_file == 'forum-en-20796.doc' # constantly appears as false positive: OLE
@@ -98,23 +101,56 @@ def main():
         or args.base_file == 'forum-fr-4907.doc' # constantly appears as false positive: OLE
         or args.base_file == 'forum-it-4309.doc' # constantly appears as false positive: OLE
         or args.base_file == 'forum-mso-de-1674.doc' # constantly appears as false positive: OLE
+        or args.base_file == 'kde-251338-1.doc' # constantly appears as false positive: OLE
+        or args.base_file == 'ooo50472-1.doc' # constantly appears as false positive: OLE
+        or args.base_file == 'ooo52181-1.doc' # constantly appears as false positive: OLE
+        or args.base_file == 'fdo34319-2.doc' # unusual font
+        or args.base_file == 'ooo20105-2.doc' # unusual font
+        or args.base_file == 'ooo45085-2.doc' # unusual font
+        or args.base_file == 'ooo32650-1.doc' # unusual font
+        or args.base_file == 'fdo45284-2.doc' # formula
+        or args.base_file == 'fdo45284-3.doc' # formula
+        or args.base_file == 'lp881390-3.doc' # formula
+        or args.base_file == 'ooo12856-1.doc' # formula
+        or args.base_file == 'ooo15545-1.doc' # formula
+        or args.base_file == 'ooo24340-1.doc' # formula
+        or args.base_file == 'ooo26341-1.doc' # formula
+        or args.base_file == 'ooo49794-1.doc' # formula
+        or args.base_file == 'ooo49798-2.doc' # formula
+        or args.base_file == 'ooo63072-1.doc' # formula
+        or args.base_file == 'ooo80133-1.doc' # formula
+        or args.base_file == 'ooo83641-1.doc' # formula
+        or args.base_file == 'ooo85069-2.doc' # formula
+        or args.base_file == 'ooo88869-2.doc' # formula
+        or args.base_file == 'ooo90263-1.doc' # formula
+        or args.base_file == 'ooo95326-1.doc' # formula
+        or args.base_file == 'ooo97050-1.doc' # formula
+        or args.base_file == 'ooo112342-1.doc' # formula
+        or args.base_file == 'tdf93774-1.doc' # formula
+        or args.base_file == 'tdf94459-1.doc' # formula
+        or args.base_file == 'tdf133081-1.doc' # formula
         or args.base_file == 'abi7300-3.doc' # date/time/temp-filename field
         or args.base_file == 'abi9044-1.doc' # date/time/temp-filename field
         or args.base_file == 'abi9483-1.doc' # date/time/temp-filename field
         or args.base_file == 'fdo34293-1.doc' # date/time/temp-filename field
+        or args.base_file == 'fdo36035-1.doc' # date/time/temp-filename field
         or args.base_file == 'fdo42476-1.doc' # date/time/temp-filename field
         or args.base_file == 'fdo45122-2.doc' # date/time/temp-filename field
         or args.base_file == 'fdo46026-4.doc' # date/time/temp-filename field
+        or args.base_file == 'fdo46203-2.doc' # date/time/temp-filename field
         or args.base_file == 'fdo49989-1.doc' # date/time/temp-filename field
         or args.base_file == 'fdo62419-3.doc' # date/time/temp-filename field
         or args.base_file == 'fdo66620-1.doc' # date/time/temp-filename field
         or args.base_file == 'fdo76473-2.doc' # date/time/temp-filename field
         or args.base_file == 'fdo80094-1.doc' # date/time/temp-filename field
+        or args.base_file == 'fdo85607-1.doc' # date/time/temp-filename field
         or args.base_file == 'forum-de2-3448.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-de2-5389.doc' # date/time/temp-filename field
         or args.base_file == 'forum-de3-2825.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-1156.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-2522.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-4213.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-en-11174.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-11794.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-11795.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-13849.doc' # date/time/temp-filename field
@@ -123,6 +159,7 @@ def main():
         or args.base_file == 'forum-en-26206.doc' # date/time/temp-filename field
         or args.base_file == 'forum-en-34278.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-5305.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-5996.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-7782.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-7785.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-9115.doc' # date/time/temp-filename field
@@ -131,16 +168,21 @@ def main():
         or args.base_file == 'forum-fr-17180.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-17699.doc' # date/time/temp-filename field
         or args.base_file == 'forum-fr-17720.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-fr-25000.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-786.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-787.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-2342.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-4865.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-4933.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-9155.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-10356.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-10921.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-11203.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-11204.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-12204.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-12422.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-12720.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-13519.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-14766.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-15308.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-15313.doc' # date/time/temp-filename field
@@ -175,6 +217,7 @@ def main():
         or args.base_file == 'forum-mso-de-48711.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-52037.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-52383.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-53089.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-54145.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-62247.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-62373.doc' # date/time/temp-filename field
@@ -188,15 +231,27 @@ def main():
         or args.base_file == 'forum-mso-de-80741.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-92542.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-113100.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-125088.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-139552.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-412.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-1550.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-1551.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-1575.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-4059.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en-4060.doc' # date/time/temp-filename field
-        or args.base_file == 'forum-mso-en-1550.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-5477.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en-5565.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en3-14938.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en3-14961.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-96871.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-96872.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-164788.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-179419.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-190815.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-383921.doc' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-383922.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-408957.doc' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-416020.doc' # date/time/temp-filename field
         or args.base_file == 'kde67216-2.doc' # date/time/temp-filename field
         or args.base_file == 'kde239143-8.doc' # date/time/temp-filename field
         or args.base_file == 'kde239659-1.doc' # date/time/temp-filename field
@@ -219,12 +274,14 @@ def main():
         or args.base_file == 'ooo26091-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo29646-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo29646-2.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo31052-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo32554-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo32819-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo36447-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo36594-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo36594-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo36594-6.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo36594-7.doc' # date/time/temp-filename field
         or args.base_file == 'ooo36594-9.doc' # date/time/temp-filename field
         or args.base_file == 'ooo38143-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo38959-1.doc' # date/time/temp-filename field
@@ -236,21 +293,24 @@ def main():
         or args.base_file == 'ooo45051-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo46648-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo48192-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo48822-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo49538-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo50715-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo51449-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo51449-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo56465-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo56654-2.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo56743-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo58454-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo58454-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo60170-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo61627-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo62496-1.doc' # date/time/temp-filename field
-        or args.base_file == 'ooo64927-1.dic' # date/time/temp-filename field
+        or args.base_file == 'ooo64927-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo64927-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo65485-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo66570-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo66990-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo70163-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo70163-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo70363-1.doc' # date/time/temp-filename field
@@ -259,31 +319,45 @@ def main():
         or args.base_file == 'ooo72151-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo72176-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo74244-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo75170-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo77118-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo79388-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo80702-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo82047-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo88597-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo92840-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo94820-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo98407-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo105196-2.doc' # date/time/temp-filename field
         or args.base_file == 'ooo110375-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo117044-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo119810-1.doc' # date/time/temp-filename field
         or args.base_file == 'ooo119913-1.doc' # date/time/temp-filename field
+        or args.base_file == 'ooo120158-1.doc' # date/time/temp-filename field
         or args.base_file == 'tdf98761-2.doc' # date/time/temp-filename field
+        or args.base_file == 'tdf127078-2.doc' # date/time/temp-filename field
         or args.base_file == 'fdo35158-5.doc' # dup
         or args.base_file == 'forum-en-2974.doc' # dup
         or args.base_file == 'forum-en-19554.doc' # dup
         or args.base_file == 'forum-en-19562.doc' # dup
         or args.base_file == 'forum-fr-7789.doc' # dup
         or args.base_file == 'forum-mso-de-4868.doc' # dup
+        or args.base_file == 'forum-mso-de-5466.doc' # dup
+        or args.base_file == 'forum-mso-de-5467.doc' # dup
+        or args.base_file == 'forum-mso-de-5540.doc' # dup
+        or args.base_file == 'forum-mso-de-12432.doc' # dup
+        or args.base_file == 'forum-mso-de-12520.doc' # dup
+        or args.base_file == 'forum-mso-de-12740.doc' # dup
         or args.base_file == 'forum-mso-de-15295.doc' # dup
         or args.base_file == 'forum-mso-de-15315.doc' # dup
         or args.base_file == 'forum-mso-de-15355.doc' # dup
         or args.base_file == 'forum-mso-de-15371.doc' # dup
         or args.base_file == 'forum-mso-de-16353.doc' # dup
         or args.base_file == 'forum-mso-de-22546.doc' # dup
+        or args.base_file == 'forum-mso-de-53090.doc' # dup
         or args.base_file == 'forum-mso-de-53095.doc' # dup
         or args.base_file == 'forum-mso-de-61448.doc' # dup
+        or args.base_file == 'forum-mso-de-66416.doc' # dup
         or args.base_file == 'forum-mso-de-69704.doc' # dup
         or args.base_file == 'forum-mso-de-69714.doc' # dup
         or args.base_file == 'forum-mso-de-77313.doc' # dup
@@ -291,6 +365,10 @@ def main():
         or args.base_file == 'forum-mso-de-125055.doc' # dup
         or args.base_file == 'forum-mso-de-130689.doc' # dup
         or args.base_file == 'forum-mso-en-4061.doc' # dup
+        or args.base_file == 'forum-mso-en-4350.doc' # dup
+        or args.base_file == 'forum-mso-en-4353.doc' # dup
+        or args.base_file == 'forum-mso-en3-14831.doc' # dup
+        or args.base_file == 'forum-mso-en3-14901.doc' # dup
         or args.base_file == 'forum-mso-en4-409511.doc' # dup
         or args.base_file == 'moz1031624-4.doc' # dup
         or args.base_file == 'moz1031624-5.doc' # dup
@@ -298,11 +376,15 @@ def main():
         or args.base_file == 'ooo72151-3.doc' # dup
         or args.base_file == 'abi9887-2.doc' # solid blue
         or args.base_file == 'abi10025-3.doc' # solid blue
+        or args.base_file == 'gnome166775-1.doc' # solid blue
+        or args.base_file == 'lp332943-1.doc' # solid blue
         or args.base_file == 'lp332943-3.doc' # solid blue
+        or args.base_file == 'ooo13008-1.doc' # solid blue
         or args.base_file == 'ooo23297-2.doc' # solid blue
         or args.base_file == 'ooo23575-1.doc' # solid blue
         or args.base_file == 'ooo25373-3.doc' # solid blue
         or args.base_file == 'ooo25522-1.doc' # solid blue
+        or args.base_file == 'ooo27951-2.doc' # solid blue
         or args.base_file == 'ooo29165-3.doc' # solid blue
         or args.base_file == 'ooo29395-1.doc' # solid blue
         or args.base_file == 'ooo29682-3.doc' # solid blue
@@ -331,12 +413,26 @@ def main():
         or args.base_file == 'rhbz164691-1.doc' # solid blue
         or args.base_file == 'rhbz173474-1.doc' # solid blue
         or args.base_file == 'rhbz183617-1.doc' # solid blue
+        or args.base_file == 'tdf99072-1.doc' # solid blue
         #docx
         or args.base_file == 'forum-mso-en-1268.docx' # =rand()
         or args.base_file == 'ooo34927-2.docx' # excessively font dependent
         or args.base_file == 'rhbz862326-1.docx' # extremely stupid document
         or args.base_file == 'fdo44257-1.docx' # constantly appears as false positive: 10 page OLE fallback images
         or args.base_file == 'fdo77716-1.docx' # constantly appears as false positive: 10 page OLE fallback images
+        or args.base_file == 'fdo81381-1.docx' # OLE
+        or args.base_file == 'fdo87977-1.docx' # OLE
+        or args.base_file == 'forum-mso-en3-20916.docx' # OLE
+        or args.base_file == 'forum-mso-en4-494109.docx' # OLE
+        or args.base_file == 'tdf66581-4.docx' # OLE
+        or args.base_file == 'tdf91093-1.docx' # OLE
+        or args.base_file == 'tdf103639-1.docx' # OLE
+        or args.base_file == 'tdf104065-1.docx' # OLE
+        or args.base_file == 'tdf109102-1.docx' # OLE
+        or args.base_file == 'tdf133035-1.docx' # OLE
+        or args.base_file == 'tdf133035-2.docx' # OLE
+        or args.base_file == 'tdf135653-1.docx' # OLE
+        or args.base_file == 'forum-mso-de-83513.docx' # constantly appears as false positive
         or args.base_file == 'forum-mso-en-8744.docx' # constantly appears as false positive
         or args.base_file == 'novell478562-1.docx' # constantly appears as false positive
         or args.base_file == 'novell653526-1.docx' # constantly appears as false positive
@@ -347,11 +443,76 @@ def main():
         or args.base_file == 'tdf120551-3.docx' # constantly appears as false positive
         or args.base_file == 'tdf120551-5.docx' # constantly appears as false positive
         or args.base_file == 'abi13160-1.docx' # unusual font
+        or args.base_file == 'fdo43028-1.docx' # unusual font
+        or args.base_file == 'fdo65494-1.docx' # unusual font
+        or args.base_file == 'fdo67087-2.docx' # unusual font
+        or args.base_file == 'fdo74110-1.docx' # unusual font
+        or args.base_file == 'forum-es-369.docx' # unusual font
+        or args.base_file == 'forum-mso-de-75152.docx' # unusual font
+        or args.base_file == 'forum-mso-de-79054.docx' # unusual font
+        or args.base_file == 'forum-mso-de-85674.docx' # unusual font
+        or args.base_file == 'forum-mso-de-87364.docx' # unusual font
+        or args.base_file == 'forum-mso-de-102385.docx' # unusual font
+        or args.base_file == 'forum-mso-de-106949.docx' # unusual font
+        or args.base_file == 'forum-mso-de-113918.docx' # unusual font
+        or args.base_file == 'forum-mso-de-122886.docx' # unusual font
+        or args.base_file == 'forum-mso-en-635.docx' # unusual font
+        or args.base_file == 'forum-mso-en-786.docx' # unusual font
+        or args.base_file == 'forum-mso-en-2898.docx' # unusual font
+        or args.base_file == 'forum-mso-en-4865.docx' # unusual font
+        or args.base_file == 'forum-mso-en-5670.docx' # unusual font
+        or args.base_file == 'forum-mso-en-5678.docx' # unusual font
+        or args.base_file == 'forum-mso-en-5865.docx' # unusual font
+        or args.base_file == 'forum-mso-en-7261.docx' # unusual font
         or args.base_file == 'forum-mso-en-9806.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10349.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10431.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10513.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10723.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10729.docx' # unusual font
+        or args.base_file == 'forum-mso-en-10783.docx' # unusual font
+        or args.base_file == 'forum-mso-en-12532.docx' # unusual font
+        or args.base_file == 'forum-mso-en-13515.docx' # unusual font
+        or args.base_file == 'forum-mso-en-13800.docx' # unusual font
+        or args.base_file == 'forum-mso-en-13874.docx' # unusual font
         or args.base_file == 'forum-mso-en-15345.docx' # unusual font
+        or args.base_file == 'forum-mso-en-15535.docx' # unusual font
+        or args.base_file == 'forum-mso-en-15688.docx' # unusual font
+        or args.base_file == 'forum-mso-en-15689.docx' # unusual font
+        or args.base_file == 'forum-mso-en-16276.docx' # unusual font
+        or args.base_file == 'forum-mso-en-17027.docx' # unusual font
+        or args.base_file == 'forum-mso-en-17656.docx' # unusual font
+        or args.base_file == 'forum-mso-en-18445.docx' # unusual font
+        or args.base_file == 'forum-mso-en-18727.docx' # unusual font
+        or args.base_file == 'forum-mso-en-18740.docx' # unusual font
+        or args.base_file == 'forum-mso-en3-11288.docx' # unusual font
+        or args.base_file == 'forum-mso-en3-12276.docx' # unusual font
+        or args.base_file == 'forum-mso-en3-21123.docx' # unusual font
+        or args.base_file == 'forum-mso-en3-21703.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-265687.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-446134.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-450894.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-517662.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-673198.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-754174.docx' # unusual font
+        or args.base_file == 'forum-mso-en4-774984.docx' # unusual font
+        or args.base_file == 'kde239393-1.docx' # unusual font
+        or args.base_file == 'moz815635-2.docx' # unusual font
+        or args.base_file == 'moz919816-4.docx' # unusual font
         or args.base_file == 'moz1564148-1.docx' # unusual font
+        or args.base_file == 'ooo125270-2.docx' # unusual font
+        or args.base_file == 'ooo125270-4.docx' # unusual font
+        or args.base_file == 'ooo126928-1.docx' # unusual font
+        or args.base_file == 'ooo127806-1.docx' # unusual font
+        or args.base_file == 'tdf64991-1.docx' # unusual font
+        or args.base_file == 'tdf92642-1.docx' # unusual font
+        or args.base_file == 'tdf96172-1.docx' # unusual font
         or args.base_file == 'tdf104162-1.docx' # unusual font
         or args.base_file == 'tdf106572-1.docx' # unusual font
+        or args.base_file == 'tdf107928-1.docx' # unusual font
+        or args.base_file == 'tdf107928-6.docx' # unusual font
+        or args.base_file == 'tdf107928-7.docx' # unusual font
+        or args.base_file == 'tdf109059-3.docx' # unusual font
         or args.base_file == 'tdf112172-1.docx' # unusual font
         or args.base_file == 'tdf114363-1.docx' # unusual font
         or args.base_file == 'tdf114363-3.docx' # unusual font
@@ -361,8 +522,66 @@ def main():
         or args.base_file == 'tdf118521-3.docx' # unusual font
         or args.base_file == 'tdf118521-4.docx' # unusual font
         or args.base_file == 'tdf121045-1.docx' # unusual font
+        or args.base_file == 'tdf124091-1.docx' # unusual font
+        or args.base_file == 'tdf124536-1.docx' # unusual font
         or args.base_file == 'tdf128373-1.docx' # unusual font
+        or args.base_file == 'tdf129458-1.docx' # unusual font
         or args.base_file == 'tdf131225-1.docx' # unusual font
+        or args.base_file == 'tdf133873-2.docx' # unusual font
+        or args.base_file == 'tdf134235-1.docx' # unusual font
+        or args.base_file == 'fdo32636-1.docx' # formulas seem to really undergo layout-in-motion, and the fall-back image often doesn't seem to match modern MSO.
+        or args.base_file == 'fdo32636-3.docx' # formula
+        or args.base_file == 'fdo44612-1.docx' # formula
+        or args.base_file == 'fdo46716-4.docx' # formula
+        or args.base_file == 'fdo55743-1.docx' # formula
+        or args.base_file == 'fdo58949-1.docx' # formula
+        or args.base_file == 'fdo59053-4.docx' # formula
+        or args.base_file == 'fdo59181-1.docx' # formula
+        or args.base_file == 'fdo61638-1.docx' # formula
+        or args.base_file == 'fdo66284-1.docx' # formula
+        or args.base_file == 'fdo66627-1.docx' # formula
+        or args.base_file == 'fdo68193-2.docx' # formula
+        or args.base_file == 'fdo68997-1.docx' # formula
+        or args.base_file == 'fdo74431-1.docx' # formula
+        or args.base_file == 'fdo78906-1.docx' # formula
+        or args.base_file == 'forum-mso-de-43275.docx' # formula
+        or args.base_file == 'forum-mso-de-75783.docx' # formula
+        or args.base_file == 'forum-mso-de-83512.docx' # formula
+        or args.base_file == 'forum-mso-de-83513.docx' # formula
+        or args.base_file == 'forum-mso-de-104623.docx' # formula
+        or args.base_file == 'forum-mso-en-3685.docx' # formula
+        or args.base_file == 'forum-mso-en-7009.docx' # formula
+        or args.base_file == 'forum-mso-en-7125.docx' # formula
+        or args.base_file == 'forum-mso-en-9109.docx' # formula
+        or args.base_file == 'forum-mso-en-11003.docx' # formula
+        or args.base_file == 'forum-mso-en-11772.docx' # formula
+        or args.base_file == 'forum-mso-en-12492.docx' # formula
+        or args.base_file == 'novell518755-1.docx' # formula
+        or args.base_file == 'ooo122349-1.docx' # formula
+        or args.base_file == 'tdf66525-3.docx' # formula
+        or args.base_file == 'tdf79695-2.docx' # formula
+        or args.base_file == 'tdf86716-4.docx' # formula
+        or args.base_file == 'tdf95230-1.docx' # formula
+        or args.base_file == 'tdf98886-1.docx' # formula
+        or args.base_file == 'tdf101378-1.docx' # formula
+        or args.base_file == 'tdf112038-1.docx' # formula
+        or args.base_file == 'tdf115030-2.docx' # formula
+        or args.base_file == 'tdf116547-2.docx' # formula
+        or args.base_file == 'tdf116547-3.docx' # formula
+        or args.base_file == 'tdf117087-1.docx' # formula
+        or args.base_file == 'tdf116547-11.docx' # formula
+        or args.base_file == 'tdf117087-1.docx' # formula
+        or args.base_file == 'tdf120431-1.docx' # formula
+        or args.base_file == 'tdf121525-1.docx' # formula
+        or args.base_file == 'tdf123688-1.docx' # formula
+        or args.base_file == 'tdf128205-1.docx' # formula
+        or args.base_file == 'tdf130907-2.docx' # formula
+        or args.base_file == 'tdf133030-1.docx' # formula
+        or args.base_file == 'tdf133030-2.docx' # formula
+        or args.base_file == 'tdf133030-5.docx' # formula
+        or args.base_file == 'tdf133081-2.docx' # formula
+        or args.base_file == 'tdf134466-1.docx' # formula
+        or args.base_file == 'tdf136069-2.docx' # formula
         or args.base_file == 'fdo34298-4.docx' # date/time/temp-filename field
         or args.base_file == 'fdo37466-1.docx' # date/time/temp-filename field
         or args.base_file == 'fdo41679-1.docx' # date/time/temp-filename field
@@ -439,6 +658,7 @@ def main():
         or args.base_file == 'forum-mso-de-106821.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-108628.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-108634.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-de-108709.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-109741.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-109772.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-de-114992.docx' # date/time/temp-filename field
@@ -529,6 +749,7 @@ def main():
         or args.base_file == 'forum-mso-en4-453122.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-454830.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-570002.docx' # date/time/temp-filename field
+        or args.base_file == 'forum-mso-en4-570003.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-627249.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-672510.docx' # date/time/temp-filename field
         or args.base_file == 'forum-mso-en4-676107.docx' # date/time/temp-filename field
@@ -540,6 +761,7 @@ def main():
         or args.base_file == 'moz904327-1.docx' # date/time/temp-filename field
         or args.base_file == 'novell346590-1.docx' # date/time/temp-filename field
         or args.base_file == 'ooo118533-1.docx' # date/time/temp-filename field
+        or args.base_file == 'ooo119595-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf82553-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf98761-1.docx' # date/time/temp-filename field
         or args.base_file == 'tdf99236-2.docx' # date/time/temp-filename field
@@ -568,10 +790,18 @@ def main():
         or args.base_file == 'fdo83312-6.docx' # effective duplicate
         or args.base_file == 'forum-fr-16236.docx' # effective duplicate
         or args.base_file == 'forum-fr-16238.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-53497.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-54647.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-67371.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-71993.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-84324.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-85093.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-86100.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-89919.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-89935.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-94636.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-100786.docx' # effective duplicate
+        or args.base_file == 'forum-mso-de-103598.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-126251.docx' # effective duplicate
         or args.base_file == 'forum-mso-de-139701.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-834.docx' # effective duplicate
@@ -585,8 +815,13 @@ def main():
         or args.base_file == 'forum-mso-en-8049.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-8233.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-8339.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-16076.docx' # effective duplicate
         or args.base_file == 'forum-mso-en-17298.docx' # effective duplicate
+        or args.base_file == 'forum-mso-en-17995.docx' # effective duplicate
         or args.base_file == 'moz666767-2.docx' # effective duplicate
+        or args.base_file == 'moz1007683-1.docx' # effective duplicate
+        or args.base_file == 'moz1067887-1.docx' # effective duplicate
+        or args.base_file == 'moz1196491-6.docx' # effective duplicate
         or args.base_file == 'novell348471-1.docx' # effective duplicate
         or args.base_file == 'novell492916-1.docx' # effective duplicate
         or args.base_file == 'novell498196-1.docx' # effective duplicate
@@ -596,15 +831,23 @@ def main():
         or args.base_file == 'novell622455-1.docx' # effective duplicate
         or args.base_file == 'tdf84678-5.docx' # effective duplicate
         or args.base_file == 'tdf89858-3.docx' # effective duplicate
+        or args.base_file == 'tdf107391-4.docx' # effective duplicate
         or args.base_file == 'tdf112202-1.docx' # effective duplicate
         or args.base_file == 'tdf112203-1.docx' # effective duplicate
+        or args.base_file == 'tdf112342-4.docx' # effective duplicate
         or args.base_file == 'tdf113788-1.docx' # effective duplicate
         or args.base_file == 'tdf117641-1.docx' # effective duplicate
         or args.base_file == 'tdf118169-2.docx' # effective duplicate
         or args.base_file == 'tdf118169-3.docx' # effective duplicate
         or args.base_file == 'tdf118377-1.docx' # effective duplicate
+        or args.base_file == 'tdf119351-1.docx' # effective duplicate
+        or args.base_file == 'tdf120163-4.docx' # effective duplicate
         or args.base_file == 'rhbz663619-2.docx' # gradient
+        or args.base_file == 'forum-mso-en-4201.docx' # dark background
+        or args.base_file == 'forum-mso-en3-12825.docx' # dark background
+        or args.base_file == 'forum-mso-en4-524519.docx' # dark background
         or args.base_file == 'tdf98555-1.docx' # dark background
+        or args.base_file == 'tdf120760-1.docx' # dark background
     ):
         print("SKIPPING FILE", args.base_file, ": determined to be unusable for testing...")
         exit(0)
