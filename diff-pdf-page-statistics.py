@@ -1063,11 +1063,14 @@ def main():
             with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.transform_colorspace('gray')
                 page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.90)
+
+                LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
                 LO_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=LO_PREV_PDF.quantum_range * 0.90)
                 page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with (blue) LO_PREV
-                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
+
                 MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
                 page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
                 page.merge_layers('flatten')
 
@@ -1086,11 +1089,14 @@ def main():
             with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
                 page.transform_colorspace('gray')
                 page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.90)
+
+                MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
                 MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
                 MS_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=MS_PREV_PDF.quantum_range * 0.90)
                 page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with (blue) MS_PREV
-                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
+
                 MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
+                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
                 page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
                 page.merge_layers('flatten')
 
