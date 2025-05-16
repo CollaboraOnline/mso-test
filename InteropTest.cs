@@ -887,7 +887,11 @@ namespace mso_test
                 {
                     FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
                     if (!PDFexport.Exists)
+                    {
+                        // PDF export might be incorrect for long-loading files wihout this
+                        int stat = doc.ComputeStatistics(word.WdStatistic.wdStatisticPages);
                         doc.ExportAsFixedFormat(PDFexport.FullName, word.WdExportFormat.wdExportFormatPDF);
+                    }
                     else
                         Logger.Write("\nDEBUG: PDF already exists for " + PDFexport.FullName);
                 }
