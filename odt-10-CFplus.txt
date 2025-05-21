@@ -1,2 +1,12 @@
-ooo118219-1.odt
-tdf117095-1.odt
+abi11853-1.odt
+fdo73805-1.odt
+fdo77248-1.odt
+forum-en-34144.odt
+kde271928-1.odt
+ooo127710-1.odt
+ooo67241-3.odt
+ooo82788-1.odt
+ooo92691-2.odt
+tdf101821-2.odt
+tdf130135-1.odt
+tdf93249-1.odt

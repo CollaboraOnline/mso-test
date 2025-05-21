@@ -1,1 +1,12 @@
-ooo65074-1.odt
+abi12872-1.odt
+fdo38513-1.odt
+fdo48011-1.odt
+fdo84635-5.odt
+ooo112797-1.odt
+ooo118020-1.odt
+ooo127229-1.odt
+ooo99685-1.odt
+rhbz1124898-2.odt
+tdf117095-1.odt
+tdf94138-7.odt
+tdf97129-1.odt

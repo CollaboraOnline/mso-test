@@ -1,7 +1,4 @@
-abi11853-1.odt
-fdo38741-1.odt
-forum-fr-14629.odt
-kde271928-1.odt
-ooo114017-1.odt
-ooo118219-1.odt
-tdf131737-1.odt
+fdo73805-1.odt
+fdo77248-1.odt
+ooo92691-2.odt
+tdf134903-2.odt
