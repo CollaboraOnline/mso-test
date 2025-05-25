@@ -1,17 +1,11 @@
 fdo39484-7.ods
 fdo43831-1.ods
-fdo46428-1.ods
 fdo48970-4.ods
 fdo52060-1.ods
 fdo53339-1.ods
 fdo54818-2.ods
 fdo54818-5.ods
 fdo59023-1.ods
-fdo67476-1.ods
 fdo73706-1.ods
 fdo75642-1.ods
 fdo76482-1.ods
-fdo78955-2.ods
-ooo94289-1.ods
-ooo94289-5.ods
-tdf98912-1.ods

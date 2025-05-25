@@ -1,7 +1,11 @@
+fdo56355-4.odt
 forum-en-19413.odt
-forum-en-34144.odt
-ooo127710-1.odt
-ooo82788-1.odt
+ooo111310-1.odt
+ooo118219-1.odt
+ooo46275-1.odt
+ooo64767-1.odt
+tdf103059-2.odt
+tdf117095-1.odt
 tdf134202-1.odt
 tdf135784-1.odt
 tdf81792-2.odt
