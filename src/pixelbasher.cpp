@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <filesystem>
+#include <cmath>
 
 #pragma pack(push, 1)
 struct BMPFileHeader {
@@ -151,6 +153,62 @@ public:
     }
   }
 
+  std::vector<uint8_t> sobleEdges() {
+    int32_t width = info_header.width;
+    int32_t height = info_header.height;
+    int32_t pixel_stride = 4;
+
+    std::vector<uint8_t> result(width * height, 0);
+    for (int y = 1; y < height - 1; y++) {
+      for (int x = 1; x < width - 1; x++) {
+        int currentIndex = (y * this->info_header.width + x) * pixel_stride;
+
+
+        uint8_t grey_scale_value = this->data[currentIndex]; // image is greyscaled so r,g,b all the same
+        // top left  * - 1 +  middle left * -2 + bottom left * -1 + top right * 1 + middle right * 2 + bottom right * 1
+        int8_t gX = -1 * this->data[((y - 1) * this->info_header.width + (x - 1)) * pixel_stride] +
+                      -2 * this->data[(y * this->info_header.width +  (x - 1)) * pixel_stride] +
+                      - 1* this->data[((y + 1) * this->info_header.width + (x - 1)) * pixel_stride] +
+                      1 * this->data[((y - 1) * this->info_header.width + (x + 1)) * pixel_stride] +
+                      2 * this->data[(y * this->info_header.width + (x + 1)) * pixel_stride] +
+                      1 * this->data[((y + 1) * this->info_header.width + (x + 1)) * pixel_stride];
+
+        int8_t gY = -1 * this->data[((y - 1) * this->info_header.width + (x - 1)) * pixel_stride] +
+                      -2 * this->data[((y - 1) * this->info_header.width + x) * pixel_stride] +
+                      -1 * this->data[((y - 1) * this->info_header.width + (x + 1)) * pixel_stride] +
+                      1 * this->data[((y + 1) * this->info_header.width + (x - 1)) * pixel_stride] +
+                      2 * this->data[((y + 1) * this->info_header.width + x) * pixel_stride] +
+                      1 * this->data[((y + 1) * this->info_header.width + (x + 1)) * pixel_stride];
+
+        uint8_t magnitude = std::min(255, static_cast<int>(std::sqrt(gX*gX + gY*gY)));
+
+        result[y * width + x] = static_cast<uint8_t>(magnitude);
+        std::cout << "magnitude: " << std::to_string(magnitude) << std::endl;
+        // std::cout << "gX: " << std::to_string(gX) << " gY:" << std::to_string(gY) << std::endl;
+      }
+    }
+    return result;
+  }
+
+  void highlightEdges(const std::vector<uint8_t>& edge_map, uint8_t threshold = 50) {
+    int32_t width = info_header.width;
+    int32_t height = info_header.height;
+    int32_t pixel_stride = 4;
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        uint8_t magnitude = edge_map[y * width + x];
+        if (magnitude > threshold) {
+          int index = (y * width + x) * pixel_stride;
+          this->data[index] = 255;
+          this->data[index + 1] = 0;
+          this->data[index + 2] = 0;
+          this->data[index + 3] = 255;
+        }
+      }
+    }
+  }
+
 private:
   uint32_t row_stride {0};
 
@@ -202,38 +260,24 @@ private:
     }
     return false;
   }
-
 };
 
-int main()
+// argument format: authoritative bmp path, import bmp path, compared/diff bmp path
+int main(int argc, char* argv[])
 {
-  std::string auth_filename = "forum-mso-en-8407.docx_authoritative.pdf";
-  std::string inputDirectory = "input/" + auth_filename + "/output-2.bmp";
-  std::string outputDirectory = "output/" + auth_filename + "/output-2how d.bmp";
+  const char* authoritative_path = argv[1];
+  const char* import_path = argv[2];
+  const char* output_path = argv[3];
 
-  BMP auth(inputDirectory.c_str());
+  std::cout << authoritative_path << " " << import_path << " " << output_path;
 
-  std::string input_filename = "forum-mso-en-8407.docx_import.pdf";
-  inputDirectory = "input/" + input_filename + "/output-2.bmp";
+  BMP auth_bmp(authoritative_path);
+  BMP import_bmp(import_path);
 
-  BMP import(inputDirectory.c_str());
-
-  auth.compareToBmp(import);
-  auth.write(outputDirectory.c_str());
-
-
-  // BMP authoritative("input/authoritative.bmp");
-  // std::string filename = "input/fdo67087-1.docx";
-  // std::string authFilename = filename +  "_authoritative.bmp";
-  // std::string importFilename = filename + "_import.bmp";
-  // BMP auth(authFilename.c_str());
-  // BMP import(importFilename.c_str());
-
-  // auth.compareToBmp(import);
-  // auth.write("output/fdo67087-1-red.bmp");
-
-  // authoritative.compareToBmp(import);
-  // authoritative.write("output/clean-output.bmp");
+  auth_bmp.highlightEdges(auth_bmp.sobleEdges());
+  auth_bmp.write("highlighted.bmp");
+  // auth_bmp.compareToBmp(import_bmp);
+  // auth_bmp.write(output_path);
 
   // BMP bmp("input/import-png.bmp");
   // std::vector<Pixel> import_pixels;
