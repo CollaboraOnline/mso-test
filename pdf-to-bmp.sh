@@ -1,4 +1,12 @@
+#!/bin/bash
+
 dir_to_search=$1 # should be "some_directory/"
+max_pages=5 # this is as image dump has mismatched pages, and it seems to be that upto 5, the pages are identical
+
+if [[ $# -ne 1 ]]; then
+    echo "Pass the image dump directory"
+    exit 1
+fi
 
 for DIRECTORY in $dir_to_search*; do
     dir_name=$(basename $DIRECTORY)
@@ -14,7 +22,7 @@ for DIRECTORY in $dir_to_search*; do
             else
                 output_name="import"
             fi
-            pdftoppm $FILE input/$dir_name/$output_name-page -png -r 150 
+            pdftoppm $FILE input/$dir_name/$output_name-page -png -r 150 -f 1 -l $max_pages
         done;
 
         # convert the png's to bmp's (may be multiple png's based on page count)
@@ -25,4 +33,3 @@ for DIRECTORY in $dir_to_search*; do
         done;
     fi;
 done;
-    
