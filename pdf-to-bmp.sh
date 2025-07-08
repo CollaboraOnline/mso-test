@@ -28,7 +28,7 @@ for DIRECTORY in $dir_to_search*; do
         # convert the png's to bmp's (may be multiple png's based on page count)
         for IMG in input/$dir_name/*; do
             img_name=$(basename "$IMG" .png)
-            convert $IMG -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp"
+            convert $IMG -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp"
             rm $IMG
         done;
     fi;

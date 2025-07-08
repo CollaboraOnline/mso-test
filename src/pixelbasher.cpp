@@ -134,16 +134,28 @@ public:
     int32_t min_width = std::min(this->info_header.width, inputBmp.info_header.width);
     int32_t min_height = std::min(this->info_header.height, inputBmp.info_header.height);
     int32_t pixel_stride = 4;
+  
+    std::vector<bool> auth_edge_map = this->sobleEdges();
+    std::vector<bool> input_edge_map = inputBmp.sobleEdges();
+
+    std::vector<bool> auth_blurred_edge_mask = blurEdgeMask(auth_edge_map);
+    std::vector<bool> input_blurred_edge_mask = blurEdgeMask(input_edge_map);
+
+    std::vector<bool> intersection_mask(min_width * min_height, false);
+    for (int i = 0; i < min_width * min_height; i++) {
+      intersection_mask[i] = auth_blurred_edge_mask[i] && input_blurred_edge_mask[i];
+    }
 
     for (int y = 0; y < min_height; y++) {
       for (int x = 0; x < min_width; x++) {
         int currentIndex = (y * this->info_header.width + x) * pixel_stride;
         int inputIndex = (y * inputBmp.info_header.width + x) * pixel_stride;
+        int maskIndex = y * min_width + x;
 
         Pixel p1 = {this->data[currentIndex], this->data[currentIndex + 1], this->data[currentIndex + 2], this->data[currentIndex + 3]}; // BGRA
         Pixel p2 = {inputBmp.data[inputIndex], inputBmp.data[inputIndex + 1], inputBmp.data[inputIndex + 2], inputBmp.data[inputIndex + 3]};
 
-        if (isDifference(p1, p2)) {
+        if (!intersection_mask[maskIndex] && isDifference(p1, p2)) {
           this->data[currentIndex] = 0;
           this->data[currentIndex + 1] = 0;
           this->data[currentIndex + 2] = 255;
@@ -153,12 +165,12 @@ public:
     }
   }
 
-  std::vector<uint8_t> sobleEdges() {
+  std::vector<bool> sobleEdges(uint8_t threshold = 40) {
     int32_t width = info_header.width;
     int32_t height = info_header.height;
     int32_t pixel_stride = 4;
 
-    std::vector<uint8_t> result(width * height, 0);
+    std::vector<bool> result(width * height, 0);
     for (int y = 1; y < height - 1; y++) {
       for (int x = 1; x < width - 1; x++) {
         int currentIndex = (y * this->info_header.width + x) * pixel_stride;
@@ -182,23 +194,21 @@ public:
 
         uint8_t magnitude = std::min(255, static_cast<int>(std::sqrt(gX*gX + gY*gY)));
 
-        result[y * width + x] = static_cast<uint8_t>(magnitude);
-        std::cout << "magnitude: " << std::to_string(magnitude) << std::endl;
-        // std::cout << "gX: " << std::to_string(gX) << " gY:" << std::to_string(gY) << std::endl;
+        result[y * width + x] = magnitude >= threshold;
       }
     }
     return result;
   }
 
-  void highlightEdges(const std::vector<uint8_t>& edge_map, uint8_t threshold = 50) {
+  void highlightEdges(const std::vector<bool>& edge_map) {
     int32_t width = info_header.width;
     int32_t height = info_header.height;
     int32_t pixel_stride = 4;
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        uint8_t magnitude = edge_map[y * width + x];
-        if (magnitude > threshold) {
+        bool magnitude = edge_map[y * width + x];
+        if (magnitude) {
           int index = (y * width + x) * pixel_stride;
           this->data[index] = 255;
           this->data[index + 1] = 0;
@@ -208,6 +218,35 @@ public:
       }
     }
   }
+
+std::vector<bool> blurEdgeMask(const std::vector<bool>& edge_map) {
+    int32_t width = info_header.width;
+    int32_t height = info_header.height;
+    std::vector<bool> blurred_mask(width * height, false);
+
+    for (int y = 1; y < height - 1; y++) {
+        for (int x = 1; x < width - 1; x++) {
+            int index = y * width + x;
+
+            if (!edge_map[index])
+                continue;
+
+            int radius = 2;
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    int new_x = x + dx;
+                    int new_y = y + dy;
+
+                    if (new_x >= 0 && new_x < width && new_y >= 0 && new_y < height) {
+                        blurred_mask[new_y * width + new_x] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return blurred_mask;
+}
 
 private:
   uint32_t row_stride {0};
@@ -249,14 +288,15 @@ private:
 	}
 
   bool isDifference(Pixel current, Pixel input) {
-    int threshold = 4;
-    int diff = 0;
+    const int threshold = 15;
 
-    if ((current.red - input.red) - threshold >= 0 ||
-        (current.green - input.green) - threshold >= 0 ||
-        (current.blue - input.blue) - threshold >= 0 ||
-        (current.alpha - input.alpha) - threshold >= 0) {
-          return true;
+    int diff_red = std::abs(current.red - input.red);
+    int diff_green = std::abs(current.green - input.green);
+    int diff_blue = std::abs(current.blue - input.blue);
+    int diff_alpha = std::abs(current.alpha - input.alpha);
+
+    if (diff_red > threshold || diff_green > threshold || diff_blue > threshold || diff_alpha > threshold) {
+      return true;
     }
     return false;
   }
@@ -269,46 +309,59 @@ int main(int argc, char* argv[])
   const char* import_path = argv[2];
   const char* output_path = argv[3];
 
-  std::cout << authoritative_path << " " << import_path << " " << output_path;
-
   BMP auth_bmp(authoritative_path);
   BMP import_bmp(import_path);
 
-  auth_bmp.highlightEdges(auth_bmp.sobleEdges());
-  auth_bmp.write("highlighted.bmp");
-  // auth_bmp.compareToBmp(import_bmp);
-  // auth_bmp.write(output_path);
+  auth_bmp.compareToBmp(import_bmp);
+  auth_bmp.write(output_path);
+}
 
-  // BMP bmp("input/import-png.bmp");
-  // std::vector<Pixel> import_pixels;
-  // std::vector<Pixel> authoritative_pixels;
+// std::vector<uint8_t> gaussianBlur(uint8_t threshold = 100) {
+  //   int32_t width = info_header.width;
+  //   int32_t height = info_header.height;
+  //   int32_t pixel_stride = 4;
+  //   int blurred_pixels = 0;
 
-  // BMP bmp_authoritative("input/authoritative-png.bmp");
-	// bmp_authoritative.write("output/straight-copy.bmp");
+  //   std::vector<uint8_t> new_data(width * height * 4, 0);
+  //   std::vector<uint8_t> edge_map = sobleEdges();
+  //   for (int y = 1; y < height - 1; y++) {
+  //     for (int x = 1; x < width - 1; x++) {
+  //       int index = (y * width + x) * pixel_stride;
+  //       uint8_t magnitude = edge_map[y * width + x];
+  //       if (magnitude >= threshold) {
+  //         blurred_pixels++;
 
-  // for (int i = 0; i < bmp_authoritative.data.size(); i += 4) {
-  //   Pixel pixel = {bmp_authoritative.data[i], bmp_authoritative.data[i + 1], bmp_authoritative.data[i + 2], bmp_authoritative.data[i +3],};
-  //   authoritative_pixels.push_back(pixel);
-  // }
+  //         int32_t result = 1 * this->data[((y - 1) * this->info_header.width + (x - 1)) * pixel_stride] + // tl
+  //                           2 * this->data[(y * this->info_header.width +  (x - 1)) * pixel_stride] + // ml
+  //                           1 * this->data[((y + 1) * this->info_header.width + (x - 1)) * pixel_stride] + // bl
+  //                           1 * this->data[((y - 1) * this->info_header.width + (x + 1)) * pixel_stride] + // tr
+  //                           2 * this->data[(y * this->info_header.width + (x + 1)) * pixel_stride] + // mr
+  //                           1 * this->data[((y + 1) * this->info_header.width + (x + 1)) * pixel_stride] + // br
+  //                           2 * this->data[((y - 1) * this->info_header.width +  x) * pixel_stride] + // tm
+  //                           4 * this->data[(y * this->info_header.width + x) * pixel_stride] + // mm
+  //                           2 * this->data[((y + 1) * this->info_header.width + x) * pixel_stride]; // bm
+  //         result = result / 16;
 
-  // int32_t min_width = std::min(bmp.info_header.width, bmp_authoritative.info_header.width);
-  // int32_t min_height = std::min(bmp.info_header.height, bmp_authoritative.info_header.height);
-  // int32_t pixel_stride = 4;
+  //         if (result < 0) result = 0;
+  //         if (result > 255) result = 255;
 
-  // int diffCount = 0;
+  //         uint8_t blurred_val = static_cast<uint8_t>(result);
 
-  // for (int y = 0; y < min_height; y++) {
-  //   for (int x = 0; x < min_width; x++) {
-  //     int index_a = (y * bmp.info_header.width + x) * pixel_stride;
-  //     int index_b = (y * bmp_authoritative.info_header.width + x) * pixel_stride;
+  //         // assign th blurred grayscale values
+  //         new_data[index] = blurred_val;
+  //         new_data[index + 1] = blurred_val;
+  //         new_data[index + 2] = blurred_val;
 
-  //     Pixel p1 = {bmp.data[index_a], bmp.data[index_a + 1], bmp.data[index_a + 2], bmp.data[index_a + 3]}; // BGRA
-  //     Pixel p2 = {bmp_authoritative.data[index_b], bmp_authoritative.data[index_b + 1], bmp_authoritative.data[index_b + 2], bmp_authoritative.data[index_b + 3]};
-
-  //     if (p1.red != p2.red || p1.green != p2.green || p1.blue != p2.blue) {
-  //       bmp_authoritative.data[index_b] = 0, bmp_authoritative.data[index_b + 1] = 0, bmp_authoritative.data[index_b + 2] = 255, bmp_authoritative.data[index_b + 3] = 255;
-  //       diffCount++;
-  //     }
+  //         new_data[index + 3] = this->data[index + 3];
+  //       } else {
+  //         for (int c = 0; c < pixel_stride; c++) {
+  //           new_data[index + c] = this->data[index + c];
+  //         }
+  //       }
   //   }
   // }
-}
+
+  // std::cout << "\nBlured pixels " << blurred_pixels << std::endl;
+  // std::cout << "Total pixels " << std::to_string(this->info_header.width * this->info_header.height) << std::endl;
+  // return new_data;
+// }
