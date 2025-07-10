@@ -4,7 +4,12 @@
 #include <vector>
 #include "bmp.hpp"
 
-namespace PixelBasher {
+class PixelBasher {
+public:
+  enum Colour {
+    RED,
+    YELLOW,
+  };
 
   std::vector<bool> sobelEdges(const BMP& bmp, int threshold = 15);
 
@@ -13,5 +18,7 @@ namespace PixelBasher {
   std::vector<bool> blurEdgeMask(const BMP& bmp, const std::vector<bool>& edge_map);
 
   void compareToBMP(BMP& base, const BMP& imported);
-}
+
+  std::vector<uint8_t> colourPixel(Colour colour);
+};
 #endif

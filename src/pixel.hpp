@@ -15,16 +15,11 @@ struct Pixel {
            "A:" + std::to_string(static_cast<int>(alpha)) + "\n";
   }
 
-  bool differs_from(const Pixel& other, int threshold = 15) {
-    int diff_red = std::abs(red - other.red);
-    int diff_green = std::abs(green - other.green);
-    int diff_blue = std::abs(blue - other.blue);
-    int diff_alpha = std::abs(alpha - other.alpha);
-
-    if (diff_red > threshold || diff_green > threshold || diff_blue > threshold || diff_alpha > threshold) {
-      return true;
-    }
-    return false;
+  bool differs_from(const Pixel& other, bool near_edge, int threshold = 40) {
+    int avg_diff = (std::abs(red - other.red) + std::abs(green - other.green) + std::abs(blue - other.blue)) / 3;
+    threshold = near_edge ? 225 : threshold;
+    // std::cout << "avg_diff: " << avg_diff << " : threshold: " << threshold << std::endl;
+    return avg_diff > threshold;
   }
 };
 #endif
