@@ -5,6 +5,7 @@
 BMP::BMP(const char* filename) {
   read(filename);
 }
+
 void BMP::read(const char *filename) {
   std::ifstream input {filename, std::ios_base::binary};
   if (input) {

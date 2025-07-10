@@ -17,8 +17,8 @@ public:
 
   std::vector<bool> blurEdgeMask(const BMP& bmp, const std::vector<bool>& edge_map);
 
-  void compareToBMP(BMP& base, const BMP& imported);
+  void compareToBMP(BMP& base, const BMP& imported, bool enable_minor_differences);
 
   std::vector<uint8_t> colourPixel(Colour colour);
-};
+ };
 #endif

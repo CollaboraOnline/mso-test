@@ -17,9 +17,13 @@ struct Pixel {
 
   bool differs_from(const Pixel& other, bool near_edge, int threshold = 40) {
     int avg_diff = (std::abs(red - other.red) + std::abs(green - other.green) + std::abs(blue - other.blue)) / 3;
-    threshold = near_edge ? 225 : threshold;
+    threshold = near_edge ? 250 : threshold;
     // std::cout << "avg_diff: " << avg_diff << " : threshold: " << threshold << std::endl;
     return avg_diff > threshold;
+  }
+
+  bool is_near_white(int white_threshold = 240) {
+    return red > white_threshold; // r == g == b because of greyscale
   }
 };
 #endif

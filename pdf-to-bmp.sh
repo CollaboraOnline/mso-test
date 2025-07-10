@@ -2,6 +2,7 @@
 
 dir_to_search=$1 # should be "some_directory/"
 max_pages=5 # this is as image dump has mismatched pages, and it seems to be that upto 5, the pages are identical
+scale_factor=4
 
 if [[ $# -lt 1 ]]; then
     echo "Pass the image dump directory"
@@ -35,13 +36,13 @@ process_folder() {
         else
             output_name="import"
         fi
-        pdftoppm $FILE input/$dir_name/$output_name-page -png -r 150 -f 1 -l $max_pages
+        pdftoppm $FILE input/$dir_name/$output_name-page -png -r 450 -f 1 -l $max_pages # convert at a high dpi and resolution
     done;
 
     # convert the png's to bmp's (may be multiple png's based on page count)
     for IMG in input/$dir_name/*; do
         img_name=$(basename "$IMG" .png)
-        convert $IMG -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp"
+        convert $IMG -filter box -resize "$((100 / $scale_factor))%" -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp" # scale the image down by a quarter, to smooth out minor differences caused by rendering quirks
         rm $IMG
     done;
 }
