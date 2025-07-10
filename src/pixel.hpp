@@ -8,7 +8,7 @@ struct Pixel {
   uint8_t red {0};
   uint8_t alpha {0};
 
-  std::string toString() const {
+  std::string to_string() const {
     return "R:" + std::to_string(static_cast<int>(red)) + " " +
            "G:" + std::to_string(static_cast<int>(green)) + " " +
            "B:" + std::to_string(static_cast<int>(blue)) + " " +

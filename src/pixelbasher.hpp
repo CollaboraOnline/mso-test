@@ -11,14 +11,14 @@ public:
     YELLOW,
   };
 
-  std::vector<bool> sobelEdges(const BMP& bmp, int threshold = 15);
+  std::vector<bool> sobel_edges(const BMP& bmp, int threshold = 15);
 
-  void highlightEdges(BMP& bmp, const std::vector<bool>& edge_map);
+  // void highlightEdges(BMP& bmp, const std::vector<bool>& edge_map);
 
-  std::vector<bool> blurEdgeMask(const BMP& bmp, const std::vector<bool>& edge_map);
+  std::vector<bool> blur_edge_mask(const BMP& bmp, const std::vector<bool>& edge_map);
 
-  void compareToBMP(BMP& base, const BMP& imported, bool enable_minor_differences);
+  void compare_to_bmp(BMP& base, const BMP& imported, bool enable_minor_differences);
 
-  std::vector<uint8_t> colourPixel(Colour colour);
+  std::vector<uint8_t> colour_pixel(Colour colour);
  };
 #endif

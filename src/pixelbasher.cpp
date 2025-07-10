@@ -2,7 +2,51 @@
 #include <cmath>
 #include <algorithm>
 
-std::vector<bool> PixelBasher::sobelEdges(const BMP& bmp, int threshold) {
+void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_minor_differences) {
+  int32_t min_width = std::min(base.get_width(), imported.get_width());
+  int32_t min_height = std::min(base.get_height(), imported.get_height());
+  int32_t pixel_stride = 4;
+
+  std::vector<bool> auth_edge_map = sobel_edges(base);
+  std::vector<bool> input_edge_map = sobel_edges(imported);
+
+  std::vector<bool> auth_blurred_edge_mask = blur_edge_mask(base, auth_edge_map);
+  std::vector<bool> input_blurred_edge_mask = blur_edge_mask(imported, input_edge_map);
+
+  std::vector<bool> intersection_mask(min_width * min_height, false);
+  for (int i = 0; i < min_width * min_height; i++) {
+    intersection_mask[i] = auth_blurred_edge_mask[i] && input_blurred_edge_mask[i];
+  }
+
+  std::vector<uint8_t> new_data(min_height * min_width * pixel_stride);
+  for (int y = 0; y < min_height; y++) {
+    for (int x = 0; x < min_width; x++) {
+      int current_index = (y * min_width + x) * pixel_stride;
+      int input_index = (y * min_width + x) * pixel_stride;
+      int mask_index = y * min_width + x;
+
+      Pixel p1 = {base.get_data()[current_index], base.get_data()[current_index + 1], base.get_data()[current_index + 2], base.get_data()[current_index + 3]}; // BGRA
+      Pixel p2 = {imported.get_data()[input_index], imported.get_data()[input_index + 1], imported.get_data()[input_index + 2], imported.get_data()[input_index + 3]};
+
+      std::vector<uint8_t> bgra = {base.get_data()[current_index], base.get_data()[current_index + 1], base.get_data()[current_index + 2], base.get_data()[current_index + 3]};
+      // instead of just not highlighting any text differences, maybe pass into differs_from and set a higher threshold it has to pass and if so make the values yellow
+      if (p1.differs_from(p2, intersection_mask[mask_index])) {
+        if (intersection_mask[mask_index] && enable_minor_differences) {
+          bgra = colour_pixel(Colour::YELLOW);
+        } else {
+          bgra = colour_pixel(Colour::RED);
+        }
+      }
+
+      for (int i = 0; i < pixel_stride; i++) {
+        new_data[current_index + i] = bgra[i];
+      }
+    }
+  }
+  base.get_data() = new_data;
+}
+
+std::vector<bool> PixelBasher::sobel_edges(const BMP& bmp, int threshold) {
   int32_t width = bmp.get_width();
   int32_t height = bmp.get_height();
   const std::vector<uint8_t>& data = bmp.get_data();
@@ -14,7 +58,7 @@ std::vector<bool> PixelBasher::sobelEdges(const BMP& bmp, int threshold) {
     for (int x = 1; x < width - 1; x++) {
 
       // Sobel Gx
-      int gX = -1 * data[((y - 1) * width + (x - 1)) * pixel_stride]
+      int g_x = -1 * data[((y - 1) * width + (x - 1)) * pixel_stride]
                - 2 * data[(y * width + (x - 1)) * pixel_stride]
                - 1 * data[((y + 1) * width + (x - 1)) * pixel_stride]
                + 1 * data[((y - 1) * width + (x + 1)) * pixel_stride]
@@ -22,7 +66,7 @@ std::vector<bool> PixelBasher::sobelEdges(const BMP& bmp, int threshold) {
                + 1 * data[((y + 1) * width + (x + 1)) * pixel_stride];
 
       // Sobel Gy
-      int gY = -1 * data[((y - 1) * width + (x - 1)) * pixel_stride]
+      int g_y= -1 * data[((y - 1) * width + (x - 1)) * pixel_stride]
                - 2 * data[((y - 1) * width + x) * pixel_stride]
                - 1 * data[((y - 1) * width + (x + 1)) * pixel_stride]
                + 1 * data[((y + 1) * width + (x - 1)) * pixel_stride]
@@ -30,7 +74,7 @@ std::vector<bool> PixelBasher::sobelEdges(const BMP& bmp, int threshold) {
                + 1 * data[((y + 1) * width + (x + 1)) * pixel_stride];
 
       // Calculate gradient magnitude (clamped to 255)
-      int magnitude = std::min(255, static_cast<int>(std::sqrt(gX * gX + gY * gY)));
+      int magnitude = std::min(255, static_cast<int>(std::sqrt(g_x * g_x + g_y * g_y)));
 
       result[y * width + x] = (magnitude >= threshold);
     }
@@ -39,7 +83,7 @@ std::vector<bool> PixelBasher::sobelEdges(const BMP& bmp, int threshold) {
   return result;
 }
 
-std::vector<bool> PixelBasher::blurEdgeMask(const BMP& bmp, const std::vector<bool>& edge_map) {
+std::vector<bool> PixelBasher::blur_edge_mask(const BMP& bmp, const std::vector<bool>& edge_map) {
   int32_t width = bmp.get_width();
   int32_t height = bmp.get_height();
   std::vector<bool> blurred_mask(width * height, false);
@@ -67,51 +111,7 @@ std::vector<bool> PixelBasher::blurEdgeMask(const BMP& bmp, const std::vector<bo
   return blurred_mask;
 }
 
-void PixelBasher::compareToBMP(BMP& base, const BMP& imported, bool enable_minor_differences) {
-  int32_t min_width = std::min(base.get_width(), imported.get_width());
-  int32_t min_height = std::min(base.get_height(), imported.get_height());
-  int32_t pixel_stride = 4;
-
-  std::vector<bool> auth_edge_map = sobelEdges(base);
-  std::vector<bool> input_edge_map = sobelEdges(imported);
-
-  std::vector<bool> auth_blurred_edge_mask = blurEdgeMask(base, auth_edge_map);
-  std::vector<bool> input_blurred_edge_mask = blurEdgeMask(imported, input_edge_map);
-
-  std::vector<bool> intersection_mask(min_width * min_height, false);
-  for (int i = 0; i < min_width * min_height; i++) {
-    intersection_mask[i] = auth_blurred_edge_mask[i] && input_blurred_edge_mask[i];
-  }
-
-  std::vector<uint8_t> new_data(min_height * min_width * pixel_stride);
-  for (int y = 0; y < min_height; y++) {
-    for (int x = 0; x < min_width; x++) {
-      int currentIndex = (y * min_width + x) * pixel_stride;
-      int inputIndex = (y * min_width + x) * pixel_stride;
-      int maskIndex = y * min_width + x;
-
-      Pixel p1 = {base.get_data()[currentIndex], base.get_data()[currentIndex + 1], base.get_data()[currentIndex + 2], base.get_data()[currentIndex + 3]}; // BGRA
-      Pixel p2 = {imported.get_data()[inputIndex], imported.get_data()[inputIndex + 1], imported.get_data()[inputIndex + 2], imported.get_data()[inputIndex + 3]};
-
-      std::vector<uint8_t> bgra = {base.get_data()[currentIndex], base.get_data()[currentIndex + 1], base.get_data()[currentIndex + 2], base.get_data()[currentIndex + 3]};
-      // instead of just not highlighting any text differences, maybe pass into differs_from and set a higher threshold it has to pass and if so make the values yellow
-      if (p1.differs_from(p2, intersection_mask[maskIndex])) {
-        if (intersection_mask[maskIndex] && enable_minor_differences) {
-          bgra = colourPixel(Colour::YELLOW);
-        } else {
-          bgra = colourPixel(Colour::RED);
-        }
-      }
-
-      for (int i = 0; i < pixel_stride; i++) {
-        new_data[currentIndex + i] = bgra[i];
-      }
-    }
-  }
-  base.get_data() = new_data;
-}
-
-std::vector<uint8_t> PixelBasher::colourPixel(Colour colour) {
+std::vector<uint8_t> PixelBasher::colour_pixel(Colour colour) {
   if (colour == Colour::YELLOW) {
     return {0, 197, 255, 255};
   } else {

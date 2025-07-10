@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    PixelBasher pixelBasher;
+    PixelBasher pixel_basher;
     const char* authoritative_path = argv[1];
     const char* import_path = argv[2];
     const char* output_path = argv[3];
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     BMP base(authoritative_path);
     BMP input(import_path);
 
-    pixelBasher.compareToBMP(base, input, enable_minor_differences);
+    pixel_basher.compare_to_bmp(base, input, enable_minor_differences);
     base.write(output_path);
     return 0;
 
