@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make # make sure pixelbasher executable exists
+
 # need to loop over individual subdirectory
 for DIRECTORY in input/*; do
   dir_name=$(basename $DIRECTORY)
@@ -25,6 +27,11 @@ for DIRECTORY in input/*; do
     if [[ -n "$import_file" ]]; then
       echo "$auth_file ---- $import_file"
       # add the script to compare the files
+      enable_minor_differences=$1
+      echo $page
+      output_file="output/$dir_name/diff-$page.bmp"
+      ./pixelbasher $auth_file $import_file $output_file $enable_minor_differences
+
     else
       echo "Missing page for $page"
     fi;
