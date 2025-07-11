@@ -107,6 +107,18 @@ void BMP::check_colour_header(BMPColourHeader &colour_header) {
   }
 }
 
+void BMP::print_stats() {
+  size_t total_pixels = static_cast<size_t>(get_width() * get_height());
+  double red_percentage = (static_cast<double>(red_count) / total_pixels) * 100;
+  double yellow_percentage = (static_cast<double>(yellow_count) / total_pixels) * 100;
+  double red_yellow_percentage = (static_cast<double>(red_count + yellow_count) / total_pixels) * 100;
+
+  std::cout << "Total Pixels = " << total_pixels << " | " << "Red Pixels = " << red_count <<
+    " | " << "Yellow Pixels = " << yellow_count << "\n" << "Red Percentage = " << red_percentage << "% | "
+    << "Yellow Percentage = " << yellow_percentage << "% | " << "Red & Yellow Percentage = " << red_yellow_percentage
+    << "%";
+}
+
 std::vector<uint8_t>& BMP::get_data(){
   return data;
 }
@@ -123,8 +135,22 @@ int BMP::get_height() const {
   return info_header.height;
 }
 
+int BMP::get_red_count() const {
+  return red_count;
+}
+
+int BMP::get_yellow_count() const {
+  return yellow_count;
+}
+
 BMPInfoHeader* BMP::get_info_header() {
   return &info_header;
 }
 
+void BMP::increase_red_count(int count_increase) {
+  red_count += count_increase;
+}
 
+void BMP::increase_yellow_count(int count_increase) {
+  yellow_count += count_increase;
+}

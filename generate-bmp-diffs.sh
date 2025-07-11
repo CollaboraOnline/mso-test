@@ -19,23 +19,25 @@ for DIRECTORY in input/*; do
     page=$(echo "$file" | grep -oP 'page-\K[0-9]+' | sed 's/^0*//')
     import_map["$page"]="$file"
   done < <(find "$DIRECTORY" -name "*import*.bmp")
-
+  
+  echo -e "Directory: $dir_name\n"
   for page in $(printf "%s\n" "${!auth_map[@]}" | sort -n); do
     auth_file="${auth_map[$page]}"
     import_file="${import_map[$page]}"
 
     if [[ -n "$import_file" ]]; then
-      echo "$auth_file ---- $import_file"
+      echo "Diffing $(basename $auth_file) --> $(basename $import_file)"
       # add the script to compare the files
       enable_minor_differences=$1
-      echo $page
       output_file="output/$dir_name/diff-$page.bmp"
       ./pixelbasher $auth_file $import_file $output_file $enable_minor_differences
-
+      echo -e "\n"
     else
       echo "Missing page for $page"
     fi;
   done;
+
+  echo -e "Finished Diffing: $dir_name\n\n"
 
   unset auth_map
   unset import_map

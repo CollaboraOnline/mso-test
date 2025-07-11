@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
     BMP input(import_path);
 
     pixel_basher.compare_to_bmp(base, input, enable_minor_differences);
+    base.print_stats();
+
     base.write(output_path);
     return 0;
 

@@ -33,8 +33,10 @@ void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_min
       if (p1.differs_from(p2, intersection_mask[mask_index])) {
         if (intersection_mask[mask_index] && enable_minor_differences) {
           bgra = colour_pixel(Colour::YELLOW);
+          base.increase_yellow_count(1);
         } else {
           bgra = colour_pixel(Colour::RED);
+          base.increase_red_count(1);
         }
       }
 
@@ -43,6 +45,7 @@ void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_min
       }
     }
   }
+  //std::cout << "red count: " << base.get_red_count() << "| yellow count: " << base.get_yellow_count() << std::endl;
   base.get_data() = new_data;
 }
 

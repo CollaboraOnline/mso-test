@@ -49,8 +49,14 @@ public:
   std::vector<uint8_t>& get_data();
   int get_width() const;
   int get_height() const;
+  int get_red_count() const;
+  int get_yellow_count() const;
   BMPInfoHeader* get_info_header();
 
+  void increase_red_count(int count_increase);
+  void increase_yellow_count(int count_increase);
+
+  void print_stats();
 private:
   void write_headers(std::ofstream& of);
   void write_headers_and_data(std::ofstream& of);
@@ -62,5 +68,7 @@ private:
   BMPColourHeader colour_header;
   std::vector<uint8_t> data;
   uint32_t row_stride{0};
+  int red_count;
+  int yellow_count;
 };
 #endif
