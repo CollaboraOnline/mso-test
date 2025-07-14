@@ -35,6 +35,7 @@ process_folder() {
             output_name="import"
         fi
         pdftoppm $FILE input/$dir_name/$output_name-page -png -r 450 -f 1 -l $max_pages # convert at a high dpi and resolution
+        # convert -density 450 "$FILE"[0-$((max_pages - 1))] -quality 100 -strip input/"$dir_name"/"$output_name"-page.png
     done;
 
     # convert the png's to bmp's (may be multiple png's based on page count)

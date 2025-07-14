@@ -41,12 +41,18 @@ for DIRECTORY in $input_directory/*; do
   declare -A import_map
 
   while IFS= read -r file; do
-    page=$(echo "$file" | grep -oP 'page-\K[0-9]+' | sed 's/^0*//') # gets the page number from the file
+    page=$(echo "$file" | sed -n 's/.*page-\([0-9]\+\).*/\1/p')
+    if [[ -z "$page" ]]; then
+        page=1
+    fi
     auth_map["$page"]="$file"
   done < <(find "$DIRECTORY" -name "*auth*.bmp") # passes the find output as input to the while loop
 
   while IFS= read -r file; do
-    page=$(echo "$file" | grep -oP 'page-\K[0-9]+' | sed 's/^0*//')
+    page=$(echo "$file" | sed -n 's/.*page-\([0-9]\+\).*/\1/p')
+    if [[ -z "$page" ]]; then
+      page=1
+    fi
     import_map["$page"]="$file"
   done < <(find "$DIRECTORY" -name "*import*.bmp")
 
