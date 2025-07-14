@@ -5,7 +5,7 @@ max_pages=5 # this is as image dump has mismatched pages, and it seems to be tha
 scale_factor=4
 
 if [[ $# -lt 1 ]]; then
-    echo "Pass the image dump directory"
+    echo "Usage: $0 <image_dump_directory> [max_pages]"
     exit 1
 fi
 
@@ -13,18 +13,16 @@ if [[ $# -eq 2 ]]; then
     max_pages=$2
 fi
 
-
 process_folder() {
     dir_to_search=$1
     dir_name=$(basename $dir_to_search)
-
 
     if [[ -d "input/$dir_name" ]]; then
         echo "PDF's inside of $dir_to_search have already been processed"
         return
     fi
 
-    mkdir input/$dir_name output/$dir_name
+    mkdir -p input/$dir_name
 
     files=$(find $dir_to_search/ -not -name '*prev*' -name '*.pdf')
 
@@ -45,6 +43,8 @@ process_folder() {
         convert $IMG -filter box -resize "$((100 / $scale_factor))%" -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp" # scale the image down by a quarter, to smooth out minor differences caused by rendering quirks
         rm $IMG
     done;
+
+    echo "Proccessed $dir_name"
 }
 
 result="$(find "$dir_to_search" -maxdepth 1 -type f -name '*.pdf')"
