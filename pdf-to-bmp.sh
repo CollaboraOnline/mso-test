@@ -4,6 +4,7 @@ dir_to_search=$1 # should be "some_directory/"
 max_pages=5 # this is as image dump has mismatched pages, and it seems to be that upto 5, the pages are identical
 scale_factor=4
 
+# This script processes PDF files in a specified directory, converting them to BMP images.
 if [[ $# -lt 1 ]]; then
     echo "Usage: $0 <image_dump_directory> [max_pages]"
     exit 1
@@ -17,41 +18,50 @@ process_folder() {
     dir_to_search=$1
     dir_name=$(basename $dir_to_search)
 
+    # Check if the directory has already been processed
     if [[ -d "input/$dir_name" ]]; then
         echo "PDF's inside of $dir_to_search have already been processed"
         return
     fi
 
+    # Create the input directory for the processed files
     mkdir -p input/$dir_name
 
+    # Find all PDF files in the directory, excluding those with 'prev' in their name
     files=$(find $dir_to_search/ -not -name '*prev*' -name '*.pdf')
 
+    # Convert each PDF file to PNG images first
     for FILE in $files; do
-        # convert to png first (loseless)
         output_name=""
+        # Authoritative files are the MSO files, and import and the CO files.
         if [[ $FILE =~ "authoritative" ]]; then
             output_name="auth"
         else
             output_name="import"
         fi
         pdftoppm $FILE input/$dir_name/$output_name-page -png -r 450 -f 1 -l $max_pages # convert at a high dpi and resolution
+
+        # convert -density 450 "$FILE"[0-$((max_pages - 1))] -quality 100 -strip input/"$dir_name"/"$output_name"-page.png (using imagemagick for the png conversion)
     done;
 
-    # convert the png's to bmp's (may be multiple png's based on page count)
+    # Convert the PNG images to BMP format
     for IMG in input/$dir_name/*; do
         img_name=$(basename "$IMG" .png)
-        convert $IMG -filter box -resize "$((100 / $scale_factor))%" -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp" # scale the image down by a quarter, to smooth out minor differences caused by rendering quirks
+        # Scale down the image to reduce size and smooth out rendering quirks
+        convert $IMG -filter box -resize "$((100 / $scale_factor))%" -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp"
+        # Remove the original PNG image after conversion
         rm $IMG
     done;
 
     echo "Proccessed $dir_name"
 }
 
+# Check if the provided directory contains PDF files directly or subfolders
 result="$(find "$dir_to_search" -maxdepth 1 -type f -name '*.pdf')"
-if [[ ${#result} > 0 ]] then # the directory provided contains pdf's not subfolders
+if [[ ${#result} > 0 ]] then # if there are PDF files directly in the directory
     process_folder $dir_to_search
 else
-    for DIRECTORY in $dir_to_search*; do
+    for DIRECTORY in $dir_to_search*; do # process each subdirectory
         process_folder $DIRECTORY
     done
 fi
