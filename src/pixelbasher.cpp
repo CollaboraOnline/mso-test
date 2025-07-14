@@ -2,6 +2,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include "pixel.hpp"
+
 void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_minor_differences) {
   int32_t min_width = std::min(base.get_width(), imported.get_width());
   int32_t min_height = std::min(base.get_height(), imported.get_height());
@@ -123,7 +125,7 @@ std::vector<uint8_t> PixelBasher::colour_pixel(Colour colour) {
   if (colour == Colour::YELLOW) {
     return {0, 197, 255, 255};
   } else {
-    return {0, 0, 255, 255};
+    return {255, 0, 0, 255};
   }
 }
 

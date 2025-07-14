@@ -1,96 +1,38 @@
 #include <cmath>
-
 #include "bmp.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 BMP::BMP(const char* filename) {
   read(filename);
 }
 
-void BMP::read(const char *filename) {
-  std::ifstream input {filename, std::ios_base::binary};
-  if (input) {
-    input.read((char*)&file_header, sizeof(file_header));
+void BMP::read(const char* filename) {
+  int width, height, channels;
+  unsigned char* img_data = stbi_load(filename, &width, &height, &channels, 4);
 
-    if (file_header.file_type != 0x4D42)
-      throw std::runtime_error("unrecognized file format - should be RGBA BMP (32 bits)");
-
-    input.read((char*)&info_header, sizeof(BMPInfoHeader));
-
-    if (info_header.bit_count == 32) {
-      // The BMPColor header is used only for transparent images
-      if (info_header.size >= (sizeof(BMPInfoHeader) + sizeof(BMPColourHeader))) {
-        input.read((char*)&colour_header, sizeof(colour_header));
-        // Check if pixel data is stored for BGRA
-        check_colour_header(colour_header);
-      }
-    }
-    // Go to pixel data location
-    input.seekg(file_header.offset_data, input.beg);
-
-    // adjust headers for output
-    if (info_header.bit_count == 32) {
-      info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
-      file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
-    } else {
-      info_header.size = sizeof(BMPInfoHeader);
-      file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader);
-    }
-    file_header.file_size = file_header.offset_data;
-
-    // Look at checking if BMPColor header has a bit count of 32
-    data.resize(info_header.width * info_header.height * info_header.bit_count / 8);
-
-    // check if we need to take into account row padding
-    if (info_header.width % 4 == 0) {
-      input.read((char*)data.data(), data.size());
-      file_header.file_size += data.size();
-    } else {
-      row_stride = info_header.width * info_header.bit_count / 8;
-      uint32_t new_stride = make_stride_alligned(4);
-      std::vector<uint8_t> padding_row(new_stride - row_stride);
-
-      for (int y = 0; y < info_header.height; y++) {
-        input.read((char*)(data.data() + row_stride * y), row_stride);
-        input.read((char*)padding_row.data(), padding_row.size());
-      }
-      file_header.file_size += data.size() + info_header.height * padding_row.size();
-    }
-  }
-  else {
-    throw std::runtime_error("Can't open the input image file");
-  }
-}
-
-void BMP::write(const char *filename) {
-  std::ofstream of {filename, std::ios::binary};
-  if (of) {
-    if (info_header.bit_count == 32) {
-      write_headers_and_data(of);
-    }
-  } // add a else if for the 24 bit calculation
-}
-
-
-uint32_t BMP::make_stride_alligned(uint32_t allign_stride) {
-  uint32_t new_stride = row_stride;
-  while (new_stride % allign_stride != 0) {
-    new_stride ++;
-  }
-  return new_stride;
-}
-
-void BMP::write_headers(std::ofstream &of) {
-  of.write((const char*)&file_header, sizeof(file_header));
-  of.write((const char*)&info_header, sizeof(info_header));
-  if (info_header.bit_count == 32) {
-    of.write((const char*)&colour_header, sizeof(colour_header));
+  if (!img_data) {
+    throw std::runtime_error("Failed to load BMP image");
   }
 
+  info_header.width = width;
+  info_header.height = height;
+  info_header.bit_count = 32; // Assuming 32-bit BMP
+  this->channels = channels;
+  data.assign(img_data, img_data + width * height * 4);
+
+  stbi_image_free(img_data);
 }
 
-void BMP::write_headers_and_data(std::ofstream &of) {
-  write_headers(of);
-  of.write((const char*)data.data(), data.size());
+void BMP::write(const char* filename) {
+   int success = stbi_write_bmp(filename, info_header.width, info_header.height, channels, data.data());
+    if (!success) {
+        throw std::runtime_error("Failed to write BMP image");
+    }
 }
 
 int BMP::get_average_grey() const {
@@ -103,32 +45,6 @@ int BMP::get_average_grey() const {
   }
 
   return total_grey / pixel_count;
-}
-
-void BMP::check_colour_header(BMPColourHeader &colour_header) {
-  BMPColourHeader expected_colour_header;
-  if (expected_colour_header.red_mask != colour_header.red_mask ||
-      expected_colour_header.blue_mask != colour_header.blue_mask ||
-      expected_colour_header.green_mask != colour_header.green_mask ||
-      expected_colour_header.alpha_mask != colour_header.alpha_mask) {
-        throw std::runtime_error("Unexpected colour mask format. The program expects pixel data to be BGRA");
-  }
-  if(expected_colour_header.colour_space_type != colour_header.colour_space_type) {
-    std::cerr << "Actual colour space type: 0x" << std::hex << colour_header.colour_space_type << std::dec << std::endl;
-    throw std::runtime_error("Unexpected colour space type. Expected sRGB values");
-  }
-}
-
-void BMP::print_stats() {
-  size_t total_pixels = static_cast<size_t>(get_width() * get_height());
-  double red_percentage = (static_cast<double>(red_count) / total_pixels) * 100;
-  double yellow_percentage = (static_cast<double>(yellow_count) / total_pixels) * 100;
-  double red_yellow_percentage = (static_cast<double>(red_count + yellow_count) / total_pixels) * 100;
-
-  std::cout << "Total Pixels = " << total_pixels << " | " << "Red Pixels = " << red_count <<
-    " | " << "Yellow Pixels = " << yellow_count << "\n" << "Red Percentage = " << red_percentage << "% | "
-    << "Yellow Percentage = " << yellow_percentage << "% | " << "Red & Yellow Percentage = " << red_yellow_percentage
-    << "%";
 }
 
 std::vector<uint8_t>& BMP::get_data(){
@@ -165,4 +81,16 @@ void BMP::increase_red_count(int count_increase) {
 
 void BMP::increase_yellow_count(int count_increase) {
   yellow_count += count_increase;
+}
+
+void BMP::print_stats() {
+  size_t total_pixels = static_cast<size_t>(get_width() * get_height());
+  double red_percentage = (static_cast<double>(red_count) / total_pixels) * 100;
+  double yellow_percentage = (static_cast<double>(yellow_count) / total_pixels) * 100;
+  double red_yellow_percentage = (static_cast<double>(red_count + yellow_count) / total_pixels) * 100;
+
+  std::cout << "Total Pixels = " << total_pixels << " | " << "Red Pixels = " << red_count <<
+    " | " << "Yellow Pixels = " << yellow_count << "\n" << "Red Percentage = " << red_percentage << "% | "
+    << "Yellow Percentage = " << yellow_percentage << "% | " << "Red & Yellow Percentage = " << red_yellow_percentage
+    << "%";
 }
