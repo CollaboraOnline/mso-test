@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         if (arg == "false" || arg == "true") {
             enable_minor_differences = arg == "true" ? true : false;
         } else {
-            std::cout << "Unknown argument. Do you mean true or false? " << arg << std::endl;
+            std::cout << "Unknown argument. Do you mean true or false ? " << arg << std::endl;
             return -1;
         }
     }

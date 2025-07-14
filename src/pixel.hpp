@@ -18,7 +18,6 @@ struct Pixel {
   bool differs_from(const Pixel& other, bool near_edge, int threshold = 40) {
     int avg_diff = (std::abs(red - other.red) + std::abs(green - other.green) + std::abs(blue - other.blue)) / 3;
     threshold = near_edge ? 250 : threshold;
-    // std::cout << "avg_diff: " << avg_diff << " : threshold: " << threshold << std::endl;
     return avg_diff > threshold;
   }
 
