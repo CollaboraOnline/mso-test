@@ -18,6 +18,8 @@ void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_min
     intersection_mask[i] = auth_blurred_edge_mask[i] && input_blurred_edge_mask[i];
   }
 
+  // std::vector<bool> layout_mask = threshold_layout_mask(base);
+
   std::vector<uint8_t> new_data(min_height * min_width * pixel_stride);
   for (int y = 0; y < min_height; y++) {
     for (int x = 0; x < min_width; x++) {
@@ -31,13 +33,17 @@ void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_min
       std::vector<uint8_t> bgra = {base.get_data()[current_index], base.get_data()[current_index + 1], base.get_data()[current_index + 2], base.get_data()[current_index + 3]};
       // instead of just not highlighting any text differences, maybe pass into differs_from and set a higher threshold it has to pass and if so make the values yellow
       if (p1.differs_from(p2, intersection_mask[mask_index])) {
-        if (intersection_mask[mask_index] && enable_minor_differences) {
-          bgra = colour_pixel(Colour::YELLOW);
+        if (intersection_mask[mask_index]) {
+          if (enable_minor_differences) bgra = colour_pixel(Colour::YELLOW);
           base.increase_yellow_count(1);
         } else {
           bgra = colour_pixel(Colour::RED);
           base.increase_red_count(1);
         }
+
+        // if (layout_mask[mask_index]) {
+        //   bgra = {219, 112, 147, 255}; // black for layout mask
+        // }
       }
 
       for (int i = 0; i < pixel_stride; i++) {
@@ -45,7 +51,6 @@ void PixelBasher::compare_to_bmp(BMP& base, const BMP& imported, bool enable_min
       }
     }
   }
-  //std::cout << "red count: " << base.get_red_count() << "| yellow count: " << base.get_yellow_count() << std::endl;
   base.get_data() = new_data;
 }
 
@@ -121,4 +126,21 @@ std::vector<uint8_t> PixelBasher::colour_pixel(Colour colour) {
     return {0, 0, 255, 255};
   }
 }
+
+// std::vector<bool> PixelBasher::threshold_layout_mask(const BMP& bmp, int threshold) {
+//   int32_t width = bmp.get_width();
+//   int32_t height = bmp.get_height();
+//   int32_t pixel_stride = 4;
+
+//   int num_pixels = width * height;
+//   int avg_gray = bmp.get_average_grey();
+//   int adjusted_threshold = std::clamp(avg_gray - threshold, 30, 220);
+
+//   std::vector<bool> result(num_pixels, false);
+//   for (int i = 0; i < num_pixels; i++) {
+//     result[i] = bmp.get_data()[i * pixel_stride] < adjusted_threshold; // is ink if gray value is less than threshold
+//   }
+
+//   return result;
+// }
 

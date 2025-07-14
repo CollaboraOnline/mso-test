@@ -93,6 +93,18 @@ void BMP::write_headers_and_data(std::ofstream &of) {
   of.write((const char*)data.data(), data.size());
 }
 
+int BMP::get_average_grey() const {
+  int total_grey = 0;
+  size_t pixel_count = get_width() * get_height();
+  for (size_t i = 0; i < pixel_count; i++) {
+    uint8_t gray = data[i * 4];
+    // Calculate average grey value
+    total_grey += gray;
+  }
+
+  return total_grey / pixel_count;
+}
+
 void BMP::check_colour_header(BMPColourHeader &colour_header) {
   BMPColourHeader expected_colour_header;
   if (expected_colour_header.red_mask != colour_header.red_mask ||

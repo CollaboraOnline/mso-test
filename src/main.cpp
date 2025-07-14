@@ -19,10 +19,10 @@ int main(int argc, char* argv[])
 
     for (int i = 4; i < argc; i++) {
         std::string arg = argv[4];
-        if (arg == "--enable-minor-differences") {
-            enable_minor_differences = true;
+        if (arg == "false" || arg == "true") {
+            enable_minor_differences = arg == "true" ? true : false;
         } else {
-            std::cout << "Unknown argument. Do you mean --enable-minor-differences";
+            std::cout << "Unknown argument. Do you mean true or false? " << arg << std::endl;
             return -1;
         }
     }

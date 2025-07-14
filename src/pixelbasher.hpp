@@ -20,5 +20,7 @@ public:
   void compare_to_bmp(BMP& base, const BMP& imported, bool enable_minor_differences);
 
   std::vector<uint8_t> colour_pixel(Colour colour);
+
+  // std::vector<bool> threshold_layout_mask(const BMP& bmp, int threshold = 20);
  };
 #endif

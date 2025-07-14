@@ -52,6 +52,7 @@ public:
   int get_red_count() const;
   int get_yellow_count() const;
   BMPInfoHeader* get_info_header();
+  int get_average_grey() const;
 
   void increase_red_count(int count_increase);
   void increase_yellow_count(int count_increase);
