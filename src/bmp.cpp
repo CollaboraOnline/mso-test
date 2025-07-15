@@ -37,9 +37,10 @@ void BMP::write(const char* filename) {
 
 int BMP::get_average_grey() const {
   int total_grey = 0;
+  int32_t stride = 4;
   size_t pixel_count = get_width() * get_height();
   for (size_t i = 0; i < pixel_count; i++) {
-    uint8_t gray = data[i * 4];
+    uint8_t gray = data[i * stride];
     // Calculate average grey value
     total_grey += gray;
   }
@@ -71,16 +72,19 @@ int BMP::get_yellow_count() const {
   return yellow_count;
 }
 
-BMPInfoHeader* BMP::get_info_header() {
-  return &info_header;
-}
-
 void BMP::increase_red_count(int count_increase) {
   red_count += count_increase;
 }
 
 void BMP::increase_yellow_count(int count_increase) {
   yellow_count += count_increase;
+}
+
+void BMP::set_data(const std::vector<uint8_t>& new_data) {
+  if (new_data.size() != data.size()) {
+    throw std::runtime_error("New data size does not match existing data size");
+  }
+  data = new_data;
 }
 
 void BMP::print_stats() {

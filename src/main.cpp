@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <cstdlib>
 
 #include "bmp.hpp"
@@ -8,7 +9,7 @@ int main(int argc, char* argv[])
 {
     if (argc < 4) {
         std::cout << "Incorrect usage: " << argv[0] << " base.bmp input.bmp output.bmp\n";
-        return 1;
+        return -1;
     }
 
     PixelBasher pixel_basher;
@@ -19,6 +20,8 @@ int main(int argc, char* argv[])
 
     for (int i = 4; i < argc; i++) {
         std::string arg = argv[4];
+        std::transform(arg.begin(), arg.end(), arg.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
         if (arg == "false" || arg == "true") {
             enable_minor_differences = arg == "true" ? true : false;
         } else {
@@ -32,8 +35,6 @@ int main(int argc, char* argv[])
 
     pixel_basher.compare_to_bmp(base, input, enable_minor_differences);
     base.print_stats();
-
     base.write(output_path);
     return 0;
-
 }

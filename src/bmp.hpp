@@ -24,20 +24,20 @@ public:
   int get_height() const;
   int get_red_count() const;
   int get_yellow_count() const;
-  BMPInfoHeader* get_info_header();
   int get_average_grey() const;
+  const BMPInfoHeader& get_info_header() const { return info_header; }
 
   void increase_red_count(int count_increase);
   void increase_yellow_count(int count_increase);
+  void set_data(const std::vector<uint8_t>& new_data);
 
   void print_stats();
 
-  int channels;
-
 private:
   BMPInfoHeader info_header;
-  int red_count;
-  int yellow_count;
+  int red_count = 0;
+  int yellow_count = 0;
+  int channels = 0;
   std::vector<uint8_t> data;
 };
 #endif
