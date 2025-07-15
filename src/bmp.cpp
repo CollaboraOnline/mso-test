@@ -7,18 +7,22 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+// When a BMP image is created, it reads the file and populates the BMPInfoHeader and data vector
 BMP::BMP(const char* filename) {
   read(filename);
 }
 
+
 void BMP::read(const char* filename) {
   int width, height, channels;
+  // Load the BMP image using stb_image
   unsigned char* img_data = stbi_load(filename, &width, &height, &channels, 4);
 
   if (!img_data) {
     throw std::runtime_error("Failed to load BMP image");
   }
 
+  // Populate the BMPInfoHeader and data vector
   info_header.width = width;
   info_header.height = height;
   info_header.bit_count = 32; // Assuming 32-bit BMP
@@ -28,6 +32,7 @@ void BMP::read(const char* filename) {
   stbi_image_free(img_data);
 }
 
+// Write the BMP image to a file using stb_image_write
 void BMP::write(const char* filename) {
    int success = stbi_write_bmp(filename, info_header.width, info_header.height, channels, data.data());
     if (!success) {

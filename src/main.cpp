@@ -5,8 +5,12 @@
 #include "bmp.hpp"
 #include "pixelbasher.hpp"
 
+// Main function to compare two BMP images and generate a diff image
+// Usage: pixelbasher base.bmp input.bmp output.bmp [enable_minor_differences]
+// The last argument is optional and can be "true" or "false" to enable
 int main(int argc, char* argv[])
 {
+    // Check if the correct number of arguments is provided
     if (argc < 4) {
         std::cout << "Incorrect usage: " << argv[0] << " base.bmp input.bmp output.bmp\n";
         return -1;
@@ -30,11 +34,15 @@ int main(int argc, char* argv[])
         }
     }
 
+    // Load the BMP images
     BMP base(authoritative_path);
     BMP input(import_path);
 
+    // Compare the images and generate the diff onto the base (authoritative) image
     pixel_basher.compare_to_bmp(base, input, enable_minor_differences);
     base.print_stats();
+
+    // Write the modified base image to the output path
     base.write(output_path);
     return 0;
 }
