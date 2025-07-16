@@ -39,20 +39,18 @@ process_folder() {
         else
             output_name="import"
         fi
-        pdftoppm $FILE input/$dir_name/$output_name-page -png -r 450 -f 1 -l $max_pages # convert at a high dpi and resolution
-
-        # convert -density 450 "$FILE"[0-$((max_pages - 1))] -quality 100 -strip input/"$dir_name"/"$output_name"-page.png (using imagemagick for the png conversion)
+        convert $FILE \
+        -density 600 \
+        -filter box \
+        -resize 75% \
+        -colorspace Gray \
+        -define bmp::format=bmp4 \
+        -background white \
+        -alpha remove \
+        -alpha on \
+        "input/$dir_name/$output_name-page.bmp"
+        # First remove the alpha chanel, turn it off so that background is not transparent, and then turn it on again to have the background white.
     done;
-
-    # Convert the PNG images to BMP format
-    for IMG in input/$dir_name/*; do
-        img_name=$(basename "$IMG" .png)
-        # Scale down the image to reduce size and smooth out rendering quirks
-        convert $IMG -filter box -resize "$((100 / $scale_factor))%" -colorspace Gray -define bmp::format=bmp4 -alpha on "input/$dir_name/$img_name.bmp"
-        # Remove the original PNG image after conversion
-        rm $IMG
-    done;
-
     echo "Proccessed $dir_name"
 }
 
