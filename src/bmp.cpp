@@ -34,46 +34,45 @@ void BMP::read(const char* filename) {
   }
   if (info_header.height < 0) {
     throw std::runtime_error("The program can treat only BMP images with the origin in the bottom left corner!");
-  }
-
+}
+  
   input.seekg(file_header.offset_data, input.beg);
 
   info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader); // we know that its a 32-bit BMP
   file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
   file_header.file_size = file_header.offset_data;
-
+  
   row_stride = info_header.width * info_header.bit_count / 8;
   uint32_t alligned_stride = (row_stride + 3) & ~3; // This rounds up to the nearest multiple of 4
   size_t padding_size = alligned_stride - row_stride;
-
+  
   std::vector<uint8_t> padding(padding_size);
   data.resize(row_stride * info_header.height);
 
   // read the pixel data row by row, and handle the padding if its necessary
   for (int y = 0; y < info_header.height; y++) {
-    uint8_t* row_ptr = data.data() + y * row_stride;
-    input.read(reinterpret_cast<char*>(row_ptr), row_stride);
+    //uint8_t* row_ptr = data.data() + y * row_stride;
+    input.read((char*)(data.data() + y * row_stride), row_stride);
 
     if (padding_size > 0) {
-      input.read(reinterpret_cast<char*>(padding.data()), padding_size); // read in the padding so next read is correct
+      input.read((char*)padding.data(), padding_size); // read in the padding so next read is correct
     }
   }
   file_header.file_size += data.size() + padding_size * info_header.height;
-  input.close();
 }
+  
 
-
-
+  
 void BMP::write(const char* filename) {
   std::ofstream output{filename, std::ios_base::binary};
   if (!output) {
     throw std::runtime_error("Cannot open file for writing");
   }
-
+  
   // write the headers
-  output.write(reinterpret_cast<const char*>(&file_header), sizeof(BMPFileHeader));
-  output.write(reinterpret_cast<const char*>(&info_header), sizeof(BMPInfoHeader));
-  output.write(reinterpret_cast<const char*>(&colour_header), sizeof(BMPColourHeader));
+  output.write((const char*)&file_header, sizeof(BMPFileHeader));
+  output.write((const char*)&info_header, sizeof(BMPInfoHeader));
+  output.write((const char*)&colour_header, sizeof(BMPColourHeader));
 
   size_t row_stride = info_header.width * info_header.bit_count / 8;
   size_t alligned_stride = (row_stride + 3) & ~3;
@@ -83,10 +82,10 @@ void BMP::write(const char* filename) {
 
   // write the pixel data row by row
   for (int y = 0; y < info_header.height; y++) {
-    uint8_t* row_ptr = data.data() + y * row_stride;
-    output.write(reinterpret_cast<const char*>(row_ptr), row_stride);
+    //uint8_t* row_ptr = data.data() + y * row_stride;
+    output.write((const char*)(data.data() + y * row_stride), row_stride);
     if (padding_size > 0) {
-      output.write(reinterpret_cast<const char*>(padding.data()), padding_size);
+      output.write((const char*)padding.data(), padding_size);
     }
   }
 
