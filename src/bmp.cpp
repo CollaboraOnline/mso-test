@@ -111,14 +111,15 @@ void BMP::set_data(std::vector<uint8_t>& new_data) {
   data = new_data;
 }
 
-void BMP::print_stats() {
+std::string BMP::print_stats() {
   size_t total_pixels = static_cast<size_t>(get_width() * get_height());
   double red_percentage = (static_cast<double>(red_count) / total_pixels) * 100;
   double yellow_percentage = (static_cast<double>(yellow_count) / total_pixels) * 100;
   double red_yellow_percentage = (static_cast<double>(red_count + yellow_count) / total_pixels) * 100;
 
-  std::cout << "Total Pixels = " << total_pixels << " | " << "Red Pixels = " << red_count <<
-    " | " << "Yellow Pixels = " << yellow_count << "\n" << "Red Percentage = " << red_percentage << "% | "
-    << "Yellow Percentage = " << yellow_percentage << "% | " << "Red & Yellow Percentage = " << red_yellow_percentage
-    << "%";
+  std::string stats = "Total pixels = "  + std::to_string(total_pixels) + " | Red pixels = " + std::to_string(red_count) +
+    " | Yellow pixels = " + std::to_string(yellow_count) + "\nRed percentage = " + std::to_string(red_percentage) + "% | Yellow percetange = " +
+    std::to_string(yellow_count) + "% | Red & Yellow percentage = " + std::to_string(red_yellow_percentage);
+
+  return stats;
 }

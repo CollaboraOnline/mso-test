@@ -75,7 +75,7 @@ public:
 
   void set_data(std::vector<uint8_t>& new_data);
 
-  void print_stats();
+  std::string print_stats();
 
 private:
   BMPFileHeader file_header;
