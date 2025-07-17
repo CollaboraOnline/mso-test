@@ -39,12 +39,12 @@ process_folder() {
         else
             output_name="import"
         fi
-        convert $FILE \
+        magick "$FILE" \
         -density 600 \
         -filter box \
         -resize 75% \
         -colorspace Gray \
-        -define bmp::format=bmp4 \
+        -define bmp:format=bmp4 \
         -background white \
         -alpha remove \
         -alpha on \

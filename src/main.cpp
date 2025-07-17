@@ -59,19 +59,17 @@ int main(int argc, char* argv[])
     }
 
     const char* output_dir = argv[num_inputs + 1];
-    
     PixelBasher pixel_basher;
     std::string file_stats = "Processing " + std::string(output_dir) + "\n";
     for (int i = 0; i < num_pages; i++) {
         BMP& base = authortiative_pages[i];
         BMP& import = import_pages[i];
-        
         std::string output_path = std::string(output_dir) + "diff-page-" + std::to_string(i + 1) + ".bmp";
 
         pixel_basher.compare_to_bmp(base, import, enable_minor_differences); // should change compare_to_bmp to a static method
         base.write(output_path.c_str());
 
-        file_stats += base.print_stats() + "\n"; 
+        file_stats += base.print_stats() + "\n";
     }
 
     std::cout << file_stats << "\n";
