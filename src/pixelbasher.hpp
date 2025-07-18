@@ -25,13 +25,13 @@ public:
   };
 
   // Sobel edge detection algorithm to find edges in the BMP image
-  std::vector<bool> sobel_edges(const BMP& bmp, int threshold = 15);
+  std::vector<bool> sobel_edges(BMP& bmp, int threshold = 15);
 
   // Applies a blur effect to the edges found by the Sobel algorithm by a given radius
   std::vector<bool> blur_edge_mask(const BMP& bmp, const std::vector<bool>& edge_map);
 
   // Compares two BMP images and generates a diff image based on the differences (the diff is applied to the base image)
-  void compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_differences);
+  BMP compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_differences);
 
   // Generates a rgba pixel from a Colour enum
   std::array<uint8_t, 4> colour_pixel(Colour colour);

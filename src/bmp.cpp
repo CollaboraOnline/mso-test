@@ -12,8 +12,23 @@
 
 #include <fstream>
 
-BMP::BMP(const char* filename) {
+BMP::BMP(const char* filename, std::string basename) {
   read(filename);
+  this->basename = basename;
+  background_value = get_average_colour();
+  non_background_count = get_non_background_pixel_count(background_value);
+}
+
+BMP::BMP(const BMP& other) {
+  file_header = other.file_header;
+  info_header = other.info_header;
+  colour_header = other.colour_header;
+  data = other.data;
+  row_stride = other.row_stride;
+  red_count = other.red_count;
+  yellow_count = other.yellow_count;
+  background_value = other.background_value;
+  non_background_count = other.non_background_count;
 }
 
 void BMP::read(const char* filename) {
@@ -91,7 +106,21 @@ void BMP::write(const char* filename) {
   output.close();
 }
 
-int BMP::get_average_grey() const {
+int BMP::get_non_background_pixel_count(int background_value) const {
+  int non_background_count = 0;
+  size_t pixel_count = get_width() * get_height();
+  for (size_t i = 0; i < pixel_count; i++) {
+    uint8_t grey_value = data[i * 4]; // Assuming 32-bit BMP, grey value is in the first byte
+
+    if (std::abs(grey_value - background_value) > 20) {
+      non_background_count++;
+    }
+
+  }
+  return non_background_count;
+}
+
+int BMP::get_average_colour() const {
   int total_grey = 0;
   int32_t stride = 4;
   size_t pixel_count = get_width() * get_height();
@@ -119,7 +148,15 @@ std::string BMP::print_stats() {
 
   std::string stats = "Total pixels = "  + std::to_string(total_pixels) + " | Red pixels = " + std::to_string(red_count) +
     " | Yellow pixels = " + std::to_string(yellow_count) + "\nRed percentage = " + std::to_string(red_percentage) + "% | Yellow percetange = " +
-    std::to_string(yellow_count) + "% | Red & Yellow percentage = " + std::to_string(red_yellow_percentage);
+    std::to_string(yellow_percentage) + "% | Red & Yellow percentage = " + std::to_string(red_yellow_percentage);
 
   return stats;
+}
+
+void BMP::write_stats_to_csv(const std::string filename) {
+  std::ofstream csv_file(filename);
+  if (!csv_file.is_open()) {
+    throw std::runtime_error("Cannot open CSV file for writing");
+  }
+
 }

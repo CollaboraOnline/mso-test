@@ -52,7 +52,9 @@ struct BMPColourHeader {
 
 class BMP{
 public:
-  BMP(const char* filename);
+  BMP(const char* filename, std::string basename);
+  BMP(const BMP& other);
+
   void read(const char* filename);
   void write(const char* filename);
 
@@ -68,7 +70,9 @@ public:
 
   int get_red_count() { return red_count; }
   int get_yellow_count() { return yellow_count; }
-  int get_average_grey() const;
+  int get_background_value() const { return background_value; }
+  int get_non_background_count() const { return non_background_count; }
+  std::string get_basename() const { return basename; }
 
   void increment_red_count(int new_red) { red_count += new_red; }
   void increment_yellow_count(int new_yellow) { yellow_count += new_yellow; }
@@ -76,8 +80,14 @@ public:
   void set_data(std::vector<uint8_t>& new_data);
 
   std::string print_stats();
+  void write_stats_to_csv(const std::string filename);
 
 private:
+  int get_average_colour() const;
+  int get_non_background_pixel_count(int background_value) const;
+
+  std::string basename;
+
   BMPFileHeader file_header;
   BMPInfoHeader info_header;
   BMPColourHeader colour_header;
@@ -87,5 +97,7 @@ private:
 
   int red_count = 0;
   int yellow_count = 0;
+  int background_value = 0; // used to determine background colour
+  int non_background_count = 0;
 };
 #endif

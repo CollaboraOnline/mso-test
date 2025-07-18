@@ -59,6 +59,7 @@ def main():
     parser.add_argument("--resolution", default="75")
     parser.add_argument("--debug", action="store_true") # default is false
     parser.add_argument("--image_dump", action="store_true") # default is false
+    parser.add_argument("--minor_differences", default="false") # default is false
     args = parser.parse_args()
 
     DEBUG = args.debug
@@ -977,6 +978,7 @@ def main():
     if args.image_dump == True:
         print("Image dump directory: ", IMAGE_DUMP_DIR)
 
+    # Convert the MSO PDF to bmp's
     subprocess.run([
         "magick",
         MS_ORIG,
@@ -989,6 +991,7 @@ def main():
         IMAGE_DUMP_DIR + "/authoritative-page.bmp"
     ])
 
+    # Convert the LO PDF to bmp's
     subprocess.run([
         "magick",
         LO_ORIG,
@@ -1005,24 +1008,26 @@ def main():
     DIFF_OUTPUT_DIR = os.path.join(IMAGE_DUMP_DIR, "diffs/")
     os.makedirs(DIFF_OUTPUT_DIR, exist_ok=True)
 
+    # Sorting pages to ensure that pages are compared in the same order, eg, auth-page 1 with import-page 1, etc...
     auth_pages = sorted(glob.glob(os.path.join(IMAGE_DUMP_DIR, "authoritative-*.bmp")))
     import_pages = sorted(glob.glob(os.path.join(IMAGE_DUMP_DIR, "import-*.bmp")))
 
+    # Run pixelbasher to compare differnces between MSO and LO PDF pages
     subprocess.run(
         [PIXELBASHER_BIN] +
+        base_file +
         auth_pages +
-        import_pages +
-        [DIFF_OUTPUT_DIR, "false"],
+        IMPORT_DIR +
+        EXPORT_DIR +
+        [DIFF_OUTPUT_DIR, "false", str(args.minor_differences)],
         check=True
     )
 
-    subprocess.run(
-        [PIXELBASHER_BIN] +
-        import_pages +
-        auth_pages +
-        [DIFF_OUTPUT_DIR + "swapped-", "false"],
-        check=True
-    )
+    for page in auth_pages:
+        os.remove(page)
+    for page in import_pages:
+        os.remove(page)
+
 
 if __name__ == "__main__":
     main()

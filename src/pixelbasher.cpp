@@ -15,10 +15,12 @@
 #include "pixel.hpp"
 
 // Compares two BMP images and generates a diff image based on the differences
-void PixelBasher::compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_differences) {
+BMP PixelBasher::compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_differences) {
   int32_t min_width = std::min(base.get_width(), imported.get_width());
   int32_t min_height = std::min(base.get_height(), imported.get_height());
   int32_t pixel_stride = 4;
+
+  BMP diff_result(base);
 
   // Retrieve the edge maps for both images using the Sobel algorithm (which pixels are edges)
   std::vector<bool> auth_edge_map = sobel_edges(base);
@@ -73,10 +75,11 @@ void PixelBasher::compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_dif
     }
   }
   // Set the new data to the base image, which now contains the diff
-  base.set_data(new_data);
+  diff_result.set_data(new_data);
+  return diff_result; // Return the modified base image with the diff applied
 }
 
-std::vector<bool> PixelBasher::sobel_edges(const BMP& bmp, int threshold) {
+std::vector<bool> PixelBasher::sobel_edges(BMP& bmp, int threshold) {
   int32_t width = bmp.get_width();
   int32_t height = bmp.get_height();
   const std::vector<uint8_t>& data = bmp.get_data();

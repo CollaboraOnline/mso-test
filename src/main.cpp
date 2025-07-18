@@ -23,55 +23,100 @@ int main(int argc, char* argv[])
 {
     // the format could be so all the auth pages for the file, then all the import pages for the file
     // Check if the correct number of arguments is provided
-    if (argc < 4) {
-        std::cout << "Incorrect usage: " << argv[0] << " auth1.bmp auth2.bmp ... import1.bmp import2.bmp ... output_dir [enable_minor_differences]\n";
+    if (argc < 6) {
+        std::cout << "Incorrect usage: " << argv[0] << "filename.ext auth1.bmp auth2.bmp ... import1.bmp import2.bmp ... export1.bmp export2.bmp import_dir exported_dir <enable_lo_roundtrip> <enable_minor_differences>\n";
         return 1;
     }
 
-    // Nee do determine whether optional flag is present
     bool enable_minor_differences = false;
-    std::string last_arg = argv[argc - 1];
-    bool has_flag = (last_arg == "true" || last_arg == "false");
-    if (has_flag) {
-        enable_minor_differences = (last_arg == "true");
+    bool enable_lo_roundtrip = false;
+    int arg_index = argc;
+
+    // Check if the last argument is a boolean flag for enabling minor differences
+    if (std::string(argv[arg_index - 1]) == "true" || std::string(argv[arg_index - 1]) == "false") {
+        enable_minor_differences = (std::string(argv[arg_index - 1]) == "true");
+        arg_index--; // Decrease the argument count to exclude the flag
     }
 
-    int num_inputs = argc - (has_flag ? 3 : 2);
-    if (num_inputs % 2 != 0) {
-        std::cerr << "Error: Mismatched number of authoritative and import pages";
+    // Check if the second last argument is a boolean flag for enabling LO roundtrip
+    if (std::string(argv[arg_index - 1]) == "true" || std::string(argv[arg_index - 1]) == "false") {
+        enable_lo_roundtrip = (std::string(argv[arg_index - 1]) == "true");
+        arg_index--; // Decrease the argument count to exclude the flag
+    }
+
+    // Output dir is the last argument
+    if (arg_index < 6) {
+        std::cerr << "Error: Not enough arguments provided.\n";
         return 1;
     }
 
-    int num_pages = num_inputs / 2;
-    std::vector<BMP> authortiative_pages;
+    std::cout << "arg_index: " << arg_index << "\n";
+
+    std::string import_dir = argv[arg_index - 2];
+    std::string export_dir = argv[arg_index - 1];
+
+    std::string basename = argv[1]; // The first argument is the basename of the file, not used in this context
+    std::string extension = basename.substr(basename.find_last_of('.')).erase(0, 1); // Get the file extension without the dot
+
+    std::cout << "extension: " << extension << "\n";
+
+    int num_image_args = arg_index - 4; // from the count and the program name and basename(filename.doc)
+
+    int pdf_count = enable_lo_roundtrip ? 3 : 2; // If LO roundtrip is enabled, we have 3 formats, otherwise 2
+
+    // std::cout << "Number of image arguments: " << num_image_args << "\n";
+    // std::cout << "PDF count: " << pdf_count << "\n";
+    if (num_image_args % pdf_count != 0) {
+        std::cerr << "Error: Mismatched number of authoritative and import pages.\n";
+        return 1;
+    }
+
+    int num_pages = num_image_args / pdf_count; // Calculate the number of pages based on the number of arguments
+    std::vector<BMP> authoritative_pages;
     std::vector<BMP> import_pages;
+    std::vector<BMP> export_pages;
 
-    // Load authoritative BMP's
-    for (int i = 1; i <= num_pages; i++) {
-        const char* auth_path = argv[i];
-        authortiative_pages.push_back(auth_path);
+    for (int i = 0; i < num_pages; i++)
+        authoritative_pages.push_back(BMP(argv[i + 2], basename)); // Plus one to skip the program name
+
+    for (int i = 0; i < num_pages; i++)
+        import_pages.push_back(BMP(argv[i + 2 + num_pages], basename)); // Import pages start after the authoritative pages
+
+    if (enable_lo_roundtrip) {
+        for (int i = 0; i < num_pages; i++)
+            export_pages.push_back(BMP(argv[i + 2 + num_pages * 2], basename)); // Export pages start after the import pages
     }
 
-    // Load import BMP's
-    for (int i = num_pages + 1; i <= num_inputs; i++) {
-        const char* import_path = argv[i];
-        import_pages.push_back(import_path);
-    }
+    // std::cout << "Number of pages: " << num_pages << "\n";
+    // std::cout << "Enable LO roundtrip: " << (enable_lo_roundtrip ? "true" : "false") << "\n";
+    // std::cout << "Enable minor differences: " << (enable_minor_differences ? "true" : "false") << "\n";
+    // std::cout << "Output directory: " << output_dir << "\n";
 
-    const char* output_dir = argv[num_inputs + 1];
-    PixelBasher pixel_basher;
-    std::string file_stats = "Processing " + std::string(output_dir) + "\n";
     for (int i = 0; i < num_pages; i++) {
-        BMP& base = authortiative_pages[i];
-        BMP& import = import_pages[i];
-        std::string output_path = std::string(output_dir) + "diff-page-" + std::to_string(i + 1) + ".bmp";
+        BMP base = authoritative_pages[i];
+        BMP imported = import_pages[i];
 
-        pixel_basher.compare_to_bmp(base, import, enable_minor_differences); // should change compare_to_bmp to a static method
-        base.write(output_path.c_str());
+        std::string import_diff_path = import_dir + extension + "/" + basename + "_import-page-" + std::to_string(i + 1) + ".bmp";
 
-        file_stats += base.print_stats() + "\n";
+        PixelBasher pixel_basher;
+
+        BMP diff_result = pixel_basher.compare_to_bmp(base, imported, enable_minor_differences);
+        diff_result.write(import_diff_path.c_str());
+
+        // std::cout << "Processed page " << (i + 1) << ": " << output_path << "\n";
+        // std::cout << diff_result.print_stats() << "\n";
+
+        if (enable_lo_roundtrip) {
+            BMP& export_lo = export_pages[i];
+            BMP export_diff_result = pixel_basher.compare_to_bmp(base, export_lo, enable_minor_differences);
+
+            std::string export_output_path = export_dir + extension + "/" + basename + "_export-page-" + std::to_string(i + 1) + ".bmp";
+            export_diff_result.write(export_output_path.c_str());
+
+            // std::cout << "Processed export page " << (i + 1) << ": " << export_output_path << "\n";
+            // std::cout << export_diff_result.print_stats() << "\n";
+        }
     }
 
-    std::cout << file_stats << "\n";
     return 0;
 }
