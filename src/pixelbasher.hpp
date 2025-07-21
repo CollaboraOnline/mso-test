@@ -25,7 +25,7 @@ public:
   };
 
   // Sobel edge detection algorithm to find edges in the BMP image
-  std::vector<bool> sobel_edges(BMP& bmp, int threshold = 15);
+  std::vector<bool> sobel_edges(BMP& bmp, int threshold = 40);
 
   // Applies a blur effect to the edges found by the Sobel algorithm by a given radius
   std::vector<bool> blur_edge_mask(const BMP& bmp, const std::vector<bool>& edge_map);

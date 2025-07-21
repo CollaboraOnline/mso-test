@@ -11,11 +11,15 @@
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 
 #include "bmp.hpp"
 #include "pixelbasher.hpp"
 
 #include <vector>
+
+void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::string basename,
+     std::string filename);
 // Main function to compare two BMP images and generate a diff image
 // Usage: pixelbasher base.bmp input.bmp output.bmp [enable_minor_differences]
 // The last argument is optional and can be "true" or "false" to enable
@@ -116,7 +120,33 @@ int main(int argc, char* argv[])
             // std::cout << "Processed export page " << (i + 1) << ": " << export_output_path << "\n";
             // std::cout << export_diff_result.print_stats() << "\n";
         }
+        // Write stats to CSV
+        std::string csv_filename = "diff-pdf-" + extension + "-import-statistics.csv";
+        write_stats_to_csv(base, imported, diff_result, i + 1, basename, csv_filename);
     }
 
     return 0;
+}
+
+void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::string basename,
+     std::string filename)
+{
+  std::ofstream csv_file(filename);
+  if (!csv_file.is_open()) {
+    throw std::runtime_error("Cannot open CSV file for writing");
+  }
+
+  double auth_total_pixels = auth.get_width() * auth.get_height();
+  double import_total_pixels = import.get_width() * import.get_height();
+
+  csv_file << basename << ","
+            << page_number << ","
+            << auth_total_pixels << "," // total pixels in auth
+            << auth.get_non_background_count() << "," // non-background pixels in auth
+            << (static_cast<double>(auth.get_non_background_count()) / auth_total_pixels) << "," // non-background percentage in auth
+            << import_total_pixels << "," // total pixels in import
+            << import.get_non_background_count() << "," // non-background pixels in import
+            << (static_cast<double>(import.get_non_background_count()) / import_total_pixels)<< "," // non-background percentage in import
+            << diff.get_red_count() << "," // red pixels in diff
+            << (static_cast<double>(diff.get_red_count()) / import_total_pixels) << "\n";
 }

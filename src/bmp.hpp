@@ -80,7 +80,6 @@ public:
   void set_data(std::vector<uint8_t>& new_data);
 
   std::string print_stats();
-  void write_stats_to_csv(const std::string filename);
 
 private:
   int get_average_colour() const;

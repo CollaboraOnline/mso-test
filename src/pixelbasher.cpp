@@ -61,12 +61,12 @@ BMP PixelBasher::compare_to_bmp(BMP& base, BMP& imported, bool enable_minor_diff
         if (near_edge) {
           if (enable_minor_differences) { // If minor differences are enabled, we use yellow for pixels near edges
             bgra = colour_pixel(Colour::YELLOW);
-            base.increment_yellow_count(1);
+            diff_result.increment_yellow_count(1);
           }
         } else {
           // If the pixel is not near an edge, we use red for significant differences
           bgra = colour_pixel(Colour::RED);
-          base.increment_red_count(1);
+          diff_result.increment_red_count(1);
         }
       }
       for (int i = 0; i < pixel_stride; i++) {
@@ -132,7 +132,7 @@ std::vector<bool> PixelBasher::blur_edge_mask(const BMP& bmp, const std::vector<
               continue;
 
           // If the current pixel is an edge, we apply a blur effect by marking nearby pixels
-          int radius = 3;
+          int radius = 2;
           for (int dy = -radius; dy <= radius; dy++) {
               for (int dx = -radius; dx <= radius; dx++) {
                   int new_x = x + dx;

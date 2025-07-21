@@ -152,11 +152,3 @@ std::string BMP::print_stats() {
 
   return stats;
 }
-
-void BMP::write_stats_to_csv(const std::string filename) {
-  std::ofstream csv_file(filename);
-  if (!csv_file.is_open()) {
-    throw std::runtime_error("Cannot open CSV file for writing");
-  }
-
-}
