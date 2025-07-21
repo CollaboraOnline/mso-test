@@ -56,7 +56,7 @@ def main():
     parser.add_argument("--history_dir", default=".")
     parser.add_argument("--max_page", default="10") # limit PDF comparison to the first ten pages
     parser.add_argument("--no_save_overlay", action="store_true") # default is false
-    parser.add_argument("--resolution", default="75")
+    parser.add_argument("--resolution", default="200") # default is 200 DPI
     parser.add_argument("--debug", action="store_true") # default is false
     parser.add_argument("--image_dump", action="store_true") # default is false
     parser.add_argument("--minor_differences", default="false") # default is false
@@ -976,50 +976,52 @@ def main():
     # to generate the images for comparison.
 
     if args.image_dump == True:
-        print("Image dump directory: ", IMAGE_DUMP_DIR)
+        print("Image dump directory: ", IMAGE_DUMP_DIR) # need to figure what to do/what justin did with image-dump stuff
 
+    CONVERTED_DIR = os.path.join(base_dir, "converted")
     # Convert the MSO PDF to bmp's
     subprocess.run([
         "magick",
         MS_ORIG,
-        "-density", "300",
+        "-density", args.resolution,
         "-colorspace", "Gray",
         "-define", "bmp:format=bmp4",
         "-background", "white",
         "-alpha", "remove",
         "-alpha", "on",
-        IMAGE_DUMP_DIR + "/authoritative-page.bmp"
+        CONVERTED_DIR + "/authoritative-page.bmp"
     ])
 
     # Convert the LO PDF to bmp's
     subprocess.run([
         "magick",
         LO_ORIG,
-        "-density", "300",
+        "-density", args.resolution,
         "-colorspace", "Gray",
         "-define", "bmp:format=bmp4",
         "-background", "white",
         "-alpha", "remove",
         "-alpha", "on",
-        IMAGE_DUMP_DIR + "/import-page.bmp"
+        CONVERTED_DIR + "/import-page.bmp"
     ])
 
     PIXELBASHER_BIN = "./pixelbasher"
-    DIFF_OUTPUT_DIR = os.path.join(IMAGE_DUMP_DIR, "diffs/")
-    os.makedirs(DIFF_OUTPUT_DIR, exist_ok=True)
+    # DIFF_OUTPUT_DIR = os.path.join(IMAGE_DUMP_DIR, "diffs/")
+    # os.makedirs(DIFF_OUTPUT_DIR, exist_ok=True)
 
     # Sorting pages to ensure that pages are compared in the same order, eg, auth-page 1 with import-page 1, etc...
-    auth_pages = sorted(glob.glob(os.path.join(IMAGE_DUMP_DIR, "authoritative-*.bmp")))
-    import_pages = sorted(glob.glob(os.path.join(IMAGE_DUMP_DIR, "import-*.bmp")))
+    auth_pages = sorted(glob.glob(os.path.join(CONVERTED_DIR, "authoritative-*.bmp")))
+    import_pages = sorted(glob.glob(os.path.join(CONVERTED_DIR, "import-*.bmp")))
 
     # Run pixelbasher to compare differnces between MSO and LO PDF pages
     subprocess.run(
         [PIXELBASHER_BIN] +
-        base_file +
+        [args.base_file] +
         auth_pages +
-        IMPORT_DIR +
-        EXPORT_DIR +
-        [DIFF_OUTPUT_DIR, "false", str(args.minor_differences)],
+        import_pages +
+        [IMPORT_DIR] +
+        [EXPORT_DIR] +
+        ["false", str(args.minor_differences)], # options: 1st: diff mso_roundtrip files, 2nd: minor differences
         check=True
     )
 

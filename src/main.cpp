@@ -18,6 +18,11 @@
 
 #include <vector>
 
+// To:Do
+// - Add error handling for BMP file reading/writing
+// - Add a --debug option to print more information about the processing
+// - Add a the previous files to compare
+
 void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::string basename,
      std::string filename);
 // Main function to compare two BMP images and generate a diff image
@@ -54,15 +59,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    std::cout << "arg_index: " << arg_index << "\n";
-
     std::string import_dir = argv[arg_index - 2];
     std::string export_dir = argv[arg_index - 1];
 
     std::string basename = argv[1]; // The first argument is the basename of the file, not used in this context
     std::string extension = basename.substr(basename.find_last_of('.')).erase(0, 1); // Get the file extension without the dot
-
-    std::cout << "extension: " << extension << "\n";
 
     int num_image_args = arg_index - 4; // from the count and the program name and basename(filename.doc)
 
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
         BMP base = authoritative_pages[i];
         BMP imported = import_pages[i];
 
-        std::string import_diff_path = import_dir + extension + "/" + basename + "_import-page-" + std::to_string(i + 1) + ".bmp";
+        std::string import_diff_path = import_dir + "/" + basename + "_import-page-" + std::to_string(i + 1) + ".bmp";
 
         PixelBasher pixel_basher;
 
@@ -110,15 +111,12 @@ int main(int argc, char* argv[])
         // std::cout << "Processed page " << (i + 1) << ": " << output_path << "\n";
         // std::cout << diff_result.print_stats() << "\n";
 
-        if (enable_lo_roundtrip) {
+        if (enable_lo_roundtrip) { // Later on LO roundtrip will be enabled by default
             BMP& export_lo = export_pages[i];
             BMP export_diff_result = pixel_basher.compare_to_bmp(base, export_lo, enable_minor_differences);
 
-            std::string export_output_path = export_dir + extension + "/" + basename + "_export-page-" + std::to_string(i + 1) + ".bmp";
+            std::string export_output_path = export_dir + "/" + basename + "_export-page-" + std::to_string(i + 1) + ".bmp";
             export_diff_result.write(export_output_path.c_str());
-
-            // std::cout << "Processed export page " << (i + 1) << ": " << export_output_path << "\n";
-            // std::cout << export_diff_result.print_stats() << "\n";
         }
         // Write stats to CSV
         std::string csv_filename = "diff-pdf-" + extension + "-import-statistics.csv";
@@ -128,7 +126,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::string basename,
+void write_stats_to_csv(BMP auth, BMP lo, BMP diff, int page_number, std::string basename,
      std::string filename)
 {
   std::ofstream csv_file(filename);
@@ -137,7 +135,7 @@ void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::st
   }
 
   double auth_total_pixels = auth.get_width() * auth.get_height();
-  double import_total_pixels = import.get_width() * import.get_height();
+  double import_total_pixels = lo.get_width() * lo.get_height();
 
   csv_file << basename << ","
             << page_number << ","
@@ -145,8 +143,8 @@ void write_stats_to_csv(BMP auth, BMP import, BMP diff, int page_number, std::st
             << auth.get_non_background_count() << "," // non-background pixels in auth
             << (static_cast<double>(auth.get_non_background_count()) / auth_total_pixels) << "," // non-background percentage in auth
             << import_total_pixels << "," // total pixels in import
-            << import.get_non_background_count() << "," // non-background pixels in import
-            << (static_cast<double>(import.get_non_background_count()) / import_total_pixels)<< "," // non-background percentage in import
+            << lo.get_non_background_count() << "," // non-background pixels in import
+            << (static_cast<double>(lo.get_non_background_count()) / import_total_pixels)<< "," // non-background percentage in import
             << diff.get_red_count() << "," // red pixels in diff
             << (static_cast<double>(diff.get_red_count()) / import_total_pixels) << "\n";
 }
