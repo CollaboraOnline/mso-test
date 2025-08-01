@@ -361,3 +361,19 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# PixelBasher tool
+.vscode
+
+# Ignore build artifacts
+*.o
+*.d
+
+# Ignore images
+*.bmp
+
+# Ignore generated binary
+pixelbasher
+
+# Ignore dump folders
+image-dump/

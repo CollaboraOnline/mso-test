@@ -30,12 +30,9 @@
 
 import argparse
 import os
-import wand # pip install wand && OS_INSTALLER install imagemagick
-from wand.image import Image
-from wand.display import display
-from wand.exceptions import PolicyError
-from wand.exceptions import CacheError
+import subprocess
 import time
+import glob
 
 def printdebug(debug, *args, **kwargs):
     """
@@ -48,17 +45,16 @@ def printdebug(debug, *args, **kwargs):
     """
     if debug:
         print(*args, **kwargs)
-
-
 def main():
     parser = argparse.ArgumentParser(description="Look for import and export regressions.")
     parser.add_argument("--base_file", default="lorem ipsum.docx")
     parser.add_argument("--history_dir", default=".")
     parser.add_argument("--max_page", default="10") # limit PDF comparison to the first ten pages
     parser.add_argument("--no_save_overlay", action="store_true") # default is false
-    parser.add_argument("--resolution", default="75")
+    parser.add_argument("--resolution", default="125") # default is 125 DPI
     parser.add_argument("--debug", action="store_true") # default is false
     parser.add_argument("--image_dump", action="store_true") # default is false
+    parser.add_argument("--minor_differences", default="false") # default is false
     args = parser.parse_args()
 
     DEBUG = args.debug
@@ -1083,359 +1079,181 @@ def main():
         IMAGE_DUMP_DIR = os.path.join(base_dir, "converted", "image-dump", file_ext[0])
         if not os.path.isdir(IMAGE_DUMP_DIR):
             os.makedirs(IMAGE_DUMP_DIR)
+    else:
+        IMAGE_DUMP_DIR = ""
+
+    if args.image_dump == True:
+        print("Image dump directory: ", IMAGE_DUMP_DIR)
+
+    # Where the pdf's will be converted to BMP's and deleted once used
+    CONVERTED_DIR = os.path.join(base_dir, "converted")
+    HISTORY_DIR = args.history_dir
+
+    resolution = int(args.resolution) // 2
+    # Convert the MSO PDF to bmp's
+    subprocess.run([
+        "magick",
+        "-density", str(resolution),
+        f"{MS_ORIG}",
+        "-colorspace", "Gray",
+        "-define", "bmp:format=bmp4",
+        "-alpha", "remove",
+        "-alpha", "on",
+        CONVERTED_DIR + "/authoritative-page.bmp"
+    ])
+
+    # Convert the LO PDF to bmp's
+    subprocess.run([
+        "magick",
+        "-density", str(resolution),
+        f"{LO_ORIG}",
+        "-colorspace", "Gray",
+        "-define", "bmp:format=bmp4",
+        "-alpha", "remove",
+        "-alpha", "on",
+        CONVERTED_DIR + "/import-page.bmp"
+    ])
+
+    # Convert the MSO Roundtripped PDF's to BMP's
+    subprocess.run([
+        "magick",
+        "-density", str(resolution),
+        f"{MS_CONV}",
+        "-colorspace", "Gray",
+        "-define", "bmp:format=bmp4",
+        "-alpha", "remove",
+        "-alpha", "on",
+        CONVERTED_DIR + "/export-page.bmp"
+    ])
+
+    # Convert to the previous LO PDF's to BMP's
+    if IS_FILE_LO_PREV:
+        subprocess.run([
+            "magick",
+            "-density", str(resolution),
+            f"{LO_PREV}",
+            "-colorspace", "Gray",
+            "-define", "bmp:format=bmp4",
+            "-alpha", "remove",
+            "-alpha", "on",
+            args.history_dir + "/import-page.bmp"
+        ])
+
+    # Convert the previus MSO Roundtripped PDF's to BMP's
+    if IS_FILE_MS_PREV:
+        subprocess.run([
+            "magick",
+            "-density", str(resolution),
+            f"{MS_PREV}",
+            "-colorspace", "Gray",
+            "-define", "bmp:format=bmp4",
+            "-alpha", "remove",
+            "-alpha", "on",
+             args.history_dir + "/export-page.bmp"
+        ])
+
+
+
+    # Sorting pages o ensure that pages are compared in the same order, eg, auth-page 1 with import-page 1, etc...
+    ms_orig_pages = sorted(glob.glob(os.path.join(CONVERTED_DIR, "authoritative-*.bmp")))
+    lo_pages = sorted(glob.glob(os.path.join(CONVERTED_DIR, "import-*.bmp")))
+    ms_conv_pages = sorted(glob.glob(os.path.join(CONVERTED_DIR, "export-*.bmp")))
+    lo_previous_pages = []
+    ms_conv_previous_pages = []
+
+    if IS_FILE_LO_PREV:
+        lo_previous_pages = sorted(glob.glob(os.path.join(HISTORY_DIR, "import-*.bmp")))
+    if IS_FILE_MS_PREV:
+        ms_conv_previous_pages = sorted(glob.glob(os.path.join(HISTORY_DIR, "export-*.bmp")))
+
+    # initially converted all pages to bmp's so we can collect these stats
+    with open('diff-pdf-' + file_ext[1][1:] + '-statistics-anomalies.csv', 'a') as f:
+        if IS_FILE_LO_PREV and len(lo_pages) != len(lo_previous_pages):
+            f.write(args.base_file + f",import,page count different form {args.history_dir} [{len(lo_previous_pages)}] and converted [{len(lo_pages)}]. Should be[{len(ms_orig_pages)}]" + '\n')
+        if IS_FILE_MS_PREV and len(ms_conv_pages) != len(ms_conv_previous_pages):
+            f.write(args.base_file + f",export,page count different form {args.history_dir} [{len(ms_conv_previous_pages)}] and converted [{len(ms_conv_pages)}]. Should be[{len(ms_orig_pages)}]" + '\n')
+        if len(lo_pages) != len(ms_orig_pages):
+            f.write(args.base_file + f",import, absolute page count, {len(lo_pages)}, should be, {len(ms_orig_pages)}" + '\n')
+        if len(ms_conv_pages) != len(ms_orig_pages):
+            f.write(args.base_file + f",export, absolute page count, {len(ms_conv_pages)}, should be, {len(ms_orig_pages)}" + '\n')
+
+
+    # if there a mismtach in the number of pages, get the lowest number of pages from the pdf's, so no error will be thrown
+    min_page_count = min(len(ms_orig_pages), len(lo_pages), len(ms_conv_pages))
+    if IS_FILE_LO_PREV:
+        min_page_count = min(len(lo_previous_pages), min_page_count)
+    if IS_FILE_MS_PREV:
+        min_page_count = min(len(ms_conv_previous_pages), min_page_count)
+    min_page_count = min(MAX_PAGES, min_page_count)
+
+    # remove any pages from each set which are above the min_page threshold
+    for page in ms_orig_pages[min_page_count:]:
+        os.remove(page)
+    ms_orig_pages = ms_orig_pages[:min_page_count]
+
+    for page in lo_pages[min_page_count:]:
+        os.remove(page)
+    lo_pages = lo_pages[:min_page_count]
+
+    for page in ms_conv_pages[min_page_count:]:
+        os.remove(page)
+    ms_conv_pages = ms_conv_pages[:min_page_count]
+
+    if IS_FILE_LO_PREV:
+        for page in lo_previous_pages[min_page_count:]:
+            os.remove(page)
+        lo_previous_pages = lo_previous_pages[:min_page_count]
+
+    if IS_FILE_MS_PREV:
+        for page in ms_conv_previous_pages[min_page_count:]:
+            os.remove(page)
+        ms_conv_previous_pages = ms_conv_previous_pages[:min_page_count]
 
     try:
-        # The "correct" PDF: created by MS Word of the original file
-        MS_ORIG_PDF = Image(filename=MS_ORIG, resolution=int(args.resolution))
+        base_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
+        PIXELBASHER_BIN = os.path.join(base_dir, "pixelbasher")
+        STAMP_DIR = os.path.join(base_dir, "stamps/")
 
-        # A PDF of how it is displayed in Writer - to be compared to MS_ORIG
-        LO_ORIG_PDF = Image(filename=LO_ORIG, resolution=int(args.resolution))
+        options = [str(IS_FILE_LO_PREV).lower(), str(IS_FILE_MS_PREV).lower(), str(args.image_dump).lower(), str(args.no_save_overlay).lower(), str(args.minor_differences).lower()]
+        # Run pixelbasher to compare differences between MSO and LO PDF pages
+        subprocess.run(
+            [PIXELBASHER_BIN] +
+            [args.base_file] +
+            ms_orig_pages +
+            lo_pages +
+            ms_conv_pages +
+            lo_previous_pages +
+            ms_conv_previous_pages +
+            [IMPORT_DIR] +
+            [EXPORT_DIR] +
+            [IMPORT_COMPARE_DIR] +
+            [EXPORT_COMPARE_DIR] +
+            [IMAGE_DUMP_DIR] +
+            [STAMP_DIR] +
+            options,
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print("Pixelbasher program failed with this code", e.returncode)
+        print("Command", e.cmd)
+    except Exception as e:
+        print("An exception has occured with the Pixelbasher program", e)
 
-        # A PDF of how MS Word displays Writer's round-tripped file - to be compared to MS_ORIG
-        MS_CONV_PDF = Image(filename=MS_CONV, resolution=int(args.resolution))
-
-        # A historical version of how it was displayed in Writer
-        LO_PREV_PDF = Image()
-        LO_PREV_PAGES = MAX_PAGES
-        if IS_FILE_LO_PREV:
-            LO_PREV_PDF = Image(filename=LO_PREV, resolution=int(args.resolution))
-            LO_PREV_PAGES = len(LO_PREV_PDF.sequence)
-
-        # A historical version of how the round-tripped file was displayed in Word
-        MS_PREV_PDF = Image()
-        MS_PREV_PAGES = MAX_PAGES
-        if IS_FILE_MS_PREV:
-            MS_PREV_PDF = Image(filename=MS_PREV, resolution=int(args.resolution))
-            MS_PREV_PAGES=len(MS_PREV_PDF.sequence)
-
-    except PolicyError:
-        print("Warning: Operation not allowed due to security policy restrictions for PDF files.")
-        print("Please modify the '/etc/ImageMagick-6/policy.xml' file to allow PDF processing.")
-        print("<policy domain=\"coder\" rights=\"read\" pattern=\"PDF\" />")
-        exit(1)
-    except CacheError as e:
-        print("Exception message: ", str(e))
-        print("You probably need to increase the cache allowed in /etc/ImageMagick-6/policy.xml")
-        print("<policy domain=\"resource\" name=\"disk\" value=\"16GiB\"/>")
-        exit(1)
-
-    pages = min(MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), LO_PREV_PAGES, MS_PREV_PAGES)
-    printdebug(DEBUG, "DEBUG ", args.base_file, " pages[", pages, "] ", MAX_PAGES, len(MS_ORIG_PDF.sequence), len(LO_ORIG_PDF.sequence), len(MS_CONV_PDF.sequence), len(LO_PREV_PDF.sequence), len(MS_PREV_PDF.sequence))
-
-    MS_ORIG_SIZE = []    # total number of pixels on the page
-    MS_ORIG_CONTENT = [] # the number of non-background pixels
-    LO_ORIG_SIZE = []
-    LO_ORIG_CONTENT = []
-    MS_CONV_SIZE = []
-    MS_CONV_CONTENT = []
-    LO_PREV_SIZE = []
-    LO_PREV_CONTENT = []
-    MS_PREV_SIZE = []
-    MS_PREV_CONTENT = []
-
-    IMPORT_RED = []     # the number of red pixels on the page
-    EXPORT_RED = []
-    PREV_IMPORT_RED = []
-    PREV_EXPORT_RED = []
-
-    MS_ORIG_RED = MS_ORIG_PDF.clone()
-    for pgnum in range(0, pages):
-        with MS_ORIG_RED.sequence[pgnum] as page: # need this 'with' clause so that MS_ORIG_RED is actually updated with the following changes
-
-            if args.image_dump == True and pgnum+1 == pages:
-                dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_authoritative_original-{pages}.png")
-                Image(MS_ORIG_PDF.sequence[pgnum]).save(filename=dump_name)
-
-            MS_ORIG_SIZE.append(page.height * page.width)
-            page.transform_colorspace('gray')
-
-            if args.image_dump == True and pgnum+1 == pages:
-                dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_authoritative_grayscale-{pages}.png")
-                Image(page).save(filename=dump_name)
-
-            page.alpha_channel = 'remove'         # so that 'red' will be painted as 'red' and not some transparent-ized shade of red
-            page.opaque_paint('black', 'red', fuzz=MS_ORIG_PDF.quantum_range * 0.90)
-
-            if args.image_dump == True and pgnum+1 == pages:
-                dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_authoritative_red-{pages}.png")
-                Image(page).save(filename=dump_name)
-
-    # Composed image: overlay red MS_ORIG with LO_ORIG
-    IMPORT_IMAGE = MS_ORIG_RED.clone()
-    # Composed image: overlay red MS_ORIG with MS_CONV
-    EXPORT_IMAGE = MS_ORIG_RED.clone()
-
-    # Composed image: overlay red MS_ORIG with LO_PREV
-    PREV_IMPORT_IMAGE = MS_ORIG_RED.clone()
-    # Composed image: overlay red MS_ORIG with MS_PREV
-    PREV_EXPORT_IMAGE = MS_ORIG_RED.clone()
-
-    # Composed image: overlay red LO_ORIG and blue LO_PREV with gray MS_ORIG_PDF
-    # This is the visual key to the whole tool. The red/blue underlay should be identical except for import fixes or regressions
-    IMPORT_COMPARE_IMAGE = LO_ORIG_PDF.clone()
-    # Composed image: overlay red MS_CONV and blue MS_PREV with gray MS_ORIG_PDF
-    # This is the visual key to the whole tool. The red/blue underlay should be identical except for export fixes or regressions
-    EXPORT_COMPARE_IMAGE = MS_CONV_PDF.clone()
-
-    for pgnum in range(0, pages):
-        tmp = MS_ORIG_PDF.clone()  # don't make changes to these PDF pages - just get statistics...
-        with tmp.sequence[pgnum] as page:
-            page.quantize(2)
-            MS_ORIG_SIZE.append(page.height * page.width)
-            MS_ORIG_CONTENT.append(min(list(page.histogram.values()))) # assuming that the background is more than 50%
-            printdebug(DEBUG, "DEBUG MS_ORIG[", pgnum, "] size[", MS_ORIG_SIZE[pgnum], "] content[", MS_ORIG_CONTENT[pgnum], "] percent[", (MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
-
-        tmp = LO_ORIG_PDF.clone()
-        with tmp.sequence[pgnum] as page:
-            page.quantize(2)
-            LO_ORIG_SIZE.append(page.height * page.width)
-            LO_ORIG_CONTENT.append(min(list(page.histogram.values()))) # assuming that the background is more than 50%
-            printdebug(DEBUG, "DEBUG LO_ORIG[", pgnum, "] size[", LO_ORIG_SIZE[pgnum], "] content[", LO_ORIG_CONTENT[pgnum], "] percent[", (LO_ORIG_CONTENT[pgnum] / LO_ORIG_SIZE[pgnum]), "] colorspace[", page.colorspace, "] background[", page.background_color, "] ", list(page.histogram.values()), list(page.histogram.keys()))
-
-        tmp = MS_CONV_PDF.clone()
-        with tmp.sequence[pgnum] as page:
-            page.quantize(2)
-            MS_CONV_SIZE.append(page.height * page.width)
-            MS_CONV_CONTENT.append(min(list(page.histogram.values())))
-            printdebug(DEBUG, "DEBUG MS_CONV[", pgnum, "] size[", MS_CONV_SIZE[pgnum], "] content[", MS_CONV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_CONV_CONTENT[pgnum] / MS_CONV_SIZE[pgnum], "]")
+    finally:
+        for page in ms_orig_pages:
+            os.remove(page)
+        for page in lo_pages:
+            os.remove(page)
+        for page in ms_conv_pages:
+            os.remove(page)
 
         if IS_FILE_LO_PREV:
-            tmp = LO_PREV_PDF.clone()
-            with tmp.sequence[pgnum] as page:
-                page.quantize(2)
-                LO_PREV_SIZE.append(page.height * page.width)
-                LO_PREV_CONTENT.append(min(list(page.histogram.values())))
-                printdebug(DEBUG, "DEBUG LO_PREV[", pgnum, "] size[", LO_PREV_SIZE[pgnum], "] content[", LO_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", LO_PREV_CONTENT[pgnum] / LO_PREV_SIZE[pgnum], "]")
+            for page in lo_previous_pages:
+                os.remove(page)
 
         if IS_FILE_MS_PREV:
-            tmp = MS_PREV_PDF.clone()
-            with tmp.sequence[pgnum] as page:
-                page.quantize(2)
-                MS_PREV_SIZE.append(page.height * page.width)
-                MS_PREV_CONTENT.append(min(list(page.histogram.values())))
-                printdebug(DEBUG, "DEBUG MS_PREV[", pgnum, "] size[", MS_PREV_SIZE[pgnum], "] content[", MS_PREV_CONTENT[pgnum], "] ", list(page.histogram.values()), list(page.histogram.keys()), " percent[", MS_PREV_CONTENT[pgnum] / MS_PREV_SIZE[pgnum], "]")
-
-
-        with IMPORT_IMAGE.sequence[pgnum] as page:
-            LO_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
-
-            if args.image_dump == True and pgnum+1 == pages:
-                dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_import-grayscale-{pages}.png")
-                Image(LO_ORIG_PDF.sequence[pgnum]).save(filename=dump_name)
-
-            LO_ORIG_PDF.sequence[pgnum].transparent_color(LO_ORIG_PDF.background_color, 0, fuzz=LO_ORIG_PDF.quantum_range * 0.10)
-            #display(Image(page))  #debug
-            #display(Image(LO_ORIG_PDF.sequence[pgnum]))  #debug
-            page.composite(LO_ORIG_PDF.sequence[pgnum])  # overlay (red) MS_ORIG with LO_ORIG
-            page.merge_layers('flatten')
-            #display(Image(page))  #debug
-
-            if args.image_dump == True and pgnum+1 == pages:
-                dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_import-overlay-{pages}.png")
-                Image(page).save(filename=dump_name)
-
-        IMPORT_RED.append(0)
-        try:
-            IMPORT_RED[pgnum] = IMPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
-        except:
-            printdebug(DEBUG, "IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
-
-        with EXPORT_IMAGE.sequence[pgnum] as page:
-            MS_CONV_PDF.sequence[pgnum].transform_colorspace('gray')
-            MS_CONV_PDF.sequence[pgnum].transparent_color(MS_CONV_PDF.background_color, 0, fuzz=MS_CONV_PDF.quantum_range * 0.10)
-            page.composite(MS_CONV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_CONV
-            page.merge_layers('flatten')
-        EXPORT_RED.append(0)
-        try:
-            EXPORT_RED[pgnum] = EXPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
-        except:
-            printdebug(DEBUG, "EXPORT EXCEPTION: could not get red color from page ", pgnum)# , list(EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
-
-        PREV_IMPORT_RED.append(0)
-        if IS_FILE_LO_PREV:
-            with PREV_IMPORT_IMAGE.sequence[pgnum] as page:
-                LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
-
-                if args.image_dump == True and pgnum+1 == pages:
-                    dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_prev-import-grayscale-{pages}.png")
-                    Image(LO_PREV_PDF.sequence[pgnum]).save(filename=dump_name)
-
-                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
-                page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with LO_PREV
-                page.merge_layers('flatten')
-
-                if args.image_dump == True and pgnum+1 == pages:
-                    dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_prev-import-overlay-{pages}.png")
-                    Image(page).save(filename=dump_name)
-
-            try:
-                PREV_IMPORT_RED[pgnum] = PREV_IMPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
-            except:
-                printdebug(DEBUG, "PREV_IMPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_IMPORT_IMAGE.sequence[pgnum].histogram.keys()))
-
-            with IMPORT_COMPARE_IMAGE.sequence[pgnum] as page:
-                page.transform_colorspace('gray')
-                page.opaque_paint('black', 'red', fuzz=LO_ORIG_PDF.quantum_range * 0.90)
-
-                if args.image_dump == True and pgnum+1 == pages:
-                    dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_import-red-{pages}.png")
-                    Image(page).save(filename=dump_name)
-
-                LO_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
-                LO_PREV_PDF.sequence[pgnum].transparent_color(LO_PREV_PDF.background_color, 0, fuzz=LO_PREV_PDF.quantum_range * 0.10)
-                LO_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=LO_PREV_PDF.quantum_range * 0.90)
-
-                if args.image_dump == True and pgnum+1 == pages:
-                    dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_prev-import-blue-{pages}.png")
-                    Image(LO_PREV_PDF.sequence[pgnum]).save(filename=dump_name)
-
-                page.composite(LO_PREV_PDF.sequence[pgnum]) # overlay (red) LO_ORIG with (blue) LO_PREV
-
-                MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
-                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
-                page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
-                page.merge_layers('flatten')
-
-        PREV_EXPORT_RED.append(0)
-        if IS_FILE_MS_PREV:
-            with PREV_EXPORT_IMAGE.sequence[pgnum] as page:
-                MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
-                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
-                page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_ORIG with MS_PREV
-                page.merge_layers('flatten')
-            try:
-                PREV_EXPORT_RED[pgnum] = PREV_EXPORT_IMAGE.sequence[pgnum].histogram[wand.color.Color('red')]
-            except:
-                printdebug(DEBUG, "PREV_EXPORT EXCEPTION: could not get red color from page ", pgnum)#, list(PREV_EXPORT_IMAGE.sequence[pgnum].histogram.keys()))
-
-            with EXPORT_COMPARE_IMAGE.sequence[pgnum] as page:
-                page.transform_colorspace('gray')
-                page.opaque_paint('black', 'red', fuzz=MS_CONV_PDF.quantum_range * 0.90)
-
-                MS_PREV_PDF.sequence[pgnum].transform_colorspace('gray')
-                MS_PREV_PDF.sequence[pgnum].transparent_color(MS_PREV_PDF.background_color, 0, fuzz=MS_PREV_PDF.quantum_range * 0.10)
-                MS_PREV_PDF.sequence[pgnum].opaque_paint('black', 'blue', fuzz=MS_PREV_PDF.quantum_range * 0.90)
-                page.composite(MS_PREV_PDF.sequence[pgnum]) # overlay (red) MS_CONV with (blue) MS_PREV
-
-                MS_ORIG_PDF.sequence[pgnum].transform_colorspace('gray')
-                MS_ORIG_PDF.sequence[pgnum].transparent_color(MS_ORIG_PDF.background_color, 0, fuzz=MS_ORIG_PDF.quantum_range * 0.10)
-                page.composite(MS_ORIG_PDF.sequence[pgnum]) # overlay both with the authoritative contents in gray
-                page.merge_layers('flatten')
-
-
-    for pageToSave in range(0, pages):
-        FORCE_SAVE_IMPORT = False
-        FORCE_SAVE_EXPORT = False
-        if args.no_save_overlay == True:
-            # Always provide pages that have more RED now than in the previous version - QA needs to check them out (at least the first one).
-            if IS_FILE_LO_PREV and IMPORT_RED[pageToSave] > PREV_IMPORT_RED[pageToSave]:
-                FORCE_SAVE_IMPORT = True
-            if IS_FILE_MS_PREV and EXPORT_RED[pageToSave] > PREV_EXPORT_RED[pageToSave]:
-                FORCE_SAVE_EXPORT = True
-        if args.no_save_overlay == False or FORCE_SAVE_IMPORT:
-            printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} IMPORT[{IMPORT_RED[pageToSave]} PREV[{PREV_IMPORT_RED[pageToSave]}]")
-            with Image(IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                file_name=os.path.join(IMPORT_DIR, args.base_file + f"_import-{pageToSave+1}.png")
-                img_to_save.save(filename=file_name)
-            if IS_FILE_LO_PREV:
-                with Image(PREV_IMPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(IMPORT_DIR, args.base_file + f"_prev-import-{pageToSave+1}.png")
-                    img_to_save.save(filename=file_name)
-                with Image(IMPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(IMPORT_COMPARE_DIR, args.base_file + f"_import-compare-{pageToSave+1}.png")
-                    img_to_save.save(filename=file_name)
-
-                    if args.image_dump == True and pageToSave+1 == pages:
-                        dump_name=os.path.join(IMAGE_DUMP_DIR, args.base_file + f"_import-compare-{pages}.png")
-                        img_to_save.save(filename=dump_name)
-
-        if args.no_save_overlay == False or FORCE_SAVE_EXPORT:
-            printdebug(DEBUG, f"DEBUG saving {args.base_file} page {pageToSave+1} EXPORT[{EXPORT_RED[pageToSave]} PREV[{PREV_EXPORT_RED[pageToSave]}]")
-            with Image(EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                file_name=os.path.join(EXPORT_DIR, args.base_file + f"_export-{pageToSave+1}.png")
-                img_to_save.save(filename=file_name)
-            if IS_FILE_MS_PREV:
-                with Image(PREV_EXPORT_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(EXPORT_DIR, args.base_file + f"_prev-export-{pageToSave+1}.png")
-                    img_to_save.save(filename=file_name)
-                with Image(EXPORT_COMPARE_IMAGE.sequence[pageToSave]) as img_to_save:
-                    file_name=os.path.join(EXPORT_COMPARE_DIR, args.base_file + f"_export-compare-{pageToSave+1}.png")
-                    img_to_save.save(filename=file_name)
-
-    # allow the script to run in parallel - wait for lock on report to be released.
-    # if lock file exists, wait for one second and try again
-    # else
-    #     create lock file and put the file name in it
-    #     wait for a bit and then read to verify the lock is mine
-    while True:
-        LOCK_FILE="diff-pdf-" + file_ext[1][1:] + "-statistics.lock"
-        if os.path.isfile(LOCK_FILE):
-            printdebug(DEBUG, "DEBUG: waiting for file to unlock")
-        else:
-            with open(LOCK_FILE, 'w') as f:
-                f.write(args.base_file)
-            time.sleep(0.1) # one tenth of a second
-            with open(LOCK_FILE, 'r') as f:
-                LOCK = f.read()
-                printdebug(DEBUG, "DEBUG LOCK[", LOCK, "]")
-                if LOCK == args.base_file:
-                    with open('diff-pdf-' + file_ext[1][1:] + '-import-statistics.csv', 'a') as f:
-                        for pgnum in range(0, pages):
-                            OUT_STRING = [ args.base_file ]
-                            OUT_STRING.append(str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
-                            OUT_STRING.append(str(MS_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum]))
-                            OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(LO_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(LO_ORIG_CONTENT[pgnum]))
-                            OUT_STRING.append(str(LO_ORIG_CONTENT[pgnum] / LO_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(IMPORT_RED[pgnum]))
-                            OUT_STRING.append(str(IMPORT_RED[pgnum] / LO_ORIG_CONTENT[pgnum]))
-                            if IS_FILE_LO_PREV:
-                                OUT_STRING.append(str(LO_PREV_SIZE[pgnum]))
-                                OUT_STRING.append(str(LO_PREV_CONTENT[pgnum]))
-                                OUT_STRING.append(str(LO_PREV_CONTENT[pgnum] / LO_PREV_SIZE[pgnum]))
-                                OUT_STRING.append(str(PREV_IMPORT_RED[pgnum]))
-                                OUT_STRING.append(str(PREV_IMPORT_RED[pgnum] / LO_PREV_CONTENT[pgnum]))
-                            f.write(','.join(OUT_STRING) + '\n')
-
-                    with open('diff-pdf-' + file_ext[1][1:] + '-export-statistics.csv', 'a') as f:
-                        for pgnum in range(0, pages):
-                            OUT_STRING = [ args.base_file ]
-                            OUT_STRING.append(str(pgnum + 1))  # use a human-oriented 1-based number for reporting...
-                            OUT_STRING.append(str(MS_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum]))
-                            OUT_STRING.append(str(MS_ORIG_CONTENT[pgnum] / MS_ORIG_SIZE[pgnum]))
-                            OUT_STRING.append(str(MS_CONV_SIZE[pgnum]))
-                            OUT_STRING.append(str(MS_CONV_CONTENT[pgnum]))
-                            OUT_STRING.append(str(MS_CONV_CONTENT[pgnum] / MS_CONV_SIZE[pgnum]))
-                            OUT_STRING.append(str(EXPORT_RED[pgnum]))
-                            OUT_STRING.append(str(EXPORT_RED[pgnum] / MS_CONV_CONTENT[pgnum]))
-                            if IS_FILE_MS_PREV:
-                                OUT_STRING.append(str(MS_PREV_SIZE[pgnum]))
-                                OUT_STRING.append(str(MS_PREV_CONTENT[pgnum]))
-                                OUT_STRING.append(str(MS_PREV_CONTENT[pgnum] / MS_PREV_SIZE[pgnum]))
-                                OUT_STRING.append(str(PREV_EXPORT_RED[pgnum]))
-                                OUT_STRING.append(str(PREV_EXPORT_RED[pgnum] / MS_PREV_CONTENT[pgnum]))
-                            f.write(','.join(OUT_STRING) + '\n')
-
-                    with open('diff-pdf-' + file_ext[1][1:] + '-statistics-anomalies.csv', 'a') as f:
-                        if IS_FILE_LO_PREV and len(LO_ORIG_PDF.sequence) != LO_PREV_PAGES:
-                            f.write(args.base_file + f",import,page count different from {args.history_dir} [{LO_PREV_PAGES}] and converted [{len(LO_ORIG_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
-                        if IS_FILE_MS_PREV and len(MS_CONV_PDF.sequence) != MS_PREV_PAGES:
-                            f.write(args.base_file + f",export,page count different from {args.history_dir} [{MS_PREV_PAGES}] and converted [{len(MS_CONV_PDF.sequence)}]. Should be[{len(MS_ORIG_PDF.sequence)}]" + '\n')
-                        # Although absolute wrongs normally shouldn't be reported (only report a change from previous version) - wrong page count was requested to be an exception.
-                        if len(LO_ORIG_PDF.sequence) != len(MS_ORIG_PDF.sequence):
-                            f.write(args.base_file + f",import, absolute page count, {len(LO_ORIG_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
-                        if len(MS_CONV_PDF.sequence) != len(MS_ORIG_PDF.sequence):
-                            f.write(args.base_file + f",export, absolute page count, {len(MS_CONV_PDF.sequence)}, should be, {len(MS_ORIG_PDF.sequence)}" + '\n')
-
-                    os.remove(LOCK_FILE)
-                    return
-                else:
-                    printdebug(DEBUG, "DEBUG: not my lock after all - try again")
-        time.sleep(1) # second
-
+            for page in ms_conv_previous_pages:
+                os.remove(page)
 
 if __name__ == "__main__":
     main()
