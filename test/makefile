@@ -1,24 +1,28 @@
-CXX = g++
-CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -I/usr/local/include
-Catch2_CFLAGS = $(shell pkg-config --cflags catch2)
-Catch2_LDFLAGS = $(shell pkg-config --libs catch2)
-
 SRC_DIR = .
 OBJ_DIR = obj
 TARGET = unittest
 
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+CXX = g++
+CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -I/usr/local/include -I../src
+Catch2_CFLAGS = $(shell pkg-config --cflags catch2)
+Catch2_LDFLAGS = $(shell pkg-config --libs catch2)
+
+TEST_SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+
+SRC_FILES = ../src/bmp.cpp ../src/pixelbasher.cpp
+
+SRCS = $(TEST_SRCS) $(SRC_FILES)
+
+OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(notdir $(SRCS)))
+
+$(OBJ_DIR)/%.o:
+	mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(Catch2_CFLAGS) -c $(filter %/$*.cpp, $(SRCS)) -o $@
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(Catch2_CFLAGS) $(OBJS) -o $(TARGET) $(Catch2_LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) $(Catch2_CFLAGS) -c $< -o $@
-
 -include $(OBJS:.o=.d)
 .PHONY: clean
 clean:
-	rm -fr $(OBJ_DIR) \
-		$(TARGET)
+	rm -fr $(OBJ_DIR) $(TARGET)
