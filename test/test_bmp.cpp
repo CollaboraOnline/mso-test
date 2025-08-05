@@ -69,6 +69,35 @@ TEST_CASE("BMP write functionality") {
         dummy_image.write(bmp_path.c_str());
 
         BMP dummy_image_read(bmp_path.c_str());
+        REQUIRE(dummy_image_read.get_width() == dummy_image.get_width());
+        REQUIRE(dummy_image_read.get_height() == dummy_image.get_height());
         REQUIRE(dummy_image_read.get_data() == dummy_image.get_data());
+    }
+}
+
+TEST_CASE("Extracting average colour from BMP's") {
+    std::string bmp_path;
+    SECTION("extracting solid whites average colour") {
+        bmp_path = "test_data/solid_white.bmp";
+        BMP solid_white (bmp_path.c_str());
+
+        // Solid white, means average colour should be 255
+        REQUIRE(solid_white.get_background_value() == 255);
+    }
+
+    SECTION("extracting solid black average colour") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        // Solid black, means average colour should be 0
+        REQUIRE(solid_black.get_background_value() == 0);
+    }
+
+    SECTION("extracting white_black average colour") {
+        bmp_path = "test_data/white_black.bmp";
+        BMP white_black (bmp_path.c_str());
+
+        // half white and black, means avg is 127
+        REQUIRE(white_black.get_background_value() == 127);
     }
 }
