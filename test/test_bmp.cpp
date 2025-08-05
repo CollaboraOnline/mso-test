@@ -140,3 +140,61 @@ TEST_CASE("setting the pixel data", "[bmp][set_data]") {
         REQUIRE_NOTHROW(dummy_image.set_data(new_data));
     }
 }
+
+TEST_CASE("running sobel edge detection", "[bmp][pixel-analysis]") {
+    std::string bmp_path;
+    SECTION("returns no edges for solid_black.bmp") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        std::vector<bool> sobel_edge_mask = solid_black.get_sobel_edge_mask();
+        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true) == 0);
+    }
+
+    SECTION("returns that edges exist for edges.bmp") {
+        bmp_path = "test_data/edges.bmp";
+        BMP edges (bmp_path.c_str());
+
+        std::vector<bool> sobel_edge_mask = edges.get_sobel_edge_mask();
+        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true) > 0);
+    }
+
+    SECTION("returns that edges exist for vertical_edges.bmp") {
+        bmp_path = "test_data/vertical_edges.bmp";
+        BMP vertical_edges (bmp_path.c_str());
+
+        std::vector<bool> sobel_edge_mask = vertical_edges.get_sobel_edge_mask();
+        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true) > 0);
+    }
+}
+
+TEST_CASE("blurring the sobel edge mask", "[bmp][pixel-analysis]") {
+    std::string bmp_path;
+    SECTION("sobel edge count remains the same as blurred edge mask") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        std::vector<bool> sobel_edge_mask = solid_black.get_sobel_edge_mask();
+        std::vector<bool> blurred_edge_mask = solid_black.get_blurred_edge_mask();
+
+        int sobel_edge_count = std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true);
+        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), true);
+
+        REQUIRE(blurred_edge_count == 0); // no edges in solid black image
+        REQUIRE(sobel_edge_count == blurred_edge_count);
+    }
+
+    SECTION("returns a larger edge count for blurred edge mask than sobel edge mask") {
+        bmp_path = "test_data/edges.bmp";
+        BMP edges (bmp_path.c_str());
+
+        std::vector<bool> sobel_edge_mask = edges.get_sobel_edge_mask();
+        std::vector<bool> blurred_edge_mask = edges.get_blurred_edge_mask();
+
+        int sobel_edge_count = std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true);
+        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), true);
+
+        REQUIRE(blurred_edge_count != 0);
+        REQUIRE(blurred_edge_count > sobel_edge_count);
+    }
+}

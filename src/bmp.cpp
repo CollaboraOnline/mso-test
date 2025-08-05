@@ -37,7 +37,8 @@ BMP::BMP(const char *filename)
     read(filename);
     m_background_value = get_average_colour();
     m_non_background_count = get_non_background_pixel_count(m_background_value);
-    m_blurred_edge_mask = blur_edge_mask(sobel_edges<245>());
+    m_soble_edge_mask = sobel_edges<245>();
+    m_blurred_edge_mask = blur_edge_mask(m_soble_edge_mask);
     m_vertical_edges = filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
 }
 
