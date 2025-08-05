@@ -124,3 +124,19 @@ TEST_CASE("Computer the number of pixels in background", "[bmp][pixel-analysis]"
         REQUIRE(white_black.get_non_background_count() == image_size);
     }
 }
+
+TEST_CASE("setting the pixel data", "[bmp][set_data]") {
+    SECTION("throws error when new data doesn't mach original data size") {
+        BMP dummy_image(100, 100);
+        std::vector<uint8_t> new_data((100 * pixel_stride) * 101, 0);
+
+        REQUIRE_THROWS_WITH(dummy_image.set_data(new_data), Catch::Contains("differs"));
+    }
+
+    SECTION("sets dummy data to new_data succesfully") {
+        BMP dummy_image(100, 100);
+        std::vector<uint8_t> new_data((100 * pixel_stride) * 100, 0);
+
+        REQUIRE_NOTHROW(dummy_image.set_data(new_data));
+    }
+}
