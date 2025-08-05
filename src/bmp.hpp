@@ -60,6 +60,7 @@ public:
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
     const std::vector<bool> &get_blurred_edge_mask() const { return m_blurred_edge_mask; }
+    const std::vector<bool> &get_filtererd_vertical_edge_mask() const { return m_filtered_vertical_edges; }
     const std::vector<bool> &get_vertical_edge_mask() const { return m_vertical_edges; }
     const std::vector<bool> &get_sobel_edge_mask() const { return m_soble_edge_mask; }
     int get_width() const { return m_info_header.width; }
@@ -98,6 +99,8 @@ private:
     std::vector<bool> m_soble_edge_mask;
     std::vector<bool> m_blurred_edge_mask;
     std::vector<bool> m_vertical_edges;
+    std::vector<bool> m_filtered_vertical_edges;
+
     int m_red_count = 0;
     int m_yellow_count = 0;
     int m_background_value = 0; // used to determine background colour

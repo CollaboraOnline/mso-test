@@ -23,8 +23,8 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enabl
     BMP diff(original);
 
     std::vector<bool> intersection_mask = get_intersection_mask(original, target, min_width, min_height);
-    std::vector<bool> original_filtered_vertical_edges = original.get_vertical_edge_mask();
-    std::vector<bool> target_filtered_vertical_edges = target.get_vertical_edge_mask();
+    std::vector<bool> original_filtered_vertical_edges = original.get_filtererd_vertical_edge_mask();
+    std::vector<bool> target_filtered_vertical_edges = target.get_filtererd_vertical_edge_mask();
 
     // The diff data is based on the base image, so we create a new data vector to hold the modified pixels
     auto &original_data = original.get_data();

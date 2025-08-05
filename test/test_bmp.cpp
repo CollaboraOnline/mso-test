@@ -198,3 +198,58 @@ TEST_CASE("blurring the sobel edge mask", "[bmp][pixel-analysis]") {
         REQUIRE(blurred_edge_count > sobel_edge_count);
     }
 }
+
+TEST_CASE("running vertical edge detection", "[bmp][pixel-analysis]") {
+    std::string bmp_path;
+    SECTION("returns no vertical edges for solid_black.bmp") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        std::vector<bool> vertical_edge_mask = solid_black.get_vertical_edge_mask();
+        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true) == 0);
+    }
+
+    SECTION("returns that vertical edges exits for vertical_edges.bmp") {
+        bmp_path = "test_data/vertical_edges.bmp";
+        BMP vertical_edges (bmp_path.c_str());
+
+        std::vector<bool> vertical_edge_mask = vertical_edges.get_vertical_edge_mask();
+        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true) > 0);
+    }
+}
+
+TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
+    std::string bmp_path;
+    SECTION("filtered vertical edges returns the same as vertical edges") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        std::vector<bool> vertical_edge_mask = solid_black.get_vertical_edge_mask();
+        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true) == 0);
+    }
+
+    SECTION("returns a smaller amount of vertical edges compared to total edges") {
+        bmp_path = "test_data/edges.bmp";
+        BMP edges (bmp_path.c_str());
+
+        std::vector<bool> vertical_edge_mask = edges.get_vertical_edge_mask();
+        std::vector<bool> blurred_edge_mask = edges.get_blurred_edge_mask();
+
+        int vertical_edge_count = std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true);
+        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), true);
+
+        REQUIRE(blurred_edge_count > vertical_edge_count);
+    }
+
+
+    SECTION("returns a postive filtered edge count") {
+        bmp_path = "test_data/vertical_edges.bmp";
+        BMP vertical_edges (bmp_path.c_str());
+
+        std::vector<bool> filtered_edge_mask = vertical_edges.get_blurred_edge_mask();
+        int filtered_edge_count = std::count(filtered_edge_mask.begin(), filtered_edge_mask.end(), true);
+
+        REQUIRE(filtered_edge_count > 0);
+    }
+}
+
