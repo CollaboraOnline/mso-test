@@ -4,7 +4,7 @@
 #include <bit>
 #include <iostream>
 
-TEST_CASE("BMP's can be read") {
+TEST_CASE("BMP's read functionality") {
     std::string bmp_path;
     SECTION("opening and reading solid_white.bmp") {
         bmp_path = "test_data/solid_white.bmp";
@@ -53,5 +53,22 @@ TEST_CASE("BMP's can be read") {
         BMP bad_image;
 
         REQUIRE_THROWS_WITH(bad_image.read(bmp_path.c_str()), Catch::Contains("32 bits") && Catch::Contains("RGBA"));
+    }
+}
+
+TEST_CASE("BMP write functionality") {
+    std::string bmp_path;
+    bmp_path = "test_data/output/100x100.bmp";
+    BMP dummy_image(100, 100);
+
+    SECTION("creating a 100x100 bmp and write it out") {
+        REQUIRE_NOTHROW(dummy_image.write(bmp_path.c_str()));
+    }
+
+    SECTION("writing a 100x100 bmp and reading it back in to check equivalence") {
+        dummy_image.write(bmp_path.c_str());
+
+        BMP dummy_image_read(bmp_path.c_str());
+        REQUIRE(dummy_image_read.get_data() == dummy_image.get_data());
     }
 }

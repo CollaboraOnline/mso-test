@@ -49,7 +49,9 @@ class BMP
 {
 public:
     BMP(const char *filename);
+    BMP(int width, int height, bool has_alpha = true);
     BMP();
+
     void read(const char *filename);
     void write(const char *filename);
     void stamp_name(BMP &stamp);

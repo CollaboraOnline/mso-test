@@ -41,7 +41,34 @@ BMP::BMP(const char *filename)
     m_vertical_edges = filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
 }
 
-BMP::BMP() {}
+BMP::BMP()
+{
+
+}
+
+// To be used in tests
+BMP::BMP(int width, int height, bool has_alpha)
+{
+    if (width <= 0 || height <= 0)
+    {
+        throw std::runtime_error("The image width and height values must positive");
+    }
+
+    // Setup correct values for info header and file header
+    m_file_header.file_type = 0x4D42;
+    m_info_header.planes = 1;
+    m_info_header.width = width;
+    m_info_header.height = height;
+
+    m_info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
+    m_file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
+
+    m_info_header.bit_count = 32;
+    m_info_header.compression = 3;
+    int row_stride = width * pixel_stride;
+    m_data.resize(row_stride * height);
+    m_file_header.file_size = m_file_header.offset_data + m_data.size();
+}
 
 void BMP::read(const char *filename)
 {
