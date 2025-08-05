@@ -105,6 +105,43 @@ TEST_CASE("Writing filters & masks with BMP files", "[bmp][write]") {
     }
 }
 
+TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
+    std::string bmp_path;
+    std::string cool_stamp_path = "../stamps/cool.bmp";
+    SECTION("creating and writing a BMP with a stamp succesfully") {
+        bmp_path = "test_data/output/100x100.bmp";
+        BMP dummy_image(100, 100);
+
+        BMP cool_stamp(cool_stamp_path.c_str());
+
+        REQUIRE_NOTHROW(dummy_image.stamp_name(cool_stamp));
+    }
+
+    SECTION("throws error when image is smaller than stamp") {
+        bmp_path = "test_data/output/20x20.bmp";
+        BMP dummy_image(20, 20);
+
+        BMP cool_stamp(cool_stamp_path.c_str());
+
+        REQUIRE_THROWS_WITH(dummy_image.stamp_name(cool_stamp), Catch::Contains("Stamp is larger"));
+    }
+
+    SECTION("writing and re-reading stamped bmp") {
+        bmp_path = "test_data/output/100x100.bmp";
+        BMP dummy_image(100, 100);
+        int dummy_image_non_bg_count = dummy_image.get_non_background_count();
+
+        BMP cool_stamp(cool_stamp_path.c_str());
+        dummy_image.stamp_name(cool_stamp);
+        dummy_image.write(bmp_path.c_str());
+
+        BMP dummy_image_read(bmp_path.c_str());
+        int dummy_image_read_non_bg_count = dummy_image_read.get_non_background_count();
+
+        REQUIRE(dummy_image_read_non_bg_count > dummy_image_non_bg_count);
+    }
+}
+
 TEST_CASE("Computing average colour in BMP images", "[bmp][pixel-analysis]") {
     std::string bmp_path;
     SECTION("returns 255 for solid_white.bmp") {
