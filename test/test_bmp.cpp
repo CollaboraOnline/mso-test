@@ -98,3 +98,29 @@ TEST_CASE("Computing average colour in BMP images", "[bmp][pixel-analysis]") {
         REQUIRE(white_black.get_background_value() == 127);
     }
 }
+
+TEST_CASE("Computer the number of pixels in background", "[bmp][pixel-analysis]") {
+    std::string bmp_path;
+    SECTION("returns no pixels in background for solid_white.bmp succesfully") {
+        bmp_path = "test_data/solid_white.bmp";
+        BMP solid_white (bmp_path.c_str());
+
+        REQUIRE(solid_white.get_non_background_count() == 0);
+    }
+
+    SECTION("returns no pixels in background for solid_black.bmp succesfully") {
+        bmp_path = "test_data/solid_black.bmp";
+        BMP solid_black (bmp_path.c_str());
+
+        REQUIRE(solid_black.get_non_background_count() == 0);
+    }
+
+    // half white and half black means the background value is 127, and pixels are either 0 or 255
+    SECTION("returns all pixels in background for white_black.bmp succesfully") {
+        bmp_path = "test_data/white_black.bmp";
+        BMP white_black (bmp_path.c_str());
+        int image_size = white_black.get_width() * white_black.get_height();
+
+        REQUIRE(white_black.get_non_background_count() == image_size);
+    }
+}
