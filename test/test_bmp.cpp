@@ -1,8 +1,11 @@
 #include <catch2/catch.hpp>
 #include "../src/bmp.hpp"
+#include "../src/pixel.hpp"
 
 #include <bit>
 #include <iostream>
+
+int get_red_count(const BMP& base);
 
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     std::string bmp_path;
@@ -72,6 +75,33 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
         REQUIRE(dummy_image_read.get_width() == dummy_image.get_width());
         REQUIRE(dummy_image_read.get_height() == dummy_image.get_height());
         REQUIRE(dummy_image_read.get_data() == dummy_image.get_data());
+    }
+}
+
+TEST_CASE("Writing filters & masks with BMP files", "[bmp][write]") {
+    std::string bmp_path;
+
+    SECTION("creating and writing a BMP with a edge_mask sucesfully") {
+        bmp_path = "test_data/output/100x100.bmp";
+        BMP dummy_image(100, 100);
+
+        std::vector<bool> edge_mask (100 * 100, true);
+        REQUIRE_NOTHROW(dummy_image.write_with_filter(bmp_path.c_str(), edge_mask));
+    }
+
+    SECTION("writes and re-reads a BMP with all red due to edge mask") {
+        bmp_path = "test_data/output/100x100.bmp";
+        BMP dummy_image(100, 100);
+        int dummy_image_red_count = get_red_count(dummy_image);
+
+        std::vector<bool> edge_mask (100 * 100, true);
+        dummy_image.write_with_filter(bmp_path.c_str(), edge_mask);
+
+        BMP dummy_image_read(bmp_path.c_str());
+        int dummy_image_read_red_count = get_red_count(dummy_image_read);
+
+        REQUIRE(dummy_image_red_count == 0);
+        REQUIRE(dummy_image_read_red_count == (int)(edge_mask.size() / pixel_stride));
     }
 }
 
@@ -253,3 +283,24 @@ TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
     }
 }
 
+// helper methods
+
+int get_red_count(const BMP& base)
+{
+    int red_count = 0;
+    for (int y = 0; y < base.get_height(); y++)
+    {
+        for (int x = 0; x < base.get_width(); x++)
+        {
+            int index = y * base.get_width() + x;
+            const std::uint8_t *base_row = &base.get_data()[index];
+            PixelValues base_pixel = Pixel::get_bgra(base_row);
+
+            if (Pixel::is_red(base_pixel))
+            {
+                red_count++;
+            }
+        }
+    }
+    return red_count;
+}
