@@ -23,6 +23,10 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(Catch2_CFLAGS) $(OBJS) -o $(TARGET) $(Catch2_LDFLAGS)
 
 -include $(OBJS:.o=.d)
-.PHONY: clean
+.PHONY: clean check
+
+check: $(TARGET)
+	./$(TARGET)
+
 clean:
 	rm -fr $(OBJ_DIR) $(TARGET)
