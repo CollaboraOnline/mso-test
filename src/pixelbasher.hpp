@@ -22,14 +22,6 @@
 class PixelBasher
 {
 public:
-    enum Colour
-    {
-        RED,
-        YELLOW,
-        DARK_YELLOW,
-        BLUE,
-        GREEN
-    };
     // Compares two BMP images and generates a diff image based on the differences (the diff is applied to the base image)
     static BMP compare_bmps(const BMP &original, const BMP &target, bool enable_minor_differences);
     static BMP compare_regressions(const BMP &original, const BMP &current, BMP &previous);

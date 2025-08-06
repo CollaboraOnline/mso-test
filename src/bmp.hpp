@@ -17,6 +17,8 @@
 #include <iostream>
 #include <vector>
 
+#include "pixel.hpp"
+
 #pragma pack(push, 1)
 struct BMPFileHeader
 {
@@ -43,8 +45,6 @@ struct BMPInfoHeader
 };
 #pragma pack(pop)
 
-constexpr int pixel_stride = 4;
-
 class BMP
 {
 public:
@@ -57,6 +57,7 @@ public:
     void stamp_name(BMP &stamp);
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename);
     void write_with_filter(const char *filename, std::vector<bool> filter_mask);
+    int calculate_colour_count(Colour to_compare) const;
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
     const std::vector<bool> &get_blurred_edge_mask() const { return m_blurred_edge_mask; }

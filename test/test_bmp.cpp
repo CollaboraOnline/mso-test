@@ -5,8 +5,6 @@
 #include <bit>
 #include <iostream>
 
-int get_red_count(const BMP& base);
-
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     std::string bmp_path;
     SECTION("read solid_white.bmp succesfully") {
@@ -92,13 +90,13 @@ TEST_CASE("Writing filters & masks with BMP files", "[bmp][write]") {
     SECTION("writes and re-reads a BMP with all red due to edge mask") {
         bmp_path = "test_data/output/100x100.bmp";
         BMP dummy_image(100, 100);
-        int dummy_image_red_count = get_red_count(dummy_image);
+        int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
 
         std::vector<bool> edge_mask (100 * 100, true);
         dummy_image.write_with_filter(bmp_path.c_str(), edge_mask);
 
         BMP dummy_image_read(bmp_path.c_str());
-        int dummy_image_read_red_count = get_red_count(dummy_image_read);
+        int dummy_image_read_red_count = dummy_image_read.calculate_colour_count(Colour::RED);
 
         REQUIRE(dummy_image_red_count == 0);
         REQUIRE(dummy_image_read_red_count == (int)(edge_mask.size() / pixel_stride));
@@ -318,26 +316,4 @@ TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
 
         REQUIRE(filtered_edge_count > 0);
     }
-}
-
-// helper methods
-
-int get_red_count(const BMP& base)
-{
-    int red_count = 0;
-    for (int y = 0; y < base.get_height(); y++)
-    {
-        for (int x = 0; x < base.get_width(); x++)
-        {
-            int index = y * base.get_width() + x;
-            const std::uint8_t *base_row = &base.get_data()[index];
-            PixelValues base_pixel = Pixel::get_bgra(base_row);
-
-            if (Pixel::is_red(base_pixel))
-            {
-                red_count++;
-            }
-        }
-    }
-    return red_count;
 }

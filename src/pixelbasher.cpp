@@ -135,7 +135,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
         if (minor_differences && near_edge && Pixel::differs_from(original, target, diff.get_background_value(), false))
         {
             diff.increment_red_count(1);
-            return colour_pixel(Colour::YELLOW);
+            return colour_to_pixel[Colour::YELLOW];
         }
         return original;
     }
@@ -143,7 +143,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
     if (vertical_edge)
     {
         diff.increment_yellow_count(1);
-        return colour_pixel(Colour::DARK_YELLOW);
+        return colour_to_pixel[Colour::DARK_YELLOW];
     }
 
     if (near_edge) {
@@ -151,7 +151,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
     }
 
     diff.increment_red_count(1);
-    return colour_pixel(Colour::RED);
+    return colour_to_pixel[Colour::RED];
 }
 
 PixelValues PixelBasher::compare_pixel_regression(PixelValues original, PixelValues current, PixelValues previous)
@@ -161,33 +161,15 @@ PixelValues PixelBasher::compare_pixel_regression(PixelValues original, PixelVal
 
     if (current_is_red && previous_is_red)
     {
-        return colour_pixel(Colour::BLUE); // error has remained
+        return colour_to_pixel[Colour::BLUE];
     }
     if (current_is_red && !previous_is_red)
     {
-        return colour_pixel(Colour::RED); // a regression
+        return colour_to_pixel[Colour::RED]; // a regression
     }
     if (!current_is_red && previous_is_red)
     {
-        return colour_pixel(Colour::GREEN); // a fix
+        return colour_to_pixel[Colour::GREEN]; // a fix
     }
     return original;
-}
-
-PixelValues PixelBasher::colour_pixel(Colour colour)
-{
-    switch (colour)
-    {
-    case Colour::YELLOW:
-        return {0, 197, 255, 255};
-    case Colour::DARK_YELLOW:
-        return {0, 128, 139, 255};
-    case Colour::RED:
-        return {0, 0, 255, 255};
-    case Colour::BLUE:
-        return {255, 0, 0, 255};
-    case Colour::GREEN:
-        return {0, 255, 0, 255};
-    }
-    assert(false);
 }
