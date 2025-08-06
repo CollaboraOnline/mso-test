@@ -7,49 +7,49 @@
 
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     std::string bmp_path;
-    SECTION("read solid_white.bmp succesfully") {
+    SECTION("Reads solid_white.bmp successfully") {
         bmp_path = "test_data/solid_white.bmp";
         BMP solid_white;
 
         REQUIRE_NOTHROW(solid_white.read(bmp_path.c_str()));
     }
 
-    SECTION("read solid_black.bmp succesfully") {
+    SECTION("Reads solid_black.bmp successfully") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black;
 
         REQUIRE_NOTHROW(solid_black.read(bmp_path.c_str()));
     }
 
-    SECTION("read white_black.bmp succesfully") {
+    SECTION("Reads white_black.bmp successfully") {
         bmp_path = "test_data/white_black.bmp";
         BMP black_white;
 
         REQUIRE_NOTHROW(black_white.read(bmp_path.c_str()));
     }
 
-    SECTION("read vertical_edges.bmp succesfully") {
+    SECTION("Reads vertical_edges.bmp successfully") {
         bmp_path = "test_data/vertical_edges.bmp";
         BMP vertical_edges;
 
         REQUIRE_NOTHROW(vertical_edges.read(bmp_path.c_str()));
     }
 
-    SECTION("read edges.bmp succesfully") {
+    SECTION("Reads edges.bmp successfully") {
         bmp_path = "test_data/edges.bmp";
         BMP edges;
 
         REQUIRE_NOTHROW(edges.read(bmp_path.c_str()));
     }
 
-    SECTION("throws error when reading non-BMP file") {
+    SECTION("Throws an error when reading non-BMP file") {
         bmp_path = "test_data/not_bmp.png";
         BMP not_bmp;
 
         REQUIRE_THROWS_WITH(not_bmp.read(bmp_path.c_str()), Catch::Contains("Not a BMP") && Catch::Contains("BM"));
     }
 
-    SECTION("throws error when reading 24-bit BMP") {
+    SECTION("Throws an error when reading 24-bit BMP") {
         bmp_path = "test_data/24_bit.bmp";
         BMP bad_image;
 
@@ -62,11 +62,11 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
     bmp_path = "test_data/output/100x100.bmp";
     BMP dummy_image(100, 100);
 
-    SECTION("creating and writes a 100x100 BMP succesfully") {
+    SECTION("Create and writes a 100x100 BMP successfully") {
         REQUIRE_NOTHROW(dummy_image.write(bmp_path.c_str()));
     }
 
-    SECTION("writes and re-reads 100x100 BMP with matching data") {
+    SECTION("Writes and re-reads 100x100 BMP with matching data") {
         dummy_image.write(bmp_path.c_str());
 
         BMP dummy_image_read(bmp_path.c_str());
@@ -76,19 +76,17 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
     }
 }
 
-TEST_CASE("Writing filters & masks with BMP files", "[bmp][write]") {
-    std::string bmp_path;
+TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
+    std::string bmp_path = "test_data/output/100x100.bmp";
 
-    SECTION("creating and writing a BMP with a edge_mask sucesfully") {
-        bmp_path = "test_data/output/100x100.bmp";
+    SECTION("Creates and writes a BMP with an edge_mask successfully") {
         BMP dummy_image(100, 100);
 
         std::vector<bool> edge_mask (100 * 100, true);
         REQUIRE_NOTHROW(dummy_image.write_with_filter(bmp_path.c_str(), edge_mask));
     }
 
-    SECTION("writes and re-reads a BMP with all red due to edge mask") {
-        bmp_path = "test_data/output/100x100.bmp";
+    SECTION("Writes and re-reads a BMP with all red due to edge mask") {
         BMP dummy_image(100, 100);
         int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
 
@@ -104,10 +102,9 @@ TEST_CASE("Writing filters & masks with BMP files", "[bmp][write]") {
 }
 
 TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
-    std::string bmp_path;
     std::string cool_stamp_path = "../stamps/cool.bmp";
-    SECTION("creating and writing a BMP with a stamp succesfully") {
-        bmp_path = "test_data/output/100x100.bmp";
+    SECTION("Creates and writes a BMP with a stamp successfully") {
+        std::string bmp_path = "test_data/output/100x100.bmp";
         BMP dummy_image(100, 100);
 
         BMP cool_stamp(cool_stamp_path.c_str());
@@ -115,8 +112,8 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
         REQUIRE_NOTHROW(dummy_image.stamp_name(cool_stamp));
     }
 
-    SECTION("throws error when image is smaller than stamp") {
-        bmp_path = "test_data/output/20x20.bmp";
+    SECTION("Throws an error when image is smaller than the stamp") {
+        std::string bmp_path = "test_data/output/20x20.bmp";
         BMP dummy_image(20, 20);
 
         BMP cool_stamp(cool_stamp_path.c_str());
@@ -124,8 +121,8 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
         REQUIRE_THROWS_WITH(dummy_image.stamp_name(cool_stamp), Catch::Contains("Stamp is larger"));
     }
 
-    SECTION("writing and re-reading stamped bmp") {
-        bmp_path = "test_data/output/100x100.bmp";
+    SECTION("Writes and re-reads a stamped bmp") {
+        std::string bmp_path = "test_data/output/100x100.bmp";
         BMP dummy_image(100, 100);
         int dummy_image_non_bg_count = dummy_image.get_non_background_count();
 
@@ -142,21 +139,21 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
 
 TEST_CASE("Computing average colour in BMP images", "[bmp][pixel-analysis]") {
     std::string bmp_path;
-    SECTION("returns 255 for solid_white.bmp") {
+    SECTION("Returns 255 for solid_white.bmp") {
         bmp_path = "test_data/solid_white.bmp";
         BMP solid_white (bmp_path.c_str());
 
         REQUIRE(solid_white.get_background_value() == 255);
     }
 
-    SECTION("returns 0 for solid_black.bmp") {
+    SECTION("Returns 0 for solid_black.bmp") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black (bmp_path.c_str());
 
         REQUIRE(solid_black.get_background_value() == 0);
     }
 
-    SECTION("returns 127 for white_black.bmp") {
+    SECTION("Returns 127 for white_black.bmp") {
         bmp_path = "test_data/white_black.bmp";
         BMP white_black (bmp_path.c_str());
 
@@ -164,16 +161,16 @@ TEST_CASE("Computing average colour in BMP images", "[bmp][pixel-analysis]") {
     }
 }
 
-TEST_CASE("Computer the number of pixels in background", "[bmp][pixel-analysis]") {
+TEST_CASE("Compute the number of pixels in background", "[bmp][pixel-analysis]") {
     std::string bmp_path;
-    SECTION("returns no pixels in background for solid_white.bmp succesfully") {
+    SECTION("Returns no pixels background pixels for solid_white.bmp successfully") {
         bmp_path = "test_data/solid_white.bmp";
         BMP solid_white (bmp_path.c_str());
 
         REQUIRE(solid_white.get_non_background_count() == 0);
     }
 
-    SECTION("returns no pixels in background for solid_black.bmp succesfully") {
+    SECTION("Returns no background pixels for solid_black.bmp successfully") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black (bmp_path.c_str());
 
@@ -181,7 +178,7 @@ TEST_CASE("Computer the number of pixels in background", "[bmp][pixel-analysis]"
     }
 
     // half white and half black means the background value is 127, and pixels are either 0 or 255
-    SECTION("returns all pixels in background for white_black.bmp succesfully") {
+    SECTION("Returns that all pixels are part of the background in white_black.bmp successfully") {
         bmp_path = "test_data/white_black.bmp";
         BMP white_black (bmp_path.c_str());
         int image_size = white_black.get_width() * white_black.get_height();
@@ -190,15 +187,15 @@ TEST_CASE("Computer the number of pixels in background", "[bmp][pixel-analysis]"
     }
 }
 
-TEST_CASE("setting the pixel data", "[bmp][set_data]") {
-    SECTION("throws error when new data doesn't mach original data size") {
+TEST_CASE("Setting the pixel data", "[bmp][set_data]") {
+    SECTION("Throws an error when new data doesn't match original data size") {
         BMP dummy_image(100, 100);
         std::vector<uint8_t> new_data((100 * pixel_stride) * 101, 0);
 
         REQUIRE_THROWS_WITH(dummy_image.set_data(new_data), Catch::Contains("differs"));
     }
 
-    SECTION("sets dummy data to new_data succesfully") {
+    SECTION("Sets dummy data to new_data successfully") {
         BMP dummy_image(100, 100);
         std::vector<uint8_t> new_data((100 * pixel_stride) * 100, 0);
 
@@ -206,9 +203,9 @@ TEST_CASE("setting the pixel data", "[bmp][set_data]") {
     }
 }
 
-TEST_CASE("running sobel edge detection", "[bmp][pixel-analysis]") {
+TEST_CASE("Running sobel edge detection", "[bmp][pixel-analysis]") {
     std::string bmp_path;
-    SECTION("returns no edges for solid_black.bmp") {
+    SECTION("Returns no edges for solid_black.bmp") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black (bmp_path.c_str());
 
@@ -216,7 +213,7 @@ TEST_CASE("running sobel edge detection", "[bmp][pixel-analysis]") {
         REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true) == 0);
     }
 
-    SECTION("returns that edges exist for edges.bmp") {
+    SECTION("Returns that edges exist for edges.bmp") {
         bmp_path = "test_data/edges.bmp";
         BMP edges (bmp_path.c_str());
 
@@ -224,7 +221,7 @@ TEST_CASE("running sobel edge detection", "[bmp][pixel-analysis]") {
         REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), true) > 0);
     }
 
-    SECTION("returns that edges exist for vertical_edges.bmp") {
+    SECTION("Returns that edges exist for vertical_edges.bmp") {
         bmp_path = "test_data/vertical_edges.bmp";
         BMP vertical_edges (bmp_path.c_str());
 
@@ -233,9 +230,9 @@ TEST_CASE("running sobel edge detection", "[bmp][pixel-analysis]") {
     }
 }
 
-TEST_CASE("blurring the sobel edge mask", "[bmp][pixel-analysis]") {
+TEST_CASE("Blurring the sobel edge mask", "[bmp][pixel-analysis]") {
     std::string bmp_path;
-    SECTION("sobel edge count remains the same as blurred edge mask") {
+    SECTION("Sobel edge count remains the same as blurred edge mask") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black (bmp_path.c_str());
 
@@ -249,7 +246,7 @@ TEST_CASE("blurring the sobel edge mask", "[bmp][pixel-analysis]") {
         REQUIRE(sobel_edge_count == blurred_edge_count);
     }
 
-    SECTION("returns a larger edge count for blurred edge mask than sobel edge mask") {
+    SECTION("Returns a larger edge count for blurred edge mask than sobel edge mask") {
         bmp_path = "test_data/edges.bmp";
         BMP edges (bmp_path.c_str());
 
@@ -264,9 +261,9 @@ TEST_CASE("blurring the sobel edge mask", "[bmp][pixel-analysis]") {
     }
 }
 
-TEST_CASE("running vertical edge detection", "[bmp][pixel-analysis]") {
+TEST_CASE("Running vertical edge detection", "[bmp][pixel-analysis]") {
     std::string bmp_path;
-    SECTION("returns no vertical edges for solid_black.bmp") {
+    SECTION("Returns no vertical edges for solid_black.bmp") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black (bmp_path.c_str());
 
@@ -274,7 +271,7 @@ TEST_CASE("running vertical edge detection", "[bmp][pixel-analysis]") {
         REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true) == 0);
     }
 
-    SECTION("returns that vertical edges exits for vertical_edges.bmp") {
+    SECTION("Returns that vertical edges exist for vertical_edges.bmp") {
         bmp_path = "test_data/vertical_edges.bmp";
         BMP vertical_edges (bmp_path.c_str());
 
@@ -283,7 +280,7 @@ TEST_CASE("running vertical edge detection", "[bmp][pixel-analysis]") {
     }
 }
 
-TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
+TEST_CASE("Running filtered vertical edge detection", "[bmp][pixel-analysis]") {
     std::string bmp_path;
     SECTION("filtered vertical edges returns the same as vertical edges") {
         bmp_path = "test_data/solid_black.bmp";
@@ -293,7 +290,7 @@ TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
         REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), true) == 0);
     }
 
-    SECTION("returns a smaller amount of vertical edges compared to total edges") {
+    SECTION("Returns a smaller amount of vertical edges compared to total edges") {
         bmp_path = "test_data/edges.bmp";
         BMP edges (bmp_path.c_str());
 
@@ -307,7 +304,7 @@ TEST_CASE("running filtered vertical edge detection", "[bmp][pixel-analysis]") {
     }
 
 
-    SECTION("returns a postive filtered edge count") {
+    SECTION("Returns a positive filtered edge count") {
         bmp_path = "test_data/vertical_edges.bmp";
         BMP vertical_edges (bmp_path.c_str());
 
