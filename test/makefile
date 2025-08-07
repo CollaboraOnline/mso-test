@@ -5,7 +5,7 @@ TARGET = unittest
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -I../src
 Catch2_CFLAGS = $(shell pkg-config --cflags catch2)
-Catch2_LDFLAGS = $(shell pkg-config --libs catch2)
+Catch2_LDFLAGS = $(shell pkg-config --libs catch2-with-main)
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 SRC_FILES = ../src/bmp.cpp ../src/pixelbasher.cpp

@@ -1,9 +1,11 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include "../src/bmp.hpp"
 #include "../src/pixel.hpp"
 
 #include <bit>
 #include <iostream>
+
+using Catch::Matchers::ContainsSubstring;
 
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     std::string bmp_path;
@@ -45,15 +47,14 @@ TEST_CASE("Read BMP files" , "[bmp][read]") {
     SECTION("Throws an error when reading non-BMP file") {
         bmp_path = "test_data/not_bmp.png";
         BMP not_bmp;
-
-        REQUIRE_THROWS_WITH(not_bmp.read(bmp_path.c_str()), Catch::Contains("Not a BMP") && Catch::Contains("BM"));
+        REQUIRE_THROWS_WITH(not_bmp.read(bmp_path.c_str()), ContainsSubstring("Not a BMP"));
     }
 
     SECTION("Throws an error when reading 24-bit BMP") {
         bmp_path = "test_data/24_bit.bmp";
         BMP bad_image;
 
-        REQUIRE_THROWS_WITH(bad_image.read(bmp_path.c_str()), Catch::Contains("32 bits") && Catch::Contains("RGBA"));
+        REQUIRE_THROWS_WITH(bad_image.read(bmp_path.c_str()), ContainsSubstring("32 bits") && ContainsSubstring("RGBA"));
     }
 }
 
@@ -118,7 +119,7 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
 
         BMP cool_stamp(cool_stamp_path.c_str());
 
-        REQUIRE_THROWS_WITH(dummy_image.stamp_name(cool_stamp), Catch::Contains("Stamp is larger"));
+        REQUIRE_THROWS_WITH(dummy_image.stamp_name(cool_stamp), ContainsSubstring("Stamp is larger"));
     }
 
     SECTION("Writes and re-reads a stamped bmp") {
@@ -192,7 +193,7 @@ TEST_CASE("Setting the pixel data", "[bmp][set_data]") {
         BMP dummy_image(100, 100);
         std::vector<uint8_t> new_data((100 * pixel_stride) * 101, 0);
 
-        REQUIRE_THROWS_WITH(dummy_image.set_data(new_data), Catch::Contains("differs"));
+        REQUIRE_THROWS_WITH(dummy_image.set_data(new_data), ContainsSubstring("differs"));
     }
 
     SECTION("Sets dummy data to new_data successfully") {
