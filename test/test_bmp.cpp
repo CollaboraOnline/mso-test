@@ -70,10 +70,10 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
     SECTION("Writes and re-reads 100x100 BMP with matching data") {
         dummy_image.write(bmp_path.c_str());
 
-        BMP dummy_image_read(bmp_path.c_str());
-        REQUIRE(dummy_image_read.get_width() == dummy_image.get_width());
-        REQUIRE(dummy_image_read.get_height() == dummy_image.get_height());
-        REQUIRE(dummy_image_read.get_data() == dummy_image.get_data());
+        BMP dummy_image_input(bmp_path.c_str());
+        REQUIRE(dummy_image_input.get_width() == dummy_image.get_width());
+        REQUIRE(dummy_image_input.get_height() == dummy_image.get_height());
+        REQUIRE(dummy_image_input.get_data() == dummy_image.get_data());
     }
 }
 
@@ -94,11 +94,11 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         std::vector<bool> edge_mask (100 * 100, true);
         dummy_image.write_with_filter(bmp_path.c_str(), edge_mask);
 
-        BMP dummy_image_read(bmp_path.c_str());
-        int dummy_image_read_red_count = dummy_image_read.calculate_colour_count(Colour::RED);
+        BMP dummy_image_input(bmp_path.c_str());
+        int dummy_image_input_red_count = dummy_image_input.calculate_colour_count(Colour::RED);
 
         REQUIRE(dummy_image_red_count == 0);
-        REQUIRE(dummy_image_read_red_count == (int)(edge_mask.size() / pixel_stride));
+        REQUIRE(dummy_image_input_red_count == (int)(edge_mask.size() / pixel_stride));
     }
 }
 
@@ -131,10 +131,10 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
         dummy_image.stamp_name(cool_stamp);
         dummy_image.write(bmp_path.c_str());
 
-        BMP dummy_image_read(bmp_path.c_str());
-        int dummy_image_read_non_bg_count = dummy_image_read.get_non_background_count();
+        BMP dummy_image_input(bmp_path.c_str());
+        int dummy_image_input_non_bg_count = dummy_image_input.get_non_background_count();
 
-        REQUIRE(dummy_image_read_non_bg_count > dummy_image_non_bg_count);
+        REQUIRE(dummy_image_input_non_bg_count > dummy_image_non_bg_count);
     }
 }
 
