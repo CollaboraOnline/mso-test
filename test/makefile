@@ -27,11 +27,12 @@ $(OBJ_DIR)/%.o: ../src/%.cpp
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(Catch2_CFLAGS) $(OBJS) -o $(TARGET) $(Catch2_LDFLAGS)
 
--include $(wildcard $(OBJS:.o=.d))
+-include $(OBJS:.o=.d)
 .PHONY: clean check
 
 check: $(TARGET)
+	mkdir -p test_data/output/
 	./$(TARGET)
 
 clean:
-	rm -fr $(OBJ_DIR) $(TARGET)
+	rm -fr $(OBJ_DIR) $(TARGET) test_data/output
