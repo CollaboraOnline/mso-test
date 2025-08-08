@@ -17,6 +17,8 @@
 #include <iostream>
 #include <vector>
 
+#include "pixel.hpp"
+
 #pragma pack(push, 1)
 struct BMPFileHeader
 {
@@ -43,22 +45,25 @@ struct BMPInfoHeader
 };
 #pragma pack(pop)
 
-constexpr int pixel_stride = 4;
-
 class BMP
 {
 public:
     BMP(const char *filename);
+    BMP(int width, int height, bool has_alpha = true);
     BMP();
+
     void read(const char *filename);
     void write(const char *filename);
     void stamp_name(BMP &stamp);
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename);
     void write_with_filter(const char *filename, std::vector<bool> filter_mask);
+    int calculate_colour_count(Colour to_compare) const;
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
     const std::vector<bool> &get_blurred_edge_mask() const { return m_blurred_edge_mask; }
+    const std::vector<bool> &get_filtererd_vertical_edge_mask() const { return m_filtered_vertical_edges; }
     const std::vector<bool> &get_vertical_edge_mask() const { return m_vertical_edges; }
+    const std::vector<bool> &get_sobel_edge_mask() const { return m_soble_edge_mask; }
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
     int get_red_count() const { return m_red_count; }
@@ -92,8 +97,11 @@ private:
     BMPInfoHeader m_info_header;
 
     std::vector<std::uint8_t> m_data;
+    std::vector<bool> m_soble_edge_mask;
     std::vector<bool> m_blurred_edge_mask;
     std::vector<bool> m_vertical_edges;
+    std::vector<bool> m_filtered_vertical_edges;
+
     int m_red_count = 0;
     int m_yellow_count = 0;
     int m_background_value = 0; // used to determine background colour
