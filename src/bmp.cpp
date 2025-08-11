@@ -70,11 +70,10 @@ BMP::BMP(int width, int height, bool has_alpha)
     m_info_header.compression = 3;
     m_info_header.x_per_meter = 0;
     m_info_header.y_per_meter = 0;
-
     m_info_header.colours_used = 0;
     m_info_header.colours_important = 0;
 
-    int row_stride = width * 4;
+    int row_stride = width * pixel_stride;
     m_data.resize(row_stride * height, 0);
 
     m_info_header.size_image = m_data.size();

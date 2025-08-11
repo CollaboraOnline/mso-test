@@ -91,9 +91,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
     SECTION("Writes and re-reads a BMP with all red due to edge mask") {
         std::string bmp_path = "test_data/output/write-filter-read.bmp";
         BMP dummy_image(100, 100);
-        const int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
-
-        std::cout << dummy_image_red_count;
+        int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
 
         std::vector<bool> edge_mask (100 * 100, true);
         dummy_image.write_with_filter(bmp_path.c_str(), edge_mask);
@@ -101,7 +99,6 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         BMP dummy_image_input(bmp_path.c_str());
         int dummy_image_input_red_count = dummy_image_input.calculate_colour_count(Colour::RED);
 
-        std::cout << dummy_image_red_count << " again";
         REQUIRE(dummy_image_red_count == 0);
         REQUIRE(dummy_image_input_red_count == (int)(edge_mask.size() / pixel_stride));
     }
