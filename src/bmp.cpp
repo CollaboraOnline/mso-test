@@ -58,19 +58,26 @@ BMP::BMP(int width, int height, bool has_alpha)
         throw std::runtime_error("The image width and height values must positive");
     }
 
-    // Setup correct values for info header and file header
     m_file_header.file_type = 0x4D42;
-    m_info_header.planes = 1;
+    m_file_header.placeholder_1 = 0;
+    m_file_header.placeholder_2 = 0;
+    m_file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
+    m_info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
     m_info_header.width = width;
     m_info_header.height = height;
-
-    m_info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
-    m_file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
-
+    m_info_header.planes = 1;
     m_info_header.bit_count = 32;
     m_info_header.compression = 3;
-    int row_stride = width * pixel_stride;
-    m_data.resize(row_stride * height);
+    m_info_header.x_per_meter = 0;
+    m_info_header.y_per_meter = 0;
+
+    m_info_header.colours_used = 0;
+    m_info_header.colours_important = 0;
+
+    int row_stride = width * 4;
+    m_data.resize(row_stride * height, 0);
+
+    m_info_header.size_image = m_data.size();
     m_file_header.file_size = m_file_header.offset_data + m_data.size();
 }
 

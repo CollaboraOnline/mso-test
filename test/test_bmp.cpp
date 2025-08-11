@@ -60,14 +60,16 @@ TEST_CASE("Read BMP files" , "[bmp][read]") {
 
 TEST_CASE("Writing BMP files", "[bmp][write]") {
     std::string bmp_path;
-    bmp_path = "test_data/output/100x100.bmp";
-    BMP dummy_image(100, 100);
 
     SECTION("Create and writes a 100x100 BMP successfully") {
+        BMP dummy_image(100, 100);
+        bmp_path = "test_data/output/write-100x100.bmp";
         REQUIRE_NOTHROW(dummy_image.write(bmp_path.c_str()));
     }
 
     SECTION("Writes and re-reads 100x100 BMP with matching data") {
+        BMP dummy_image(100, 100);
+        bmp_path = "test_data/output/write-read-100x100.bmp";
         dummy_image.write(bmp_path.c_str());
 
         BMP dummy_image_input(bmp_path.c_str());
@@ -78,9 +80,8 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
 }
 
 TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
-    std::string bmp_path = "test_data/output/100x100.bmp";
-
     SECTION("Creates and writes a BMP with an edge_mask successfully") {
+        std::string bmp_path = "test_data/output/write-filter.bmp";
         BMP dummy_image(100, 100);
 
         std::vector<bool> edge_mask (100 * 100, true);
@@ -88,8 +89,11 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
     }
 
     SECTION("Writes and re-reads a BMP with all red due to edge mask") {
+        std::string bmp_path = "test_data/output/write-filter-read.bmp";
         BMP dummy_image(100, 100);
-        int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
+        const int dummy_image_red_count = dummy_image.calculate_colour_count(Colour::RED);
+
+        std::cout << dummy_image_red_count;
 
         std::vector<bool> edge_mask (100 * 100, true);
         dummy_image.write_with_filter(bmp_path.c_str(), edge_mask);
@@ -97,6 +101,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         BMP dummy_image_input(bmp_path.c_str());
         int dummy_image_input_red_count = dummy_image_input.calculate_colour_count(Colour::RED);
 
+        std::cout << dummy_image_red_count << " again";
         REQUIRE(dummy_image_red_count == 0);
         REQUIRE(dummy_image_input_red_count == (int)(edge_mask.size() / pixel_stride));
     }
@@ -105,7 +110,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
 TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
     std::string cool_stamp_path = "../stamps/cool.bmp";
     SECTION("Creates and writes a BMP with a stamp successfully") {
-        std::string bmp_path = "test_data/output/100x100.bmp";
+        std::string bmp_path = "test_data/output/write-stamp.bmp";
         BMP dummy_image(100, 100);
 
         BMP cool_stamp(cool_stamp_path.c_str());
@@ -123,7 +128,7 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
     }
 
     SECTION("Writes and re-reads a stamped bmp") {
-        std::string bmp_path = "test_data/output/100x100.bmp";
+        std::string bmp_path = "test_data/output/write-stamp-read.bmp";
         BMP dummy_image(100, 100);
         int dummy_image_non_bg_count = dummy_image.get_non_background_count();
 
