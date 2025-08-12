@@ -100,7 +100,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         int dummy_image_input_red_count = dummy_image_input.calculate_colour_count(Colour::RED);
 
         REQUIRE(dummy_image_red_count == 0);
-        REQUIRE(dummy_image_input_red_count == (int)(edge_mask.size() / pixel_stride));
+        REQUIRE(dummy_image_input_red_count == (int)edge_mask.size());
     }
 }
 
