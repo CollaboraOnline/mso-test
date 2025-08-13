@@ -30,17 +30,18 @@ const static BMPColourHeader colour_header = {
     0x000000ff,
     0xff000000,
     0x73524742,
-    {}};
+    {}
+};
 
 BMP::BMP(const char *filename)
 {
     read(filename);
+
+    // calculate & store invariants
     m_background_value = get_average_colour();
     m_non_background_count = get_non_background_pixel_count(m_background_value);
-
     m_sobel_edge_mask = sobel_edges<245>();
     m_blurred_edge_mask = blur_edge_mask(m_sobel_edge_mask);
-
     m_vertical_edges = get_vertical_edges<245>();
     m_filtered_vertical_edges = filter_long_vertical_edge_runs(m_vertical_edges, 10);
 }
@@ -78,6 +79,14 @@ BMP::BMP(int width, int height, bool has_alpha)
 
     m_info_header.size_image = m_data.size();
     m_file_header.file_size = m_file_header.offset_data + m_data.size();
+
+    // calculate & store invariants
+    m_background_value = get_average_colour();
+    m_non_background_count = get_non_background_pixel_count(m_background_value);
+    m_sobel_edge_mask = sobel_edges<245>();
+    m_blurred_edge_mask = blur_edge_mask(m_sobel_edge_mask);
+    m_vertical_edges = get_vertical_edges<245>();
+    m_filtered_vertical_edges = filter_long_vertical_edge_runs(m_vertical_edges, 10);
 }
 
 void BMP::read(const char *filename)
@@ -180,30 +189,40 @@ void BMP::write_with_filter(const char *filename, std::vector<bool> filter_mask)
     write(filename);
 }
 
-void BMP::stamp_name(BMP &stamp)
+BMP BMP::stamp_name(const BMP& base, const BMP &stamp)
 {
-    const auto &stamp_data = stamp.get_data();
-    const std::size_t stamp_row_stride = stamp.get_width() * 4;
-    const std::size_t base_row_stride = get_width() * 4;
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    const int stamp_width = stamp.get_width();
+    const int stamp_height = stamp.get_height();
 
-    if (stamp.get_width() > get_width() || stamp.get_height() > get_height())
+    BMP copy(base);
+    std::vector<uint8_t> copy_data = copy.get_data();
+    const auto &stamp_data = stamp.get_data();
+    const std::size_t stamp_row_stride = stamp_width * 4;
+    const std::size_t base_row_stride = base_width * 4;
+
+
+    if (stamp_width > base_width || stamp_height > base_height)
     {
         throw std::runtime_error("Stamp is larger than base image");
     }
 
-    for (int y = 0; y < stamp.get_height(); ++y)
+    for (int y = 0; y < stamp_height; ++y)
     {
-        for (int x = 0; x < stamp.get_width(); ++x)
+        for (int x = 0; x < stamp_width; ++x)
         {
-            std::size_t stamp_index = (stamp.get_height() - 1 - y) * stamp_row_stride + x * 4;
-            std::size_t base_index = (m_info_header.height - 1 - y) * base_row_stride + x * 4;
+            std::size_t stamp_index = (stamp_height - 1 - y) * stamp_row_stride + x * 4;
+            std::size_t base_index = (base_height - 1 - y) * base_row_stride + x * 4;
 
             for (int b = 0; b < 4; ++b)
             {
-                m_data[base_index + b] = stamp_data[stamp_index + b];
+                copy_data[base_index + b] = stamp_data[stamp_index + b];
             }
         }
     }
+    copy.set_data(copy_data);
+    return copy;
 }
 
 void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename)
@@ -244,13 +263,9 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     BMP ms_office_stamp(ms_office_location.c_str());
     BMP cool_stamp(cool_location.c_str());
 
-    BMP diff_copy(diff);
-    BMP base_copy(base);
-    BMP target_copy(target);
-
-    diff_copy.stamp_name(diff_stamp);
-    base_copy.stamp_name(ms_office_stamp);
-    target_copy.stamp_name(cool_stamp);
+    BMP diff_copy = BMP::stamp_name(diff, diff_stamp);
+    BMP base_copy = BMP::stamp_name(base, ms_office_stamp);
+    BMP target_copy = BMP::stamp_name(target, cool_stamp);
 
     for (int y = 0; y < height; ++y)
     {
