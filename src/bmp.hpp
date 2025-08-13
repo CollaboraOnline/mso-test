@@ -61,9 +61,9 @@ public:
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
     const std::vector<bool> &get_blurred_edge_mask() const { return m_blurred_edge_mask; }
-    const std::vector<bool> &get_filtererd_vertical_edge_mask() const { return m_filtered_vertical_edges; }
+    const std::vector<bool> &get_filtered_vertical_edge_mask() const { return m_filtered_vertical_edges; }
     const std::vector<bool> &get_vertical_edge_mask() const { return m_vertical_edges; }
-    const std::vector<bool> &get_sobel_edge_mask() const { return m_soble_edge_mask; }
+    const std::vector<bool> &get_sobel_edge_mask() const { return m_sobel_edge_mask; }
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
     int get_red_count() const { return m_red_count; }
@@ -97,7 +97,7 @@ private:
     BMPInfoHeader m_info_header;
 
     std::vector<std::uint8_t> m_data;
-    std::vector<bool> m_soble_edge_mask;
+    std::vector<bool> m_sobel_edge_mask;
     std::vector<bool> m_blurred_edge_mask;
     std::vector<bool> m_vertical_edges;
     std::vector<bool> m_filtered_vertical_edges;
