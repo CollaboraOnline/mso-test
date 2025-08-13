@@ -168,25 +168,30 @@ void BMP::write(std::string filename)
     }
 }
 
-void BMP::write_with_filter(std::string filename, std::vector<bool> filter_mask)
+void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask)
 {
-    for (int y = 0; y < m_info_header.height; y++)
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    BMP copy(base);
+    std::vector<uint8_t> copy_data = base.get_data();
+    for (int y = 0; y < base_height; y++)
     {
-        for (int x = 0; x < m_info_header.width; x++)
+        for (int x = 0; x < base_width; x++)
         {
-            int index = y * m_info_header.width + x;
+            int index = y * base_width + x;
             int byte_index = index * 4;
 
             if (filter_mask[index])
             {
-                m_data[byte_index + 0] = 0;
-                m_data[byte_index + 1] = 0;
-                m_data[byte_index + 2] = 255;
-                m_data[byte_index + 3] = 255;
+                copy_data[byte_index + 0] = 0;
+                copy_data[byte_index + 1] = 0;
+                copy_data[byte_index + 2] = 255;
+                copy_data[byte_index + 3] = 255;
             }
         }
     }
-    write(filename);
+    copy.set_data(copy_data);
+    copy.write(filename);
 }
 
 BMP BMP::stamp_name(const BMP& base, const BMP &stamp)

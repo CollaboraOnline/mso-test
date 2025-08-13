@@ -61,7 +61,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         BMP dummy_image(100, 100);
         std::vector<bool> edge_mask (100 * 100, true);
 
-        REQUIRE_NOTHROW(dummy_image.write_with_filter("test_data/output/write-filter.bmp", edge_mask));
+        REQUIRE_NOTHROW(BMP::write_with_filter(dummy_image, "test_data/output/write-filter.bmp", edge_mask));
     }
 
     SECTION("Writes and re-reads a BMP with all red due to edge mask") {
@@ -70,7 +70,7 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         int dummy_image_red_count = BMP::calculate_colour_count(dummy_image, Colour::RED);
 
         std::vector<bool> edge_mask (100 * 100, true);
-        dummy_image.write_with_filter(bmp_path, edge_mask);
+        BMP::write_with_filter(dummy_image, bmp_path, edge_mask);
 
         BMP dummy_image_input(bmp_path);
         int dummy_image_input_red_count = BMP::calculate_colour_count(dummy_image_input, Colour::RED);

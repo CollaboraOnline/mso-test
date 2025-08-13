@@ -56,7 +56,7 @@ public:
     static BMP stamp_name(const BMP &base, const BMP &stamp);
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename);
     static int calculate_colour_count(const BMP& base, Colour to_compare);
-    void write_with_filter(std::string filename, std::vector<bool> filter_mask);
+    static void write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask);
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
     const std::vector<bool> &get_blurred_edge_mask() const { return m_blurred_edge_mask; }
