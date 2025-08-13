@@ -11,50 +11,46 @@ TEST_CASE("Read BMP files" , "[bmp][read]") {
     std::string bmp_path;
     SECTION("Reads solid_white.bmp successfully") {
         bmp_path = "test_data/solid_white.bmp";
-        BMP solid_white;
 
-        REQUIRE_NOTHROW(solid_white.read(bmp_path.c_str()));
+        REQUIRE_NOTHROW(new BMP(bmp_path.c_str()));
     }
 
     SECTION("Reads solid_black.bmp successfully") {
         bmp_path = "test_data/solid_black.bmp";
         BMP solid_black;
 
-        REQUIRE_NOTHROW(solid_black.read(bmp_path.c_str()));
+        REQUIRE_NOTHROW(new BMP(bmp_path.c_str()));
     }
 
     SECTION("Reads white_black.bmp successfully") {
         bmp_path = "test_data/white_black.bmp";
-        BMP black_white;
 
-        REQUIRE_NOTHROW(black_white.read(bmp_path.c_str()));
+        REQUIRE_NOTHROW(new BMP(bmp_path.c_str()));
     }
 
     SECTION("Reads vertical_edges.bmp successfully") {
         bmp_path = "test_data/vertical_edges.bmp";
-        BMP vertical_edges;
 
-        REQUIRE_NOTHROW(vertical_edges.read(bmp_path.c_str()));
+        REQUIRE_NOTHROW(new BMP(bmp_path.c_str()));
     }
 
     SECTION("Reads edges.bmp successfully") {
         bmp_path = "test_data/edges.bmp";
-        BMP edges;
 
-        REQUIRE_NOTHROW(edges.read(bmp_path.c_str()));
+        REQUIRE_NOTHROW(new BMP(bmp_path.c_str()));
     }
 
     SECTION("Throws an error when reading non-BMP file") {
         bmp_path = "test_data/not_bmp.png";
         BMP not_bmp;
-        REQUIRE_THROWS_WITH(not_bmp.read(bmp_path.c_str()), ContainsSubstring("Not a BMP"));
+        REQUIRE_THROWS_WITH(new BMP(bmp_path.c_str()), ContainsSubstring("Not a BMP"));
     }
 
     SECTION("Throws an error when reading 24-bit BMP") {
         bmp_path = "test_data/24_bit.bmp";
         BMP bad_image;
 
-        REQUIRE_THROWS_WITH(bad_image.read(bmp_path.c_str()), ContainsSubstring("32 bits") && ContainsSubstring("RGBA"));
+        REQUIRE_THROWS_WITH(new BMP(bmp_path.c_str()), ContainsSubstring("32 bits") && ContainsSubstring("RGBA"));
     }
 }
 
@@ -112,7 +108,7 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
 
         BMP cool_stamp(cool_stamp_path.c_str());
 
-        REQUIRE_NOTHROW(dummy_image.stamp_name(cool_stamp));
+        REQUIRE_NOTHROW(BMP::stamp_name(dummy_image, cool_stamp));
     }
 
     SECTION("Throws an error when image is smaller than the stamp") {
@@ -121,7 +117,7 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
 
         BMP cool_stamp(cool_stamp_path.c_str());
 
-        REQUIRE_THROWS_WITH(dummy_image.stamp_name(cool_stamp), ContainsSubstring("Stamp is larger"));
+        REQUIRE_THROWS_WITH(BMP::stamp_name(dummy_image, cool_stamp), ContainsSubstring("Stamp is larger"));
     }
 
     SECTION("Writes and re-reads a stamped bmp") {
@@ -130,8 +126,8 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
         int dummy_image_non_bg_count = dummy_image.get_non_background_count();
 
         BMP cool_stamp(cool_stamp_path.c_str());
-        dummy_image.stamp_name(cool_stamp);
-        dummy_image.write(bmp_path.c_str());
+        BMP dummy_image_stamped = BMP::stamp_name(dummy_image, cool_stamp);
+        dummy_image_stamped.write(bmp_path.c_str());
 
         BMP dummy_image_input(bmp_path.c_str());
         int dummy_image_input_non_bg_count = dummy_image_input.get_non_background_count();

@@ -52,9 +52,8 @@ public:
     BMP(int width, int height, bool has_alpha = true);
     BMP();
 
-    void read(const char *filename);
     void write(const char *filename);
-    void stamp_name(BMP &stamp);
+    static BMP stamp_name(const BMP &base, const BMP &stamp);
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename);
     void write_with_filter(const char *filename, std::vector<bool> filter_mask);
     int calculate_colour_count(Colour to_compare) const;
@@ -76,6 +75,8 @@ public:
     void set_data(std::vector<std::uint8_t> &new_data);
 
 private:
+    void read(const char *filename);
+
     int get_average_colour() const;
     int get_non_background_pixel_count(int background_value) const;
 
