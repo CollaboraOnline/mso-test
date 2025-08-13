@@ -9,31 +9,31 @@ using Catch::Matchers::ContainsSubstring;
 
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     SECTION("Reads solid_white.bmp successfully") {
-        REQUIRE_NOTHROW(new BMP("test_data/solid_white.bmp"));
+        REQUIRE_NOTHROW(BMP("test_data/solid_white.bmp"));
     }
 
     SECTION("Reads solid_black.bmp successfully") {
-        REQUIRE_NOTHROW(new BMP("test_data/solid_black.bmp"));
+        REQUIRE_NOTHROW(BMP("test_data/solid_black.bmp"));
     }
 
     SECTION("Reads white_black.bmp successfully") {
-        REQUIRE_NOTHROW(new BMP("test_data/white_black.bmp"));
+        REQUIRE_NOTHROW(BMP("test_data/white_black.bmp"));
     }
 
     SECTION("Reads vertical_edges.bmp successfully") {
-        REQUIRE_NOTHROW(new BMP("test_data/vertical_edges.bmp"));
+        REQUIRE_NOTHROW(BMP("test_data/vertical_edges.bmp"));
     }
 
     SECTION("Reads edges.bmp successfully") {
-        REQUIRE_NOTHROW(new BMP("test_data/edges.bmp"));
+        REQUIRE_NOTHROW(BMP("test_data/edges.bmp"));
     }
 
     SECTION("Throws an error when reading non-BMP file") {
-        REQUIRE_THROWS_WITH(new BMP("test_data/not_bmp.png"), ContainsSubstring("Not a BMP"));
+        REQUIRE_THROWS_WITH(BMP("test_data/not_bmp.png"), ContainsSubstring("Not a BMP"));
     }
 
     SECTION("Throws an error when reading 24-bit BMP") {
-        REQUIRE_THROWS_WITH(new BMP("test_data/24_bit.bmp"), ContainsSubstring("32 bits") && ContainsSubstring("RGBA"));
+        REQUIRE_THROWS_WITH(BMP("test_data/24_bit.bmp"), ContainsSubstring("32 bits") && ContainsSubstring("RGBA"));
     }
 }
 
