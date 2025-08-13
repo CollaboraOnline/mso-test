@@ -33,7 +33,7 @@ const static BMPColourHeader colour_header = {
     {}
 };
 
-BMP::BMP(const char *filename)
+BMP::BMP(std::string filename)
 {
     read(filename);
 
@@ -89,7 +89,7 @@ BMP::BMP(int width, int height, bool has_alpha)
     m_filtered_vertical_edges = filter_long_vertical_edge_runs(m_vertical_edges, 10);
 }
 
-void BMP::read(const char *filename)
+void BMP::read(std::string filename)
 {
     static_assert(std::endian::native == std::endian::little, "This code only works for little endian");
     std::ifstream input{filename, std::ios_base::binary};
@@ -138,7 +138,7 @@ void BMP::read(const char *filename)
     }
 }
 
-void BMP::write(const char *filename)
+void BMP::write(std::string filename)
 {
     std::ofstream output{filename, std::ios_base::binary};
     if (!output)
@@ -168,7 +168,7 @@ void BMP::write(const char *filename)
     }
 }
 
-void BMP::write_with_filter(const char *filename, std::vector<bool> filter_mask)
+void BMP::write_with_filter(std::string filename, std::vector<bool> filter_mask)
 {
     for (int y = 0; y < m_info_header.height; y++)
     {
@@ -225,7 +225,7 @@ BMP BMP::stamp_name(const BMP& base, const BMP &stamp)
     return copy;
 }
 
-void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename)
+void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename)
 {
     if (diff.get_height() != base.get_height() || base.get_height() != target.get_height() ||
         diff.get_width() != base.get_width() || base.get_width() != target.get_width())
@@ -259,9 +259,9 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     std::string ms_office_location = stamp_location + "/ms-office.bmp";
     std::string cool_location = stamp_location + "/cool.bmp";
 
-    BMP diff_stamp(diff_location.c_str());
-    BMP ms_office_stamp(ms_office_location.c_str());
-    BMP cool_stamp(cool_location.c_str());
+    BMP diff_stamp(diff_location);
+    BMP ms_office_stamp(ms_office_location);
+    BMP cool_stamp(cool_location);
 
     BMP diff_copy = BMP::stamp_name(diff, diff_stamp);
     BMP base_copy = BMP::stamp_name(base, ms_office_stamp);
