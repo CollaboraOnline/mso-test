@@ -250,20 +250,20 @@ int main(int argc, char *argv[])
             if (!args.no_save_overlay || force_save_import)
             {
                 std::string output_path = args.import_dir + "/" + args.basename + "_import-" + page_ext;
-                lo_diff.write(output_path.c_str());
+                lo_diff.write(output_path);
 
                 if (args.lo_previous)
                 {
                     output_path = args.import_dir + "/" + args.basename + "_prev-import-" + page_ext;
-                    lo_previous_diff.write(output_path.c_str());
+                    lo_previous_diff.write(output_path);
 
                     output_path = args.import_compare_dir + "/" + args.basename + "_import-compare-" + page_ext;
-                    lo_compare.write(output_path.c_str());
+                    lo_compare.write(output_path);
 
                     if (args.image_dump)
                     {
                         output_path = args.image_dump_dir + "/" + args.basename + "_import-compare-" + page_ext;
-                        lo_compare.write(output_path.c_str());
+                        lo_compare.write(output_path);
                     }
                 }
             }
@@ -271,20 +271,20 @@ int main(int argc, char *argv[])
             if (!args.no_save_overlay || force_save_export)
             {
                 std::string output_path = args.export_dir + "/" + args.basename + "_export-" + page_ext;
-                ms_conv_diff.write(output_path.c_str());
+                ms_conv_diff.write(output_path);
 
                 if (args.ms_previous)
                 {
                     output_path = args.export_dir + "/" + args.basename + "_prev-export-" + page_ext;
-                    ms_conv_previous_diff.write(output_path.c_str());
+                    ms_conv_previous_diff.write(output_path);
 
                     output_path = args.export_compare_dir + "/" + args.basename + "_export-compare-" + page_ext;
-                    ms_conv_compare.write(output_path.c_str());
+                    ms_conv_compare.write(output_path);
 
                     if (args.image_dump)
                     {
                         std::string output_path = args.image_dump_dir + "/" + args.basename + "_export-compare-" + page_ext;
-                        ms_conv_compare.write(output_path.c_str());
+                        ms_conv_compare.write(output_path);
                     }
                 }
             }
@@ -292,41 +292,41 @@ int main(int argc, char *argv[])
             if (args.image_dump)
             {
                 std::string output_path = args.image_dump_dir + "/" + args.basename + "_authoritative_original-" + page_ext;
-                base.write(output_path.c_str());
+                base.write(output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_import-grayscale-" + page_ext;
-                lo.write(output_path.c_str());
+                lo.write(output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_export-grayscale-" + page_ext;
-                ms_conv.write(output_path.c_str());
+                ms_conv.write(output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_import-overlay-" + page_ext;
-                lo_diff.write(output_path.c_str());
+                lo_diff.write(output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_export-overlay-" + page_ext;
-                ms_conv_diff.write(output_path.c_str());
+                ms_conv_diff.write(output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_import-side-by-side-" + page_ext;
-                BMP::write_side_by_side(lo_diff, base, lo, args.stamp_dir, output_path.c_str());
+                BMP::write_side_by_side(lo_diff, base, lo, args.stamp_dir, output_path);
 
                 output_path = args.image_dump_dir + "/" + args.basename + "_export-side-by-side-" + page_ext;
-                BMP::write_side_by_side(ms_conv_diff, base, ms_conv, args.stamp_dir, output_path.c_str());
+                BMP::write_side_by_side(ms_conv_diff, base, ms_conv, args.stamp_dir, output_path);
 
                 if (args.lo_previous)
                 {
                     output_path = args.image_dump_dir + "/" + args.basename + "_prev-import-grayscale-" + page_ext;
-                    lo_previous.write(output_path.c_str());
+                    lo_previous.write(output_path);
 
                     output_path = args.image_dump_dir + "/" + args.basename + "_prev-import-overlay-" + page_ext;
-                    lo_previous_diff.write(output_path.c_str());
+                    lo_previous_diff.write(output_path);
                 }
                 if (args.ms_previous)
                 {
                     output_path = args.image_dump_dir + "/" + args.basename + "_prev-export-grayscale-" + page_ext;
-                    ms_conv_previous.write(output_path.c_str());
+                    ms_conv_previous.write(output_path);
 
                     output_path = args.image_dump_dir + "/" + args.basename + "_prev-export-overlay-" + page_ext;
-                    ms_conv_previous_diff.write(output_path.c_str());
+                    ms_conv_previous_diff.write(output_path);
                 }
             }
 
@@ -335,13 +335,13 @@ int main(int argc, char *argv[])
 
             // for debugging
             // std::string filter_path = args.import_dir + "/" + args.basename + "_import-vertical-edges" + page_ext;
-            // lo.write_with_filter(filter_path.c_str(), lo.get_vertical_edge_mask());
+            // lo.write_with_filter(filter_path, lo.get_vertical_edge_mask());
 
             // filter_path = args.import_dir + "/" + args.basename + "_import-blurred-edges" + page_ext;
-            // lo.write_with_filter(filter_path.c_str(), lo.get_blurred_edge_mask());
+            // lo.write_with_filter(filter_path, lo.get_blurred_edge_mask());
 
             // filter_path = args.import_dir + "/" + args.basename + "_origin-vertical-edges" + page_ext;
-            // base.write_with_filter(filter_path.c_str(), base.get_vertical_edge_mask());
+            // base.write_with_filter(filter_path, base.get_vertical_edge_mask());
         }
     }
     catch (const std::exception &e)

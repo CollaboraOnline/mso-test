@@ -48,14 +48,14 @@ struct BMPInfoHeader
 class BMP
 {
 public:
-    BMP(const char *filename);
+    BMP(std::string filename);
     BMP(int width, int height, bool has_alpha = true);
     BMP();
 
-    void write(const char *filename);
+    void write(std::string filename);
     static BMP stamp_name(const BMP &base, const BMP &stamp);
-    static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename);
-    void write_with_filter(const char *filename, std::vector<bool> filter_mask);
+    static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename);
+    void write_with_filter(std::string filename, std::vector<bool> filter_mask);
     int calculate_colour_count(Colour to_compare) const;
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
@@ -75,7 +75,7 @@ public:
     void set_data(std::vector<std::uint8_t> &new_data);
 
 private:
-    void read(const char *filename);
+    void read(std::string filename);
 
     int get_average_colour() const;
     int get_non_background_pixel_count(int background_value) const;
