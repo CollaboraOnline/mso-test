@@ -335,13 +335,13 @@ int main(int argc, char *argv[])
 
             // for debugging
             // std::string filter_path = args.import_dir + "/" + args.basename + "_import-vertical-edges" + page_ext;
-            // lo.write_with_filter(filter_path, lo.get_vertical_edge_mask());
+            // BMP::write_with_filter(lo, filter_path, lo.get_vertical_edge_mask());
 
             // filter_path = args.import_dir + "/" + args.basename + "_import-blurred-edges" + page_ext;
-            // lo.write_with_filter(filter_path, lo.get_blurred_edge_mask());
+            // BMP::write_with_filter(lo, filter_path, lo.get_blurred_edge_mask());
 
             // filter_path = args.import_dir + "/" + args.basename + "_origin-vertical-edges" + page_ext;
-            // base.write_with_filter(filter_path, base.get_vertical_edge_mask());
+            // BMP::write_with_filter(base, filter_path, base.get_vertical_edge_mask());
         }
     }
     catch (const std::exception &e)
