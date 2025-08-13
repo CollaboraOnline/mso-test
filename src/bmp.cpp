@@ -530,15 +530,18 @@ std::array<int, 2> BMP::get_sobel_gradients(int y, int x, const std::vector<std:
     return {g_x, g_y};
 }
 
-int BMP::calculate_colour_count(Colour to_compare) const
+int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
 {
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    const std::vector<uint8_t> &base_data = base.get_data();
     int colour_count = 0;
-    for (int y = 0; y < m_info_header.height; y++)
+    for (int y = 0; y < base_height; y++)
     {
-        for (int x = 0; x < m_info_header.width; x++)
+        for (int x = 0; x < base_width; x++)
         {
-            int index = (y * m_info_header.width + x) * 4;
-            const std::uint8_t *base_row = &m_data[index];
+            int index = (y * base_width + x) * 4;
+            const std::uint8_t *base_row = &base_data[index];
             PixelValues base_pixel = Pixel::get_bgra(base_row);
 
             if (base_pixel == colour_to_pixel[to_compare])
