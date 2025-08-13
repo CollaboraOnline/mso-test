@@ -374,7 +374,6 @@ FodyWeavers.xsd
 
 # Ignore generated binary
 pixelbasher
-
 unittest
 
 # Ignore dump folders
