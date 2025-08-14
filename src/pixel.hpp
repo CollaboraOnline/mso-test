@@ -16,8 +16,26 @@
 #include <iostream>
 #include <vector>
 
-#include "bmp.hpp"
+constexpr int pixel_stride = 4;
 using PixelValues = std::array<std::uint8_t, pixel_stride>;
+
+enum Colour {
+    RED,
+    YELLOW,
+    DARK_YELLOW,
+    BLUE,
+    GREEN,
+    COLOUR_COUNT
+};
+
+static constexpr PixelValues colour_to_pixel[COLOUR_COUNT] = {
+    {0, 0, 255, 255}, // RED
+    {0, 197, 255, 255}, // YELLOW
+    {0, 128, 139, 255}, // DARK_YELLOW
+    {255, 0, 0, 255}, // BLUE
+    {0, 255, 0, 255} // GREEN
+};
+
 struct Pixel
 {
     std::uint8_t blue{0};

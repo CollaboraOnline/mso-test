@@ -30,20 +30,50 @@ const static BMPColourHeader colour_header = {
     0x000000ff,
     0xff000000,
     0x73524742,
-    {}};
+    {}
+};
 
-BMP::BMP(const char *filename)
+BMP::BMP(std::string filename)
 {
     read(filename);
-    m_background_value = get_average_colour();
-    m_non_background_count = get_non_background_pixel_count(m_background_value);
-    m_blurred_edge_mask = blur_edge_mask(sobel_edges<245>());
-    m_vertical_edges = filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
 }
 
-BMP::BMP() {}
+BMP::BMP()
+{
 
-void BMP::read(const char *filename)
+}
+
+// To be used in tests
+BMP::BMP(int width, int height, bool has_alpha)
+{
+    if (width <= 0 || height <= 0)
+    {
+        throw std::runtime_error("The image width and height values must positive");
+    }
+
+    m_file_header.file_type = 0x4D42;
+    m_file_header.placeholder_1 = 0;
+    m_file_header.placeholder_2 = 0;
+    m_file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
+    m_info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColourHeader);
+    m_info_header.width = width;
+    m_info_header.height = height;
+    m_info_header.planes = 1;
+    m_info_header.bit_count = 32;
+    m_info_header.compression = 3;
+    m_info_header.x_per_meter = 0;
+    m_info_header.y_per_meter = 0;
+    m_info_header.colours_used = 0;
+    m_info_header.colours_important = 0;
+
+    int row_stride = width * pixel_stride;
+    m_data.resize(row_stride * height, 0);
+
+    m_info_header.size_image = m_data.size();
+    m_file_header.file_size = m_file_header.offset_data + m_data.size();
+}
+
+void BMP::read(std::string filename)
 {
     static_assert(std::endian::native == std::endian::little, "This code only works for little endian");
     std::ifstream input{filename, std::ios_base::binary};
@@ -92,7 +122,7 @@ void BMP::read(const char *filename)
     }
 }
 
-void BMP::write(const char *filename)
+void BMP::write(std::string filename)
 {
     std::ofstream output{filename, std::ios_base::binary};
     if (!output)
@@ -122,54 +152,69 @@ void BMP::write(const char *filename)
     }
 }
 
-void BMP::write_with_filter(const char *filename, std::vector<bool> filter_mask)
+void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask)
 {
-    for (int y = 0; y < m_info_header.height; y++)
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    BMP copy(base);
+    std::vector<uint8_t> copy_data = base.get_data();
+    for (int y = 0; y < base_height; y++)
     {
-        for (int x = 0; x < m_info_header.width; x++)
+        for (int x = 0; x < base_width; x++)
         {
-            int index = y * m_info_header.width + x;
+            int index = y * base_width + x;
             int byte_index = index * 4;
 
             if (filter_mask[index])
             {
-                m_data[byte_index + 0] = 0;
-                m_data[byte_index + 1] = 0;
-                m_data[byte_index + 2] = 255;
-                m_data[byte_index + 3] = 255;
+                copy_data[byte_index + 0] = 0;
+                copy_data[byte_index + 1] = 0;
+                copy_data[byte_index + 2] = 255;
+                copy_data[byte_index + 3] = 255;
             }
         }
     }
-    write(filename);
+    copy.set_data(copy_data);
+    copy.write(filename);
 }
 
-void BMP::stamp_name(BMP &stamp)
+BMP BMP::stamp_name(const BMP& base, const BMP &stamp)
 {
-    const auto &stamp_data = stamp.get_data();
-    const std::size_t stamp_row_stride = stamp.get_width() * 4;
-    const std::size_t base_row_stride = get_width() * 4;
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    const int stamp_width = stamp.get_width();
+    const int stamp_height = stamp.get_height();
 
-    if (stamp.get_width() > get_width() || stamp.get_height() > get_height())
+    BMP copy(base);
+    std::vector<uint8_t> copy_data = copy.get_data();
+    const auto &stamp_data = stamp.get_data();
+    const std::size_t stamp_row_stride = stamp_width * 4;
+    const std::size_t base_row_stride = base_width * 4;
+
+
+    if (stamp_width > base_width || stamp_height > base_height)
     {
         throw std::runtime_error("Stamp is larger than base image");
     }
 
-    for (int y = 0; y < stamp.get_height(); ++y)
+    for (int y = 0; y < stamp_height; ++y)
     {
-        for (int x = 0; x < stamp.get_width(); ++x)
+        for (int x = 0; x < stamp_width; ++x)
         {
-            std::size_t stamp_index = (stamp.get_height() - 1 - y) * stamp_row_stride + x * 4;
-            std::size_t base_index = (m_info_header.height - 1 - y) * base_row_stride + x * 4;
+            std::size_t stamp_index = (stamp_height - 1 - y) * stamp_row_stride + x * 4;
+            std::size_t base_index = (base_height - 1 - y) * base_row_stride + x * 4;
 
             for (int b = 0; b < 4; ++b)
             {
-                m_data[base_index + b] = stamp_data[stamp_index + b];
+                copy_data[base_index + b] = stamp_data[stamp_index + b];
             }
         }
     }
+    copy.set_data(copy_data);
+    return copy;
 }
 
-void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, const char *filename)
+void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename)
 {
     if (diff.get_height() != base.get_height() || base.get_height() != target.get_height() ||
         diff.get_width() != base.get_width() || base.get_width() != target.get_width())
@@ -203,17 +248,13 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     std::string ms_office_location = stamp_location + "/ms-office.bmp";
     std::string cool_location = stamp_location + "/cool.bmp";
 
-    BMP diff_stamp(diff_location.c_str());
-    BMP ms_office_stamp(ms_office_location.c_str());
-    BMP cool_stamp(cool_location.c_str());
+    BMP diff_stamp(diff_location);
+    BMP ms_office_stamp(ms_office_location);
+    BMP cool_stamp(cool_location);
 
-    BMP diff_copy(diff);
-    BMP base_copy(base);
-    BMP target_copy(target);
-
-    diff_copy.stamp_name(diff_stamp);
-    base_copy.stamp_name(ms_office_stamp);
-    target_copy.stamp_name(cool_stamp);
+    BMP diff_copy = BMP::stamp_name(diff, diff_stamp);
+    BMP base_copy = BMP::stamp_name(base, ms_office_stamp);
+    BMP target_copy = BMP::stamp_name(target, cool_stamp);
 
     for (int y = 0; y < height; ++y)
     {
@@ -285,8 +326,9 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     }
 }
 
-int BMP::get_non_background_pixel_count(int background_value) const
+int BMP::get_non_background_pixel_count() const
 {
+    int background_value = get_background_value();
     int non_background_count = 0;
     std::size_t pixel_count = get_width() * get_height();
     for (std::size_t i = 0; i < pixel_count; i++)
@@ -301,7 +343,7 @@ int BMP::get_non_background_pixel_count(int background_value) const
     return non_background_count;
 }
 
-int BMP::get_average_colour() const
+int BMP::get_background_value() const
 {
     int total_gray = 0;
     std::int32_t stride = m_info_header.bit_count / 8;
@@ -325,7 +367,7 @@ void BMP::set_data(std::vector<std::uint8_t> &new_data)
     m_data = new_data;
 }
 
-std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map)
+std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map) const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -348,7 +390,7 @@ std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map)
 }
 
 template <int Threshold>
-std::vector<bool> BMP::sobel_edges()
+std::vector<bool> BMP::sobel_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -372,7 +414,7 @@ std::vector<bool> BMP::sobel_edges()
     return result;
 }
 
-std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length)
+std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length) const
 {
     std::vector<bool> result(vertical_edges.size(), false);
     int width = m_info_header.width;
@@ -413,7 +455,7 @@ std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &v
 }
 
 template <int Threshold>
-std::vector<bool> BMP::get_vertical_edges()
+std::vector<bool> BMP::get_vertical_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -476,4 +518,43 @@ std::array<int, 2> BMP::get_sobel_gradients(int y, int x, const std::vector<std:
               (-1 * bottom_left) + (-2 * bottom_mid) + (-1 * bottom_right);
 
     return {g_x, g_y};
+}
+
+int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
+{
+    const int base_width = base.get_width();
+    const int base_height = base.get_height();
+    const std::vector<uint8_t> &base_data = base.get_data();
+    int colour_count = 0;
+    for (int y = 0; y < base_height; y++)
+    {
+        for (int x = 0; x < base_width; x++)
+        {
+            int index = (y * base_width + x) * 4;
+            const std::uint8_t *base_row = &base_data[index];
+            PixelValues base_pixel = Pixel::get_bgra(base_row);
+
+            if (base_pixel == colour_to_pixel[to_compare])
+            {
+                colour_count++;
+            }
+        }
+    }
+    return colour_count;
+}
+
+const std::vector<bool> BMP::get_blurred_edge_mask() const {
+    std::vector<bool> sobel_edge = sobel_edges<245>();
+    return blur_edge_mask(sobel_edge);
+}
+const std::vector<bool> BMP::get_vertical_edge_mask() const {
+    return get_vertical_edges<245>();
+}
+
+const std::vector<bool> BMP::get_filtered_vertical_edge_mask() const {
+    return filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
+}
+
+const std::vector<bool> BMP::get_sobel_edge_mask() const {
+    return sobel_edges<245>();
 }
