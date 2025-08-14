@@ -26,6 +26,8 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enabl
     std::vector<bool> original_filtered_vertical_edges = original.get_filtered_vertical_edge_mask();
     std::vector<bool> target_filtered_vertical_edges = target.get_filtered_vertical_edge_mask();
 
+    int original_background_value = original.get_background_value();
+
     // The diff data is based on the base image, so we create a new data vector to hold the modified pixels
     auto &original_data = original.get_data();
     auto &target_data = target.get_data();
@@ -57,7 +59,7 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enabl
                 vertical_edge = true;
             }
 
-            PixelValues bgra = compare_pixels(original_pixel, target_pixel, diff, near_edge, vertical_edge, enable_minor_differences);
+            PixelValues bgra = compare_pixels(original_pixel, target_pixel, diff, original_background_value, near_edge, vertical_edge, enable_minor_differences);
 
             for (int i = 0; i < pixel_stride; i++)
             {
@@ -126,13 +128,13 @@ std::vector<bool> PixelBasher::get_intersection_mask(const BMP &original, const 
     return intersection_mask;
 }
 
-PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target, BMP &diff, bool near_edge, bool vertical_edge, bool minor_differences)
+PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences)
 {
-    const bool differs = Pixel::differs_from(original, target, near_edge, diff.get_background_value());
+    const bool differs = Pixel::differs_from(original, target, near_edge, original_background_value);
 
     if (!differs)
     {
-        if (minor_differences && near_edge && Pixel::differs_from(original, target, diff.get_background_value(), false))
+        if (minor_differences && near_edge && Pixel::differs_from(original, target, original_background_value, false))
         {
             diff.increment_red_count(1);
             return colour_to_pixel[Colour::YELLOW];

@@ -51,24 +51,27 @@ void write_stats_to_csv(const BMP &base, const BMP &current, const BMP &previous
 
     double base_total_pixels = base.get_width() * base.get_height();
     double current_total_pixels = current.get_width() * current.get_height();
+    double base_non_background_count = base.get_non_background_pixel_count();
+    double current_non_background_count = current.get_non_background_pixel_count();
 
     csv_file << basename << ","
              << page_number << ","
              << base_total_pixels << ","
-             << base.get_non_background_count() << ","
-             << (static_cast<double>(base.get_non_background_count()) / base_total_pixels) << ","
+             << base_non_background_count << ","
+             << (static_cast<double>(base_non_background_count) / base_total_pixels) << ","
              << current_total_pixels << ","
-             << current.get_non_background_count() << ","
-             << (static_cast<double>(current.get_non_background_count()) / current_total_pixels) << ","
+             << current_non_background_count << ","
+             << (static_cast<double>(current_non_background_count) / current_total_pixels) << ","
              << diff.get_red_count() << ","
              << (static_cast<double>(diff.get_red_count()) / current_total_pixels);
 
     if (previous_exists)
     {
         double previous_total_pixels = previous.get_width() * previous.get_height();
+        double previous_non_background_count = previous.get_non_background_pixel_count();
         csv_file << "," << previous_total_pixels << ","
-                 << previous.get_non_background_count() << ","
-                 << (static_cast<double>(previous.get_non_background_count()) / previous_total_pixels) << ","
+                 << previous_non_background_count << ","
+                 << (static_cast<double>(previous_non_background_count) / previous_total_pixels) << ","
                  << previous.get_red_count() << ","
                  << (static_cast<double>(previous.get_red_count()) / previous_total_pixels);
     }

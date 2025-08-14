@@ -101,14 +101,14 @@ TEST_CASE("Writing stamps to BMP files", "[bmp][write]") {
     SECTION("Writes and re-reads a stamped bmp") {
         std::string bmp_path = "test_data/output/write-stamp-read.bmp";
         BMP dummy_image(100, 100);
-        int dummy_image_non_bg_count = dummy_image.get_non_background_count();
+        int dummy_image_non_bg_count = dummy_image.get_non_background_pixel_count();
 
         BMP cool_stamp(cool_stamp_path);
         BMP dummy_image_stamped = BMP::stamp_name(dummy_image, cool_stamp);
         dummy_image_stamped.write(bmp_path);
 
         BMP dummy_image_input(bmp_path);
-        int dummy_image_input_non_bg_count = dummy_image_input.get_non_background_count();
+        int dummy_image_input_non_bg_count = dummy_image_input.get_non_background_pixel_count();
 
         REQUIRE(dummy_image_input_non_bg_count > dummy_image_non_bg_count);
     }
@@ -138,13 +138,13 @@ TEST_CASE("Compute the number of pixels in background", "[bmp][pixel-analysis]")
     SECTION("Returns no pixels background pixels for solid_white.bmp successfully") {
         BMP solid_white ("test_data/solid_white.bmp");
 
-        REQUIRE(solid_white.get_non_background_count() == 0);
+        REQUIRE(solid_white.get_non_background_pixel_count() == 0);
     }
 
     SECTION("Returns no background pixels for solid_black.bmp successfully") {
         BMP solid_black ("test_data/solid_black.bmp");
 
-        REQUIRE(solid_black.get_non_background_count() == 0);
+        REQUIRE(solid_black.get_non_background_pixel_count() == 0);
     }
 
     // half white and half black means the background value is 127, and pixels are either 0 or 255
@@ -152,7 +152,7 @@ TEST_CASE("Compute the number of pixels in background", "[bmp][pixel-analysis]")
         BMP white_black ("test_data/white_black.bmp");
         int image_size = white_black.get_width() * white_black.get_height();
 
-        REQUIRE(white_black.get_non_background_count() == image_size);
+        REQUIRE(white_black.get_non_background_pixel_count() == image_size);
     }
 }
 
