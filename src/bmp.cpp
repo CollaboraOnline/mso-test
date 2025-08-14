@@ -36,14 +36,6 @@ const static BMPColourHeader colour_header = {
 BMP::BMP(std::string filename)
 {
     read(filename);
-
-    // calculate & store invariants
-    m_background_value = get_average_colour();
-    m_non_background_count = get_non_background_pixel_count(m_background_value);
-    m_sobel_edge_mask = sobel_edges<245>();
-    m_blurred_edge_mask = blur_edge_mask(m_sobel_edge_mask);
-    m_vertical_edges = get_vertical_edges<245>();
-    m_filtered_vertical_edges = filter_long_vertical_edge_runs(m_vertical_edges, 10);
 }
 
 BMP::BMP()
@@ -79,14 +71,6 @@ BMP::BMP(int width, int height, bool has_alpha)
 
     m_info_header.size_image = m_data.size();
     m_file_header.file_size = m_file_header.offset_data + m_data.size();
-
-    // calculate & store invariants
-    m_background_value = get_average_colour();
-    m_non_background_count = get_non_background_pixel_count(m_background_value);
-    m_sobel_edge_mask = sobel_edges<245>();
-    m_blurred_edge_mask = blur_edge_mask(m_sobel_edge_mask);
-    m_vertical_edges = get_vertical_edges<245>();
-    m_filtered_vertical_edges = filter_long_vertical_edge_runs(m_vertical_edges, 10);
 }
 
 void BMP::read(std::string filename)
@@ -342,8 +326,9 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     }
 }
 
-int BMP::get_non_background_pixel_count(int background_value) const
+int BMP::get_non_background_pixel_count() const
 {
+    int background_value = get_background_value();
     int non_background_count = 0;
     std::size_t pixel_count = get_width() * get_height();
     for (std::size_t i = 0; i < pixel_count; i++)
@@ -358,7 +343,7 @@ int BMP::get_non_background_pixel_count(int background_value) const
     return non_background_count;
 }
 
-int BMP::get_average_colour() const
+int BMP::get_background_value() const
 {
     int total_gray = 0;
     std::int32_t stride = m_info_header.bit_count / 8;
@@ -382,7 +367,7 @@ void BMP::set_data(std::vector<std::uint8_t> &new_data)
     m_data = new_data;
 }
 
-std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map)
+std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map) const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -405,7 +390,7 @@ std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map)
 }
 
 template <int Threshold>
-std::vector<bool> BMP::sobel_edges()
+std::vector<bool> BMP::sobel_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -429,7 +414,7 @@ std::vector<bool> BMP::sobel_edges()
     return result;
 }
 
-std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length)
+std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length) const
 {
     std::vector<bool> result(vertical_edges.size(), false);
     int width = m_info_header.width;
@@ -470,7 +455,7 @@ std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &v
 }
 
 template <int Threshold>
-std::vector<bool> BMP::get_vertical_edges()
+std::vector<bool> BMP::get_vertical_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
@@ -556,4 +541,20 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
         }
     }
     return colour_count;
+}
+
+const std::vector<bool> BMP::get_blurred_edge_mask() const {
+    std::vector<bool> sobel_edge = sobel_edges<245>();
+    return blur_edge_mask(sobel_edge);
+}
+const std::vector<bool> BMP::get_vertical_edge_mask() const {
+    return get_vertical_edges<245>();
+}
+
+const std::vector<bool> BMP::get_filtered_vertical_edge_mask() const {
+    return filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
+}
+
+const std::vector<bool> BMP::get_sobel_edge_mask() const {
+    return sobel_edges<245>();
 }
