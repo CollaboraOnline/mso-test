@@ -169,7 +169,7 @@ void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<b
         for (int x = 0; x < base_width; x++)
         {
             int index = y * base_width + x;
-            int byte_index = index * 4;
+            int byte_index = index * pixel_stride;
 
             if (filter_mask[index])
             {
@@ -194,8 +194,8 @@ BMP BMP::stamp_name(const BMP& base, const BMP &stamp)
     BMP copy(base);
     std::vector<uint8_t> copy_data = copy.get_data();
     const auto &stamp_data = stamp.get_data();
-    const std::size_t stamp_row_stride = stamp_width * 4;
-    const std::size_t base_row_stride = base_width * 4;
+    const std::size_t stamp_row_stride = stamp_width * pixel_stride;
+    const std::size_t base_row_stride = base_width * pixel_stride;
 
 
     if (stamp_width > base_width || stamp_height > base_height)
@@ -207,10 +207,10 @@ BMP BMP::stamp_name(const BMP& base, const BMP &stamp)
     {
         for (int x = 0; x < stamp_width; ++x)
         {
-            std::size_t stamp_index = (stamp_height - 1 - y) * stamp_row_stride + x * 4;
-            std::size_t base_index = (base_height - 1 - y) * base_row_stride + x * 4;
+            std::size_t stamp_index = (stamp_height - 1 - y) * stamp_row_stride + x * pixel_stride;
+            std::size_t base_index = (base_height - 1 - y) * base_row_stride + x * pixel_stride;
 
-            for (int b = 0; b < 4; ++b)
+            for (int b = 0; b < pixel_stride; ++b)
             {
                 copy_data[base_index + b] = stamp_data[stamp_index + b];
             }
@@ -337,9 +337,11 @@ int BMP::get_non_background_pixel_count() const
     int background_value = get_background_value();
     int non_background_count = 0;
     std::size_t pixel_count = get_width() * get_height();
+
+    if (pixel_count == 0) return 0;
     for (std::size_t i = 0; i < pixel_count; i++)
     {
-        std::uint8_t gray_value = m_data[i * 4]; // Assuming 32-bit BMP, gray value is in the first byte
+        std::uint8_t gray_value = m_data[i * pixel_stride]; // Assuming 32-bit BMP, gray value is in the first byte
 
         if (std::abs(gray_value - background_value) > 8)
         {
@@ -538,7 +540,7 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
     {
         for (int x = 0; x < base_width; x++)
         {
-            int index = (y * base_width + x) * 4;
+            int index = (y * base_width + x) * pixel_stride;
             const std::uint8_t *base_row = &base_data[index];
             PixelValues base_pixel = Pixel::get_bgra(base_row);
 
@@ -551,14 +553,14 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
     return colour_count;
 }
 
-const std::vector<bool> BMP::get_blurred_edge_mask() const {
+const std::vector<bool>& BMP::get_blurred_edge_mask() const {
     return m_blurred_edge_mask;
 }
 const std::vector<bool> BMP::get_vertical_edge_mask() const {
     return get_vertical_edges<245>();
 }
 
-const std::vector<bool> BMP::get_filtered_vertical_edge_mask() const {
+const std::vector<bool>& BMP::get_filtered_vertical_edge_mask() const {
     return m_filtered_edge_mask;
 }
 

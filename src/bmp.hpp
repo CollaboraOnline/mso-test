@@ -59,9 +59,9 @@ public:
     static void write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask);
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
-    const std::vector<bool> get_blurred_edge_mask() const;
+    const std::vector<bool>& get_blurred_edge_mask() const;
     const std::vector<bool> get_vertical_edge_mask() const;
-    const std::vector<bool> get_filtered_vertical_edge_mask() const;
+    const std::vector<bool>& get_filtered_vertical_edge_mask() const;
     const std::vector<bool> get_sobel_edge_mask() const;
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
