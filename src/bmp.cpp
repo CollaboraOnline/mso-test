@@ -36,6 +36,9 @@ const static BMPColourHeader colour_header = {
 BMP::BMP(std::string filename)
 {
     read(filename);
+
+    m_blurred_edge_mask = blur_edge_mask();
+    m_filtered_edge_mask = filter_long_vertical_edge_runs(10);
 }
 
 BMP::BMP()
@@ -71,6 +74,9 @@ BMP::BMP(int width, int height, bool has_alpha)
 
     m_info_header.size_image = m_data.size();
     m_file_header.file_size = m_file_header.offset_data + m_data.size();
+
+    m_blurred_edge_mask = blur_edge_mask();
+    m_filtered_edge_mask = filter_long_vertical_edge_runs(10);
 }
 
 void BMP::read(std::string filename)
@@ -367,8 +373,9 @@ void BMP::set_data(std::vector<std::uint8_t> &new_data)
     m_data = new_data;
 }
 
-std::vector<bool> BMP::blur_edge_mask(const std::vector<bool> &edge_map) const
+std::vector<bool> BMP::blur_edge_mask() const
 {
+    std::vector<bool> edge_map = sobel_edges<245>();
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
     std::vector<bool> blurred_mask(width * height, false);
@@ -414,8 +421,9 @@ std::vector<bool> BMP::sobel_edges() const
     return result;
 }
 
-std::vector<bool> BMP::filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length) const
+std::vector<bool> BMP::filter_long_vertical_edge_runs(int min_run_length) const
 {
+    std::vector<bool> vertical_edges = get_vertical_edges<245>();
     std::vector<bool> result(vertical_edges.size(), false);
     int width = m_info_header.width;
     int height = m_info_header.height;
@@ -544,17 +552,22 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
 }
 
 const std::vector<bool> BMP::get_blurred_edge_mask() const {
-    std::vector<bool> sobel_edge = sobel_edges<245>();
-    return blur_edge_mask(sobel_edge);
+    return m_blurred_edge_mask;
 }
 const std::vector<bool> BMP::get_vertical_edge_mask() const {
     return get_vertical_edges<245>();
 }
 
 const std::vector<bool> BMP::get_filtered_vertical_edge_mask() const {
-    return filter_long_vertical_edge_runs(get_vertical_edges<245>(), 10);
+    return m_filtered_edge_mask;
 }
 
 const std::vector<bool> BMP::get_sobel_edge_mask() const {
     return sobel_edges<245>();
+}
+
+void BMP::recalculate_masks()
+{
+    m_blurred_edge_mask = blur_edge_mask();
+    m_filtered_edge_mask = filter_long_vertical_edge_runs(10);
 }
