@@ -73,6 +73,7 @@ public:
     void increment_red_count(int new_red) { m_red_count += new_red; }
     void increment_yellow_count(int new_yellow) { m_yellow_count += new_yellow; }
     void set_data(std::vector<std::uint8_t> &new_data);
+    void recalculate_masks();
 
 private:
     void read(std::string filename);
@@ -84,8 +85,8 @@ private:
     template <int Radius> // compile-time constant
     static void blur_pixels(int x, int y, int width, int height, std::vector<bool> &mask);
 
-    std::vector<bool> blur_edge_mask(const std::vector<bool> &edge_map) const;
-    std::vector<bool> filter_long_vertical_edge_runs(const std::vector<bool> &vertical_edges, int min_run_length)const ;
+    std::vector<bool> blur_edge_mask() const;
+    std::vector<bool> filter_long_vertical_edge_runs(int min_run_length)const ;
     static std::array<int, 2> get_sobel_gradients(int y, int x, const std::vector<std::uint8_t> &data, int width);
 
     BMPFileHeader m_file_header;
@@ -93,5 +94,7 @@ private:
     std::vector<std::uint8_t> m_data;
     int m_red_count = 0;
     int m_yellow_count = 0;
+    std::vector<bool> m_blurred_edge_mask;
+    std::vector<bool> m_filtered_edge_mask;
 };
 #endif
