@@ -102,7 +102,7 @@ BMP PixelBasher::compare_regressions(const BMP &original, const BMP &current, BM
             PixelValues current_pixel = Pixel::get_bgra(current_row);
             PixelValues previous_pixel = Pixel::get_bgra(previous_row);
 
-            PixelValues bgra = compare_pixel_regression(original_pixel, current_pixel, previous_pixel);
+            PixelValues bgra = compare_pixel_regression(diff, original_pixel, current_pixel, previous_pixel);
 
             for (int i = 0; i < pixel_stride; i++)
             {
@@ -156,21 +156,24 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
     return colour_to_pixel[Colour::RED];
 }
 
-PixelValues PixelBasher::compare_pixel_regression(PixelValues original, PixelValues current, PixelValues previous)
+PixelValues PixelBasher::compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous)
 {
     bool current_is_red = Pixel::is_red(current);
     bool previous_is_red = Pixel::is_red(previous);
 
     if (current_is_red && previous_is_red)
     {
+        diff.increment_blue_count(1);
         return colour_to_pixel[Colour::BLUE];
     }
     if (current_is_red && !previous_is_red)
     {
+        diff.increment_red_count(1);
         return colour_to_pixel[Colour::RED]; // a regression
     }
     if (!current_is_red && previous_is_red)
     {
+        diff.increment_green_count(1);
         return colour_to_pixel[Colour::GREEN]; // a fix
     }
     return original;

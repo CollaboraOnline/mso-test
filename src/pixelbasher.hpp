@@ -28,7 +28,7 @@ public:
 
 private:
     static std::vector<bool> get_intersection_mask(const BMP &original, const BMP &target, int min_width, int min_height);
-    static PixelValues compare_pixel_regression(PixelValues original, PixelValues current, PixelValues previous);
+    static PixelValues compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous);
     static PixelValues compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences);
     static PixelValues colour_pixel(Colour colour);
 };
