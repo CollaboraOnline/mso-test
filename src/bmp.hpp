@@ -49,7 +49,7 @@ class BMP
 {
 public:
     BMP(std::string filename);
-    BMP(int width, int height, bool has_alpha = true);
+    BMP(int width, int height);
     BMP();
 
     void write(std::string filename);
