@@ -7,6 +7,30 @@
 
 using Catch::Matchers::ContainsSubstring;
 
+TEST_CASE("BMP Class Constructor", "[bmp][constructor]") {
+    SECTION("Default constructor creates an empty BMP object") {
+        BMP bmp;
+        REQUIRE(bmp.get_width() == 0);
+        REQUIRE(bmp.get_height() == 0);
+        REQUIRE(bmp.get_data().empty());
+        REQUIRE(bmp.get_red_count() == 0);
+        REQUIRE(bmp.get_yellow_count() == 0);
+        REQUIRE(std::count(bmp.get_blurred_edge_mask().begin(), bmp.get_blurred_edge_mask().end(), true) == 0);
+        REQUIRE(std::count(bmp.get_filtered_vertical_edge_mask().begin(), bmp.get_filtered_vertical_edge_mask().end(), true) == 0);
+    }
+
+    SECTION("Constructor with width and height initializes BMP with correct dimensions") {
+        BMP bmp(100, 100);
+        REQUIRE(bmp.get_width() == 100);
+        REQUIRE(bmp.get_height() == 100);
+        REQUIRE(bmp.get_data().size() == 100 * 100 * pixel_stride);
+        REQUIRE(bmp.get_red_count() == 0);
+        REQUIRE(bmp.get_yellow_count() == 0);
+        REQUIRE(std::count(bmp.get_blurred_edge_mask().begin(), bmp.get_blurred_edge_mask().end(), true) == 0);
+        REQUIRE(std::count(bmp.get_filtered_vertical_edge_mask().begin(), bmp.get_filtered_vertical_edge_mask().end(), true) == 0);
+    }
+}
+
 TEST_CASE("Read BMP files" , "[bmp][read]") {
     SECTION("Reads solid_white.bmp successfully") {
         REQUIRE_NOTHROW(BMP("test_data/solid_white.bmp"));
