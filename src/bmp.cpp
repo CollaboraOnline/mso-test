@@ -41,15 +41,13 @@ BMP::BMP(std::string filename)
     m_filtered_edge_mask = filter_long_vertical_edge_runs(10);
 }
 
-BMP::BMP()
-{
+BMP::BMP(): BMP(0, 0) {}
 
-}
 
 // To be used in tests
 BMP::BMP(int width, int height)
 {
-    if (width <= 0 || height <= 0)
+    if (width < 0 || height < 0)
     {
         throw std::runtime_error("The image width and height values must positive");
     }
@@ -356,6 +354,7 @@ int BMP::get_background_value() const
     int total_gray = 0;
     std::int32_t stride = m_info_header.bit_count / 8;
     std::size_t pixel_count = get_width() * get_height();
+    if (pixel_count == 0) return 0;
     for (std::size_t i = 0; i < pixel_count; i++)
     {
         std::uint8_t gray = m_data[i * stride];
