@@ -47,7 +47,7 @@ BMP::BMP()
 }
 
 // To be used in tests
-BMP::BMP(int width, int height, bool has_alpha)
+BMP::BMP(int width, int height)
 {
     if (width <= 0 || height <= 0)
     {
