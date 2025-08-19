@@ -73,10 +73,12 @@ public:
     void increment_red_count(int new_red) { m_red_count += new_red; }
     void increment_yellow_count(int new_yellow) { m_yellow_count += new_yellow; }
     void set_data(std::vector<std::uint8_t> &new_data);
-    void recalculate_masks();
 
 private:
     void read(std::string filename);
+
+    void recalculate_masks();
+    void set_data_internal(std::vector<std::uint8_t> &new_data);
 
     template <int Threshold>
     std::vector<bool> sobel_edges() const;

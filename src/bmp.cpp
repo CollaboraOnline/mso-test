@@ -178,7 +178,7 @@ void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<b
             }
         }
     }
-    copy.set_data(copy_data);
+    copy.set_data_internal(copy_data);
     copy.write(filename);
 }
 
@@ -365,6 +365,17 @@ int BMP::get_background_value() const
 }
 
 void BMP::set_data(std::vector<std::uint8_t> &new_data)
+{
+    if (new_data.size() != m_data.size())
+    {
+        throw std::runtime_error("New data size " + std::to_string(new_data.size()) +
+                                 " differs to current data size " + std::to_string(m_data.size()));
+    }
+    m_data = new_data;
+    recalculate_masks();
+}
+
+void BMP::set_data_internal(std::vector<std::uint8_t> &new_data)
 {
     if (new_data.size() != m_data.size())
     {

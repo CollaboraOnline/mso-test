@@ -68,7 +68,6 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enabl
         }
     }
     diff.set_data(diff_data);
-    diff.recalculate_masks();
     return diff;
 }
 
@@ -112,7 +111,6 @@ BMP PixelBasher::compare_regressions(const BMP &original, const BMP &current, BM
         }
     }
     diff.set_data(diff_data);
-    diff.recalculate_masks();
     return diff;
 }
 
