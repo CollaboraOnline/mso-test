@@ -67,6 +67,7 @@ public:
     int get_height() const { return m_info_header.height; }
     int get_red_count() const { return m_red_count; }
     int get_yellow_count() const { return m_yellow_count; }
+    int get_dark_yellow_count() const { return m_dark_yellow_count; }
     int get_blue_count() const { return m_blue_count; }
     int get_green_count() const { return m_green_count; }
     int get_background_value() const;
@@ -74,6 +75,7 @@ public:
 
     void increment_red_count(int new_red) { m_red_count += new_red; }
     void increment_yellow_count(int new_yellow) { m_yellow_count += new_yellow; }
+    void increment_dark_yellow_count(int new_dark_yellow) { m_dark_yellow_count += new_dark_yellow; }
     void increment_blue_count(int new_blue) { m_blue_count += new_blue; }
     void increment_green_count(int new_green) { m_green_count += new_green; }
     void set_data(std::vector<std::uint8_t> &new_data);
@@ -100,6 +102,7 @@ private:
     std::vector<std::uint8_t> m_data;
     int m_red_count = 0;
     int m_yellow_count = 0;
+    int m_dark_yellow_count = 0;
     int m_blue_count = 0;
     int m_green_count = 0;
     std::vector<bool> m_blurred_edge_mask;
