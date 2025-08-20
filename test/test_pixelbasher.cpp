@@ -4,7 +4,7 @@
 using Catch::Matchers::ContainsSubstring;
 
 TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
-    SECTION("Compare two different BMPs and generate a diff image") {
+    SECTION("Compare two different BMPs and generate a diff image with minor differences disabled") {
         BMP original("test_data/solid_white.bmp");
         BMP target("test_data/vertical_edges.bmp");
 
@@ -24,6 +24,17 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         REQUIRE(diff.get_width() <= original.get_width());
         REQUIRE(diff.get_height() <= original.get_height());
         REQUIRE(diff.get_red_count() == 0);
+    }
+
+    SECTION("Compare two different BMPs and generate a diff image with minor differences enabled") {
+        BMP original("test_data/text.bmp");
+        BMP target("test_data/slightly-different-text.bmp");
+
+        BMP diff = PixelBasher::compare_bmps(original, target, true);
+
+        REQUIRE(diff.get_width() <= original.get_width());
+        REQUIRE(diff.get_height() <= original.get_height());
+        REQUIRE(diff.get_yellow_count() > 0);
     }
 }
 

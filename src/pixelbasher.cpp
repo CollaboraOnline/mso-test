@@ -136,7 +136,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
     {
         if (minor_differences && near_edge && Pixel::differs_from(original, target, original_background_value, false))
         {
-            diff.increment_red_count(1);
+            diff.increment_yellow_count(1);
             return colour_to_pixel[Colour::YELLOW];
         }
         return original;
@@ -144,7 +144,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
 
     if (vertical_edge)
     {
-        diff.increment_yellow_count(1);
+        diff.increment_dark_yellow_count(1);
         return colour_to_pixel[Colour::DARK_YELLOW];
     }
 
