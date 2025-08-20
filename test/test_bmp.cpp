@@ -70,6 +70,8 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
 
         BMP dummy_image_input(bmp_path);
 
+        REQUIRE(dummy_image_input.get_width() == 100);
+        REQUIRE(dummy_image_input.get_height() == 100);
         REQUIRE(dummy_image_input.get_width() == dummy_image.get_width());
         REQUIRE(dummy_image_input.get_height() == dummy_image.get_height());
         REQUIRE(dummy_image_input.get_data() == dummy_image.get_data());
