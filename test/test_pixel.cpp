@@ -33,6 +33,38 @@ TEST_CASE("Pixel struct functionality", "[pixel][struct]") {
         REQUIRE(differs == false);
     }
 
+    SECTION("Check if slightly different pixels differ") {
+        PixelValues original_pixel = {100, 100, 100, 255};
+        PixelValues target_pixel = {111, 111, 111, 255}; // Slightly different
+
+        bool differs = Pixel::differs_from(original_pixel, target_pixel, 15, false); // threshold is 40
+        REQUIRE(differs == false);
+    }
+
+    SECTION("Check if slightly different pixels differ with a lower threshold") {
+        PixelValues original_pixel = {100, 100, 100, 255};
+        PixelValues target_pixel = {111, 111, 111, 255}; // Slightly different
+
+        bool differs = Pixel::differs_from(original_pixel, target_pixel, 15, false, 5);
+        REQUIRE(differs == true);
+    }
+
+    SECTION("Check if pixels differ with the original pixel near the background") {
+        PixelValues original_pixel = {10, 10, 10, 255}; // Near background value
+        PixelValues target_pixel = {71, 71, 71, 255};
+
+        bool differs = Pixel::differs_from(original_pixel, target_pixel, 15, false); // threshold, 40 + 20(noise)
+        REQUIRE(differs == true);
+    }
+
+    SECTION("Check if pixels differ with the original pixel near background and an edge") {
+        PixelValues original_pixel = {10, 10, 10, 255}; // Near background value
+        PixelValues target_pixel = {100, 100, 100, 255};
+
+        bool differs = Pixel::differs_from(original_pixel, target_pixel, 15, true); // threshold, 40 + 20(noise) + 50(edge)
+        REQUIRE(differs == false);
+    }
+
     SECTION("Check if a red pixel is red") {
         PixelValues red_pixel = {0, 0, 255, 255}; // Red pixel
         bool is_red = Pixel::is_red(red_pixel);
