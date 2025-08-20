@@ -1,9 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include "../src/pixel.hpp"
 
-#include <bit>
-#include <iostream>
-
 using Catch::Matchers::ContainsSubstring;
 
 TEST_CASE("Pixel struct functionality", "[pixel][struct]") {
