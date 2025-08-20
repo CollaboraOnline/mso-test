@@ -1,9 +1,5 @@
 #include <catch2/catch_all.hpp>
 #include "../src/bmp.hpp"
-#include "../src/pixel.hpp"
-
-#include <bit>
-#include <iostream>
 
 using Catch::Matchers::ContainsSubstring;
 
