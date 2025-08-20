@@ -10,8 +10,8 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
 
         BMP diff = PixelBasher::compare_bmps(original, target, false);
 
-        REQUIRE(diff.get_width() <= original.get_width());
-        REQUIRE(diff.get_height() <= original.get_height());
+        REQUIRE(diff.get_width() == 50); // <= original.get_width()
+        REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_red_count() > 0);
     }
 
@@ -21,8 +21,8 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
 
         BMP diff = PixelBasher::compare_bmps(original, target, false);
 
-        REQUIRE(diff.get_width() <= original.get_width());
-        REQUIRE(diff.get_height() <= original.get_height());
+        REQUIRE(diff.get_width() == 50); // <= original.get_width()
+        REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_red_count() == 0);
     }
 
@@ -32,8 +32,8 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
 
         BMP diff = PixelBasher::compare_bmps(original, target, true);
 
-        REQUIRE(diff.get_width() <= original.get_width());
-        REQUIRE(diff.get_height() <= original.get_height());
+        REQUIRE(diff.get_width() == 50); // <= original.get_width()
+        REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_yellow_count() > 0);
     }
 }
@@ -48,8 +48,8 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
         BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff   );
 
-        REQUIRE(diff.get_width() <= original.get_width());
-        REQUIRE(diff.get_height() <= original.get_height());
+        REQUIRE(diff.get_width() == 50); // <= original.get_width()
+        REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_red_count() > 0);
         REQUIRE(diff.get_blue_count() > 0);
     }
@@ -64,6 +64,8 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
 
         int diff_size = diff.get_width() * diff.get_height();
+        REQUIRE(diff.get_width() == 50); // <= original.get_width()
+        REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_green_count() == diff_size);
         REQUIRE(diff.get_red_count() == 0);
         REQUIRE(diff.get_blue_count() == 0);
