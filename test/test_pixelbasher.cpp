@@ -8,7 +8,11 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         BMP original("test_data/solid_white.bmp");
         BMP target("test_data/vertical_edges.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, false);
+        std::vector<bool> base_vertical_edges = original.get_filtered_vertical_edge_mask();
+        std::vector<bool> target_vertical_edges = target.get_filtered_vertical_edge_mask();
+        std::vector<bool> intersection_mask = BMP::calculate_intersection_mask(original, target);
+
+        BMP diff = PixelBasher::compare_bmps(original, target, base_vertical_edges, target_vertical_edges, intersection_mask, false);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -19,7 +23,11 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         BMP original("test_data/solid_white.bmp");
         BMP target("test_data/solid_white.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, false);
+        std::vector<bool> base_vertical_edges = original.get_filtered_vertical_edge_mask();
+        std::vector<bool> target_vertical_edges = target.get_filtered_vertical_edge_mask();
+        std::vector<bool> intersection_mask = BMP::calculate_intersection_mask(original, target);
+
+        BMP diff = PixelBasher::compare_bmps(original, target, base_vertical_edges, target_vertical_edges, intersection_mask, false);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -30,7 +38,11 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         BMP original("test_data/text.bmp");
         BMP target("test_data/slightly-different-text.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, true);
+        std::vector<bool> base_vertical_edges = original.get_filtered_vertical_edge_mask();
+        std::vector<bool> target_vertical_edges = target.get_filtered_vertical_edge_mask();
+        std::vector<bool> intersection_mask = BMP::calculate_intersection_mask(original, target);
+
+        BMP diff = PixelBasher::compare_bmps(original, target, base_vertical_edges, target_vertical_edges, intersection_mask, true);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -44,9 +56,16 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP current("test_data/solid_black.bmp");
         BMP previous("test_data/vertical_edges.bmp");
 
-        BMP current_diff = PixelBasher::compare_bmps(original, current, false);
-        BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
-        BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff   );
+        std::vector<bool> base_vertical_edges = original.get_filtered_vertical_edge_mask();
+        std::vector<bool> current_vertical_edges = current.get_filtered_vertical_edge_mask();
+        std::vector<bool> previous_current_edges = previous.get_filtered_vertical_edge_mask();
+
+        std::vector<bool> current_intersection_mask = BMP::calculate_intersection_mask(original, current);
+        std::vector<bool> previous_intersection_mask = BMP::calculate_intersection_mask(original, previous);
+
+        BMP current_diff = PixelBasher::compare_bmps(original, current, base_vertical_edges, current_vertical_edges, current_intersection_mask, false);
+        BMP previous_diff = PixelBasher::compare_bmps(original, current, base_vertical_edges, previous_current_edges, previous_intersection_mask, false);
+        BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -59,11 +78,19 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP current("test_data/solid_white.bmp");
         BMP previous("test_data/solid_black.bmp");
 
-        BMP current_diff = PixelBasher::compare_bmps(original, current, false);
-        BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
+        std::vector<bool> base_vertical_edges = original.get_filtered_vertical_edge_mask();
+        std::vector<bool> current_vertical_edges = current.get_filtered_vertical_edge_mask();
+        std::vector<bool> previous_current_edges = previous.get_filtered_vertical_edge_mask();
+
+        std::vector<bool> current_intersection_mask = BMP::calculate_intersection_mask(original, current);
+        std::vector<bool> previous_intersection_mask = BMP::calculate_intersection_mask(original, previous);
+
+        BMP current_diff = PixelBasher::compare_bmps(original, current, base_vertical_edges, current_vertical_edges, current_intersection_mask, false);
+        BMP previous_diff = PixelBasher::compare_bmps(original, previous, base_vertical_edges, previous_current_edges, previous_intersection_mask, false);
         BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
 
         int diff_size = diff.get_width() * diff.get_height();
+
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
         REQUIRE(diff.get_green_count() == diff_size);

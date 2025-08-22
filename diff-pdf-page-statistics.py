@@ -46,6 +46,7 @@ def printdebug(debug, *args, **kwargs):
     if debug:
         print(*args, **kwargs)
 def main():
+    start_time = time.perf_counter()
     parser = argparse.ArgumentParser(description="Look for import and export regressions.")
     parser.add_argument("--base_file", default="lorem ipsum.docx")
     parser.add_argument("--history_dir", default=".")
@@ -1215,22 +1216,16 @@ def main():
         STAMP_DIR = os.path.join(base_dir, "stamps/")
 
         options = [str(IS_FILE_LO_PREV).lower(), str(IS_FILE_MS_PREV).lower(), str(args.image_dump).lower(), str(args.no_save_overlay).lower(), str(args.minor_differences).lower()]
+
+        command = [PIXELBASHER_BIN] + [args.base_file] + ms_orig_pages + lo_pages + ms_conv_pages + lo_previous_pages + \
+                    ms_conv_previous_pages + [IMPORT_DIR] + [EXPORT_DIR] + [IMPORT_COMPARE_DIR] + [EXPORT_COMPARE_DIR] + \
+                    [IMAGE_DUMP_DIR] + [STAMP_DIR] + options
+        if DEBUG:
+            print(" ".join(command))
+
         # Run pixelbasher to compare differences between MSO and LO PDF pages
         subprocess.run(
-            [PIXELBASHER_BIN] +
-            [args.base_file] +
-            ms_orig_pages +
-            lo_pages +
-            ms_conv_pages +
-            lo_previous_pages +
-            ms_conv_previous_pages +
-            [IMPORT_DIR] +
-            [EXPORT_DIR] +
-            [IMPORT_COMPARE_DIR] +
-            [EXPORT_COMPARE_DIR] +
-            [IMAGE_DUMP_DIR] +
-            [STAMP_DIR] +
-            options,
+            command,
             check=True
         )
     except subprocess.CalledProcessError as e:
@@ -1254,6 +1249,8 @@ def main():
         if IS_FILE_MS_PREV:
             for page in ms_conv_previous_pages:
                 os.remove(page)
+        end_time = time.perf_counter()
+        print(f"Execution time: {end_time - start_time:0.4f} seconds")
 
 if __name__ == "__main__":
     main()

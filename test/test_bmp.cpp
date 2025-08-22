@@ -17,13 +17,15 @@ TEST_CASE("BMP Class Constructor", "[bmp][constructor]") {
 
     SECTION("Constructor with width and height initializes BMP with correct dimensions") {
         BMP bmp(100, 100);
+        std::vector<bool> bmp_blurred_edge_mask = bmp.get_blurred_edge_mask();
+        std::vector<bool> bmp_filtered_vertical_edge_mask = bmp.get_filtered_vertical_edge_mask();
         REQUIRE(bmp.get_width() == 100);
         REQUIRE(bmp.get_height() == 100);
         REQUIRE(bmp.get_data().size() == 100 * 100 * pixel_stride);
         REQUIRE(bmp.get_red_count() == 0);
         REQUIRE(bmp.get_yellow_count() == 0);
-        REQUIRE(std::count(bmp.get_blurred_edge_mask().begin(), bmp.get_blurred_edge_mask().end(), true) == 0);
-        REQUIRE(std::count(bmp.get_filtered_vertical_edge_mask().begin(), bmp.get_filtered_vertical_edge_mask().end(), true) == 0);
+        REQUIRE(std::count(bmp_blurred_edge_mask.begin(), bmp_blurred_edge_mask.end(), true) == 0);
+        REQUIRE(std::count(bmp_filtered_vertical_edge_mask.begin(), bmp_filtered_vertical_edge_mask.end(), true) == 0);
     }
 }
 

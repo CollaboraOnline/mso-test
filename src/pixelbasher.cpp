@@ -15,16 +15,16 @@
 #include "pixel.hpp"
 #include "pixelbasher.hpp"
 
-BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enable_minor_differences)
+BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target,
+        const std::vector<bool> &original_vertical_edges,
+        const std::vector<bool> &target_vertical_edges,
+        const std::vector<bool> &intersection_mask,
+        bool enable_minor_differences)
 {
     int min_width = std::min(original.get_width(), target.get_width());
     int min_height = std::min(original.get_height(), target.get_height());
 
     BMP diff(original);
-
-    std::vector<bool> intersection_mask = get_intersection_mask(original, target, min_width, min_height);
-    std::vector<bool> original_filtered_vertical_edges = original.get_filtered_vertical_edge_mask();
-    std::vector<bool> target_filtered_vertical_edges = target.get_filtered_vertical_edge_mask();
 
     int original_background_value = original.get_background_value();
 
@@ -54,7 +54,7 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target, bool enabl
             bool near_edge = intersection_mask[mask_index];
             bool vertical_edge = false;
 
-            if (original_filtered_vertical_edges[mask_index] || target_filtered_vertical_edges[mask_index])
+            if (original_vertical_edges[mask_index] || target_vertical_edges[mask_index])
             {
                 vertical_edge = true;
             }
@@ -112,20 +112,6 @@ BMP PixelBasher::compare_regressions(const BMP &original, const BMP &current, BM
     }
     diff.set_data(diff_data);
     return diff;
-}
-
-std::vector<bool> PixelBasher::get_intersection_mask(const BMP &original, const BMP &target, int width, int height)
-{
-
-    std::vector<bool> original_edge_map = original.get_blurred_edge_mask();
-    std::vector<bool> target_edge_map = target.get_blurred_edge_mask();
-
-    std::vector<bool> intersection_mask(width * height, false);
-    for (int i = 0; i < width * height; i++)
-    {
-        intersection_mask[i] = original_edge_map[i] && target_edge_map[i];
-    }
-    return intersection_mask;
 }
 
 PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences)
