@@ -86,6 +86,10 @@ public:
         m_blurred_edge_mask.reset();
         m_vertical_edge_mask.reset();
     }
+    void invalidate_background_value() {
+        m_background_value.reset();
+        m_non_background_pixel_count.reset();
+    }
 
 private:
     void read(std::string filename);
@@ -104,6 +108,9 @@ private:
     std::vector<bool> filter_long_vertical_edge_runs(int min_run_length)const ;
     static std::array<int, 2> get_sobel_gradients(int y, int x, const std::vector<std::uint8_t> &data, int width);
 
+    int calculate_background_value() const;
+    int calculate_non_background_pixel_count() const;
+
     BMPFileHeader m_file_header;
     BMPInfoHeader m_info_header;
     std::vector<std::uint8_t> m_data;
@@ -115,5 +122,7 @@ private:
 
     mutable std::optional<std::vector<bool>> m_blurred_edge_mask;
     mutable std::optional<std::vector<bool>> m_vertical_edge_mask;
+    mutable std::optional<int> m_background_value;
+    mutable std::optional<int> m_non_background_pixel_count;
 };
 #endif
