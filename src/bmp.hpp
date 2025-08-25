@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 #include "pixel.hpp"
@@ -60,10 +61,11 @@ public:
     static std::vector<bool> calculate_intersection_mask(const BMP &original, const BMP &target);
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
-    const std::vector<bool> get_blurred_edge_mask() const;
     const std::vector<bool> get_vertical_edge_mask() const;
-    const std::vector<bool> get_filtered_vertical_edge_mask() const;
     const std::vector<bool> get_sobel_edge_mask() const;
+    const std::vector<bool>& get_filtered_vertical_edge_mask() const;
+    const std::vector<bool>& get_blurred_edge_mask() const;
+
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
     int get_red_count() const { return m_red_count; }
@@ -80,6 +82,10 @@ public:
     void increment_blue_count(int new_blue) { m_blue_count += new_blue; }
     void increment_green_count(int new_green) { m_green_count += new_green; }
     void set_data(std::vector<std::uint8_t> &new_data);
+    void invalidate_masks() {
+        m_blurred_edge_mask.reset();
+        m_vertical_edge_mask.reset();
+    }
 
 private:
     void read(std::string filename);
@@ -106,5 +112,8 @@ private:
     int m_dark_yellow_count = 0;
     int m_blue_count = 0;
     int m_green_count = 0;
+
+    mutable std::optional<std::vector<bool>> m_blurred_edge_mask;
+    mutable std::optional<std::vector<bool>> m_vertical_edge_mask;
 };
 #endif

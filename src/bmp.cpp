@@ -361,6 +361,7 @@ int BMP::get_background_value() const
 void BMP::set_data(std::vector<std::uint8_t> &new_data)
 {
     set_data_internal(new_data);
+    invalidate_masks();
 }
 
 void BMP::set_data_internal(std::vector<std::uint8_t> &new_data)
@@ -553,8 +554,8 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
 
 std::vector<bool> BMP::calculate_intersection_mask(const BMP &original, const BMP &target)
 {
-    std::vector<bool> original_edge_map = original.get_blurred_edge_mask();
-    std::vector<bool> target_edge_map = target.get_blurred_edge_mask();
+    const std::vector<bool> original_edge_map = original.get_blurred_edge_mask();
+    const std::vector<bool> target_edge_map = target.get_blurred_edge_mask();
 
     int width = std::min(original.get_width(), target.get_width());
     int height = std::min(original.get_height(), target.get_height());
@@ -567,12 +568,18 @@ std::vector<bool> BMP::calculate_intersection_mask(const BMP &original, const BM
     return intersection_mask;
 }
 
-const std::vector<bool> BMP::get_blurred_edge_mask() const {
-    return blur_edge_mask();
+const std::vector<bool>& BMP::get_blurred_edge_mask() const{
+    if (!m_blurred_edge_mask.has_value()) {
+        m_blurred_edge_mask = blur_edge_mask();
+    }
+    return m_blurred_edge_mask.value();
 }
 
-const std::vector<bool> BMP::get_filtered_vertical_edge_mask() const {
-    return filter_long_vertical_edge_runs(10);
+const std::vector<bool>& BMP::get_filtered_vertical_edge_mask() const {
+    if (!m_vertical_edge_mask.has_value()) {
+        m_vertical_edge_mask = filter_long_vertical_edge_runs(10);
+    }
+    return m_vertical_edge_mask.value();
 }
 
 const std::vector<bool> BMP::get_vertical_edge_mask() const {
