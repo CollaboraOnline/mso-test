@@ -44,11 +44,9 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP current("test_data/solid_black.bmp");
         BMP previous("test_data/vertical_edges.bmp");
 
-        BMP current_diff = PixelBasher::compare_bmps(original, current,  false);
+        BMP current_diff = PixelBasher::compare_bmps(original, current, false);
         BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
         BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
-
-        diff.write("test_data/output/new-diff.bmp");
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
