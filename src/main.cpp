@@ -180,12 +180,9 @@ ParsedArguments parse_arguments(int argc, char *argv[], int pdf_count = 3)
 }
 
 BMP diff(PixelBasher &pixel_basher, BMP &base, BMP &target,
-        const std::vector<bool> &original_vertical_edges,
-        const std::vector<bool> &target_vertical_edges,
-        const std::vector<bool> &intersection_mask,
         bool allow_minor_diffs)
 {
-    BMP diff = pixel_basher.compare_bmps(base, target, original_vertical_edges, target_vertical_edges, intersection_mask, allow_minor_diffs);
+    BMP diff = pixel_basher.compare_bmps(base, target, allow_minor_diffs);
     return diff;
 }
 
@@ -214,16 +211,8 @@ int main(int argc, char *argv[])
             BMP lo_previous;
             BMP ms_conv_previous;
 
-            // calculate edge masks once per image to save time
-            std::vector<bool> base_vertical_edges = base.get_filtered_vertical_edge_mask();
-            std::vector<bool> lo_vertical_edges = lo.get_filtered_vertical_edge_mask();
-            std::vector<bool> ms_conv_vertical_edges = ms_conv.get_filtered_vertical_edge_mask();
-
-            std::vector<bool> lo_intersection_mask = BMP::calculate_intersection_mask(base, lo);
-            std::vector<bool> ms_conv_intersection_mask = BMP::calculate_intersection_mask(base, ms_conv);
-
-            BMP lo_diff = diff(pixel_basher, base, lo, base_vertical_edges, lo_vertical_edges, lo_intersection_mask, args.enable_minor_differences);
-            BMP ms_conv_diff = diff(pixel_basher, base, ms_conv, base_vertical_edges, ms_conv_vertical_edges, ms_conv_intersection_mask, args.enable_minor_differences);
+            BMP lo_diff = diff(pixel_basher, base, lo, args.enable_minor_differences);
+            BMP ms_conv_diff = diff(pixel_basher, base, ms_conv, args.enable_minor_differences);
 
             BMP lo_previous_diff;
             BMP ms_conv_previous_diff;
@@ -235,9 +224,7 @@ int main(int argc, char *argv[])
             if (args.lo_previous)
             {
                 lo_previous = args.lo_previous_images[i];
-                std::vector<bool> lo_previous_vertical_edges = lo_previous.get_filtered_vertical_edge_mask();
-                std::vector<bool> lo_previous_intersection_mask = BMP::calculate_intersection_mask(base, lo_previous);
-                lo_previous_diff = diff(pixel_basher, base, lo_previous, base_vertical_edges, lo_previous_vertical_edges, lo_previous_intersection_mask, args.enable_minor_differences);
+                lo_previous_diff = diff(pixel_basher, base, lo_previous, args.enable_minor_differences);
 
                 lo_compare = pixel_basher.compare_regressions(base, lo_diff, lo_previous_diff);
                 if (args.no_save_overlay)
@@ -252,9 +239,7 @@ int main(int argc, char *argv[])
             if (args.ms_previous)
             {
                 ms_conv_previous = args.ms_conv_previous_images[i];
-                std::vector<bool> ms_conv_previous_vertical_edges = ms_conv_previous.get_filtered_vertical_edge_mask();
-                std::vector<bool> ms_conv_previous_intersection_mask = BMP::calculate_intersection_mask(base, ms_conv_previous);
-                ms_conv_previous_diff = diff(pixel_basher, base, ms_conv_previous, base_vertical_edges, ms_conv_previous_vertical_edges, ms_conv_previous_intersection_mask, args.enable_minor_differences);
+                ms_conv_previous_diff = diff(pixel_basher, base, ms_conv_previous, args.enable_minor_differences);
 
                 ms_conv_compare = pixel_basher.compare_regressions(base, ms_conv_diff, ms_conv_previous_diff);
                 if (args.no_save_overlay)

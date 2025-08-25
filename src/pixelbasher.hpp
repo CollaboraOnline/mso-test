@@ -23,11 +23,7 @@ class PixelBasher
 {
 public:
     // Compares two BMP images and generates a diff image based on the differences (the diff is applied to the base image)
-    static BMP compare_bmps(const BMP &original, const BMP &target,
-        const std::vector<bool> &original_vertical_edges,
-        const std::vector<bool> &target_vertical_edges,
-        const std::vector<bool> &intersection_mask,
-        bool enable_minor_differences);
+    static BMP compare_bmps(const BMP &original, const BMP &target, bool enable_minor_differences);
     static BMP compare_regressions(const BMP &original, const BMP &current, BMP &previous);
 private:
     static PixelValues compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous);

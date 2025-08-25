@@ -16,15 +16,16 @@
 #include "pixelbasher.hpp"
 
 BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target,
-        const std::vector<bool> &original_vertical_edges,
-        const std::vector<bool> &target_vertical_edges,
-        const std::vector<bool> &intersection_mask,
         bool enable_minor_differences)
 {
     int min_width = std::min(original.get_width(), target.get_width());
     int min_height = std::min(original.get_height(), target.get_height());
 
     BMP diff(original);
+
+    const std::vector<bool> intersection_mask = BMP::calculate_intersection_mask(original, target);
+    const std::vector<bool> &original_vertical_edges = original.get_filtered_vertical_edge_mask();
+    const std::vector<bool> &target_vertical_edges = target.get_filtered_vertical_edge_mask();
 
     int original_background_value = original.get_background_value();
 
