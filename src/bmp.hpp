@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 #include "pixel.hpp"
@@ -57,12 +58,14 @@ public:
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename);
     static int calculate_colour_count(const BMP& base, Colour to_compare);
     static void write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask);
+    static std::vector<bool> calculate_intersection_mask(const BMP &original, const BMP &target);
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
-    const std::vector<bool>& get_blurred_edge_mask() const;
     const std::vector<bool> get_vertical_edge_mask() const;
-    const std::vector<bool>& get_filtered_vertical_edge_mask() const;
     const std::vector<bool> get_sobel_edge_mask() const;
+    const std::vector<bool>& get_filtered_vertical_edge_mask() const;
+    const std::vector<bool>& get_blurred_edge_mask() const;
+
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
     int get_red_count() const { return m_red_count; }
@@ -79,6 +82,14 @@ public:
     void increment_blue_count(int new_blue) { m_blue_count += new_blue; }
     void increment_green_count(int new_green) { m_green_count += new_green; }
     void set_data(std::vector<std::uint8_t> &new_data);
+    void invalidate_masks() {
+        m_blurred_edge_mask.reset();
+        m_vertical_edge_mask.reset();
+    }
+    void invalidate_background_value() {
+        m_background_value.reset();
+        m_non_background_pixel_count.reset();
+    }
 
 private:
     void read(std::string filename);
@@ -97,6 +108,9 @@ private:
     std::vector<bool> filter_long_vertical_edge_runs(int min_run_length)const ;
     static std::array<int, 2> get_sobel_gradients(int y, int x, const std::vector<std::uint8_t> &data, int width);
 
+    int calculate_background_value() const;
+    int calculate_non_background_pixel_count() const;
+
     BMPFileHeader m_file_header;
     BMPInfoHeader m_info_header;
     std::vector<std::uint8_t> m_data;
@@ -105,7 +119,10 @@ private:
     int m_dark_yellow_count = 0;
     int m_blue_count = 0;
     int m_green_count = 0;
-    std::vector<bool> m_blurred_edge_mask;
-    std::vector<bool> m_filtered_edge_mask;
+
+    mutable std::optional<std::vector<bool>> m_blurred_edge_mask;
+    mutable std::optional<std::vector<bool>> m_vertical_edge_mask;
+    mutable std::optional<int> m_background_value;
+    mutable std::optional<int> m_non_background_pixel_count;
 };
 #endif
