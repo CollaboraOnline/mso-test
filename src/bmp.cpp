@@ -324,7 +324,7 @@ void BMP::write_side_by_side(const BMP &diff, const BMP &base, const BMP &target
     }
 }
 
-int BMP::get_non_background_pixel_count() const
+int BMP::calculate_non_background_pixel_count() const
 {
     int background_value = get_background_value();
     int non_background_count = 0;
@@ -343,7 +343,7 @@ int BMP::get_non_background_pixel_count() const
     return non_background_count;
 }
 
-int BMP::get_background_value() const
+int BMP::calculate_background_value() const
 {
     int total_gray = 0;
     std::int32_t stride = m_info_header.bit_count / 8;
@@ -362,6 +362,7 @@ void BMP::set_data(std::vector<std::uint8_t> &new_data)
 {
     set_data_internal(new_data);
     invalidate_masks();
+    invalidate_background_value();
 }
 
 void BMP::set_data_internal(std::vector<std::uint8_t> &new_data)
@@ -566,6 +567,22 @@ std::vector<bool> BMP::calculate_intersection_mask(const BMP &original, const BM
         intersection_mask[i] = original_edge_map[i] && target_edge_map[i];
     }
     return intersection_mask;
+}
+
+int BMP::get_non_background_pixel_count() const
+{
+    if (!m_non_background_pixel_count.has_value()) {
+        m_non_background_pixel_count = calculate_non_background_pixel_count();
+    }
+    return m_non_background_pixel_count.value();
+}
+
+int BMP::get_background_value() const
+{
+    if (!m_background_value.has_value()) {
+        m_background_value = calculate_background_value();
+    }
+    return m_background_value.value();
 }
 
 const std::vector<bool>& BMP::get_blurred_edge_mask() const{
