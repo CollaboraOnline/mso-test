@@ -3,12 +3,12 @@
 
 using Catch::Matchers::ContainsSubstring;
 
-TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
+TEST_CASE("pixelbasher compare two BMP's", "[pixelbasher][compare]") {
     SECTION("Compare two different BMPs and generate a diff image with minor differences disabled") {
         BMP original("test_data/solid_white.bmp");
         BMP target("test_data/vertical_edges.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, false);
+        BMP diff = pixelbasher::compare_bmps(original, target, false);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -19,7 +19,7 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         BMP original("test_data/solid_white.bmp");
         BMP target("test_data/solid_white.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, false);
+        BMP diff = pixelbasher::compare_bmps(original, target, false);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -30,7 +30,7 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
         BMP original("test_data/text.bmp");
         BMP target("test_data/slightly-different-text.bmp");
 
-        BMP diff = PixelBasher::compare_bmps(original, target, true);
+        BMP diff = pixelbasher::compare_bmps(original, target, true);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -38,15 +38,15 @@ TEST_CASE("PixelBasher compare two BMP's", "[pixelbasher][compare]") {
     }
 }
 
-TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
+TEST_CASE("pixelbasher compare regression", "[pixelbasher][regression]") {
     SECTION("Compare differences with regressed BMP version versus previous regressed BMP version") {
         BMP original("test_data/solid_white.bmp");
         BMP current("test_data/solid_black.bmp");
         BMP previous("test_data/vertical_edges.bmp");
 
-        BMP current_diff = PixelBasher::compare_bmps(original, current, false);
-        BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
-        BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
+        BMP current_diff = pixelbasher::compare_bmps(original, current, false);
+        BMP previous_diff = pixelbasher::compare_bmps(original, previous, false);
+        BMP diff = pixelbasher::compare_regressions(original, current_diff, previous_diff);
 
         REQUIRE(diff.get_width() == 50); // <= original.get_width()
         REQUIRE(diff.get_height() == 50);
@@ -59,9 +59,9 @@ TEST_CASE("PixelBasher compare regression", "[pixelbasher][regression]") {
         BMP current("test_data/solid_white.bmp");
         BMP previous("test_data/solid_black.bmp");
 
-        BMP current_diff = PixelBasher::compare_bmps(original, current, false);
-        BMP previous_diff = PixelBasher::compare_bmps(original, previous, false);
-        BMP diff = PixelBasher::compare_regressions(original, current_diff, previous_diff);
+        BMP current_diff = pixelbasher::compare_bmps(original, current, false);
+        BMP previous_diff = pixelbasher::compare_bmps(original, previous, false);
+        BMP diff = pixelbasher::compare_regressions(original, current_diff, previous_diff);
 
         int diff_size = diff.get_width() * diff.get_height();
 

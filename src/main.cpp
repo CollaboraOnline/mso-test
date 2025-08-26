@@ -179,10 +179,10 @@ ParsedArguments parse_arguments(int argc, char *argv[], int pdf_count = 3)
     return args;
 }
 
-BMP diff(PixelBasher &pixel_basher, BMP &base, BMP &target,
+BMP diff(BMP &base, BMP &target,
         bool allow_minor_diffs)
 {
-    BMP diff = pixel_basher.compare_bmps(base, target, allow_minor_diffs);
+    BMP diff = pixelbasher::compare_bmps(base, target, allow_minor_diffs);
     return diff;
 }
 
@@ -191,7 +191,6 @@ int main(int argc, char *argv[])
     try
     {
         ParsedArguments args = parse_arguments(argc, argv);
-        PixelBasher pixel_basher;
         const std::string csv_filename = "diff-pdf-" + args.extension;
 
         size_t num_pages = args.ms_orig_images.size();
@@ -211,8 +210,8 @@ int main(int argc, char *argv[])
             BMP lo_previous;
             BMP ms_conv_previous;
 
-            BMP lo_diff = diff(pixel_basher, base, lo, args.enable_minor_differences);
-            BMP ms_conv_diff = diff(pixel_basher, base, ms_conv, args.enable_minor_differences);
+            BMP lo_diff = diff(base, lo, args.enable_minor_differences);
+            BMP ms_conv_diff = diff(base, ms_conv, args.enable_minor_differences);
 
             BMP lo_previous_diff;
             BMP ms_conv_previous_diff;
@@ -224,9 +223,9 @@ int main(int argc, char *argv[])
             if (args.lo_previous)
             {
                 lo_previous = args.lo_previous_images[i];
-                lo_previous_diff = diff(pixel_basher, base, lo_previous, args.enable_minor_differences);
+                lo_previous_diff = diff(base, lo_previous, args.enable_minor_differences);
 
-                lo_compare = pixel_basher.compare_regressions(base, lo_diff, lo_previous_diff);
+                lo_compare = pixelbasher::compare_regressions(base, lo_diff, lo_previous_diff);
                 if (args.no_save_overlay)
                 {
                     if (lo_diff.get_red_count() > lo_previous_diff.get_red_count())
@@ -239,9 +238,9 @@ int main(int argc, char *argv[])
             if (args.ms_previous)
             {
                 ms_conv_previous = args.ms_conv_previous_images[i];
-                ms_conv_previous_diff = diff(pixel_basher, base, ms_conv_previous, args.enable_minor_differences);
+                ms_conv_previous_diff = diff(base, ms_conv_previous, args.enable_minor_differences);
 
-                ms_conv_compare = pixel_basher.compare_regressions(base, ms_conv_diff, ms_conv_previous_diff);
+                ms_conv_compare = pixelbasher::compare_regressions(base, ms_conv_diff, ms_conv_previous_diff);
                 if (args.no_save_overlay)
                 {
                     if (ms_conv_diff.get_red_count() > ms_conv_previous_diff.get_red_count())
