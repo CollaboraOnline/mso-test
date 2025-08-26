@@ -150,7 +150,7 @@ void BMP::write(std::string filename)
     }
 }
 
-void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<bool> filter_mask)
+void BMP::write_with_filter(const BMP &base, std::string filename, std::vector<uint8_t> filter_mask)
 {
     const int base_width = base.get_width();
     const int base_height = base.get_height();
@@ -375,12 +375,12 @@ void BMP::set_data_internal(std::vector<std::uint8_t> &new_data)
     m_data = new_data;
 }
 
-std::vector<bool> BMP::blur_edge_mask() const
+std::vector<uint8_t> BMP::blur_edge_mask() const
 {
-    std::vector<bool> edge_map = sobel_edges<245>();
+    std::vector<uint8_t> edge_map = sobel_edges<245>();
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
-    std::vector<bool> blurred_mask(width * height, false);
+    std::vector<uint8_t> blurred_mask(width * height, 0);
 
     for (int y = 1; y < height - 1; y++)
     {
@@ -399,13 +399,13 @@ std::vector<bool> BMP::blur_edge_mask() const
 }
 
 template <int Threshold>
-std::vector<bool> BMP::sobel_edges() const
+std::vector<uint8_t> BMP::sobel_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
     const std::vector<std::uint8_t> &data = m_data;
 
-    std::vector<bool> result(width * height, false);
+    std::vector<uint8_t> result(width * height, 0);
 
     // Loop through each pixel in the image, skipping the edges to avoid out-of-bounds access
     for (int y = 1; y < height - 1; y++)
@@ -417,16 +417,16 @@ std::vector<bool> BMP::sobel_edges() const
             // Calculate gradient magnitude (clamped to 255)
             int magnitude = std::min(255, static_cast<int>(std::sqrt(g_x * g_x + g_y * g_y)));
 
-            result[y * width + x] = (magnitude >= Threshold);
+            result[y * width + x] = (magnitude >= Threshold) ? 1 : 0;
         }
     }
     return result;
 }
 
-std::vector<bool> BMP::filter_long_vertical_edge_runs(int min_run_length) const
+std::vector<uint8_t> BMP::filter_long_vertical_edge_runs(int min_run_length) const
 {
-    std::vector<bool> vertical_edges = get_vertical_edges<245>();
-    std::vector<bool> result(vertical_edges.size(), false);
+    std::vector<uint8_t> vertical_edges = get_vertical_edges<245>();
+    std::vector<uint8_t> result(vertical_edges.size(), 0);
     int width = m_info_header.width;
     int height = m_info_header.height;
 
@@ -453,7 +453,7 @@ std::vector<bool> BMP::filter_long_vertical_edge_runs(int min_run_length) const
                     // copy the run
                     for (int i = run_start; i < run_start + run_length; i++)
                     {
-                        result[i * width + x] = true;
+                        result[i * width + x] = 1;
                     }
                 }
                 run_start = -1;
@@ -465,13 +465,13 @@ std::vector<bool> BMP::filter_long_vertical_edge_runs(int min_run_length) const
 }
 
 template <int Threshold>
-std::vector<bool> BMP::get_vertical_edges() const
+std::vector<uint8_t> BMP::get_vertical_edges() const
 {
     std::int32_t width = m_info_header.width;
     std::int32_t height = m_info_header.height;
     const std::vector<std::uint8_t> &data = m_data;
 
-    std::vector<bool> result(width * height, false);
+    std::vector<uint8_t> result(width * height, 0);
 
     for (int y = 1; y < height - 1; y++)
     {
@@ -481,14 +481,14 @@ std::vector<bool> BMP::get_vertical_edges() const
 
             int abs_gx = std::abs(g_x);
 
-            result[y * width + x] = (abs_gx >= Threshold);
+            result[y * width + x] = (abs_gx >= Threshold) ? 1 : 0;
         }
     }
     return result;
 }
 
 template <int Radius>
-void BMP::blur_pixels(int x, int y, int width, int height, std::vector<bool> &mask)
+void BMP::blur_pixels(int x, int y, int width, int height, std::vector<uint8_t> &mask)
 {
     for (int dy = -Radius; dy <= Radius; dy++)
     {
@@ -500,7 +500,7 @@ void BMP::blur_pixels(int x, int y, int width, int height, std::vector<bool> &ma
             // Check if the new coordinates are within bounds
             if (new_x >= 0 && new_x < width && new_y >= 0 && new_y < height)
             {
-                mask[new_y * width + new_x] = true;
+                mask[new_y * width + new_x] = 1;
             }
         }
     }
@@ -553,21 +553,52 @@ int BMP::calculate_colour_count(const BMP& base, Colour to_compare)
     return colour_count;
 }
 
-std::vector<bool> BMP::calculate_intersection_mask(const BMP &original, const BMP &target)
+
+std::vector<uint8_t> BMP::calculate_intersection_mask(const BMP &original, const BMP &target)
 {
-    const std::vector<bool> original_edge_map = original.get_blurred_edge_mask();
-    const std::vector<bool> target_edge_map = target.get_blurred_edge_mask();
+    const std::vector<uint8_t> original_edge_map = original.get_blurred_edge_mask();
+    const std::vector<uint8_t> target_edge_map = target.get_blurred_edge_mask();
 
     int width = std::min(original.get_width(), target.get_width());
     int height = std::min(original.get_height(), target.get_height());
 
-    std::vector<bool> intersection_mask(width * height, false);
+    std::vector<uint8_t> intersection_mask(width * height, 0);
     for (int i = 0; i < width * height; i++)
     {
         intersection_mask[i] = original_edge_map[i] && target_edge_map[i];
     }
     return intersection_mask;
 }
+
+std::vector<uint8_t> BMP::calculate_intersection_mask_simd(const BMP &original, const BMP &target)
+{
+    const std::vector<uint8_t> original_edge_map = original.get_blurred_edge_mask();
+    const std::vector<uint8_t> target_edge_map = target.get_blurred_edge_mask();
+
+    int width = std::min(original.get_width(), target.get_width());
+    int height = std::min(original.get_height(), target.get_height());
+
+    int size = width * height;
+    std::vector<uint8_t> intersection_mask(size, 0);
+
+    int i = 0;
+    // Process 32 bytes at a time using AVX2
+    for (; i + 31 < size; i += 32)
+    {
+        __m256i a = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&original_edge_map[i]));
+        __m256i b = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&target_edge_map[i]));
+        __m256i c = _mm256_and_si256(a, b);
+        _mm256_storeu_si256(reinterpret_cast<__m256i *>(&intersection_mask[i]), c);
+    }
+
+    // Handle the remaining elements
+    for (; i < size; i++)
+    {
+        intersection_mask[i] = original_edge_map[i] & target_edge_map[i];
+    }
+    return intersection_mask;
+}
+
 
 int BMP::get_non_background_pixel_count() const
 {
@@ -585,24 +616,24 @@ int BMP::get_background_value() const
     return m_background_value.value();
 }
 
-const std::vector<bool>& BMP::get_blurred_edge_mask() const{
+const std::vector<uint8_t>& BMP::get_blurred_edge_mask() const{
     if (!m_blurred_edge_mask.has_value()) {
         m_blurred_edge_mask = blur_edge_mask();
     }
     return m_blurred_edge_mask.value();
 }
 
-const std::vector<bool>& BMP::get_filtered_vertical_edge_mask() const {
+const std::vector<uint8_t>& BMP::get_filtered_vertical_edge_mask() const {
     if (!m_vertical_edge_mask.has_value()) {
         m_vertical_edge_mask = filter_long_vertical_edge_runs(10);
     }
     return m_vertical_edge_mask.value();
 }
 
-const std::vector<bool> BMP::get_vertical_edge_mask() const {
+const std::vector<uint8_t> BMP::get_vertical_edge_mask() const {
     return get_vertical_edges<245>();
 }
 
-const std::vector<bool> BMP::get_sobel_edge_mask() const {
+const std::vector<uint8_t> BMP::get_sobel_edge_mask() const {
     return sobel_edges<245>();
 }
