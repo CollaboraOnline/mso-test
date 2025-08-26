@@ -28,5 +28,5 @@ namespace pixelbasher
     PixelValues compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous);
     PixelValues compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences);
     PixelValues colour_pixel(Colour colour);
-};
+}
 #endif
