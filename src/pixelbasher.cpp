@@ -15,7 +15,7 @@
 #include "pixel.hpp"
 #include "pixelbasher.hpp"
 
-BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target,
+BMP pixelbasher::compare_bmps(const BMP &original, const BMP &target,
         bool enable_minor_differences)
 {
     int min_width = std::min(original.get_width(), target.get_width());
@@ -72,7 +72,7 @@ BMP PixelBasher::compare_bmps(const BMP &original, const BMP &target,
     return diff;
 }
 
-BMP PixelBasher::compare_regressions(const BMP &original, const BMP &current, BMP &previous)
+BMP pixelbasher::compare_regressions(const BMP &original, const BMP &current, BMP &previous)
 {
     std::int32_t min_width = std::min(original.get_width(), current.get_width());
     std::int32_t min_height = std::min(original.get_height(), current.get_height());
@@ -115,7 +115,7 @@ BMP PixelBasher::compare_regressions(const BMP &original, const BMP &current, BM
     return diff;
 }
 
-PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences)
+PixelValues pixelbasher::compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences)
 {
     const bool differs = Pixel::differs_from(original, target, near_edge, original_background_value);
 
@@ -143,7 +143,7 @@ PixelValues PixelBasher::compare_pixels(PixelValues original, PixelValues target
     return colour_to_pixel[Colour::RED];
 }
 
-PixelValues PixelBasher::compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous)
+PixelValues pixelbasher::compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous)
 {
     bool current_is_red = Pixel::is_red(current);
     bool previous_is_red = Pixel::is_red(previous);

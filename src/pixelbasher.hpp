@@ -19,15 +19,14 @@
 #include "pixel.hpp"
 
 // PixelBasher class to handle the comparison of BMP images and generate diff images
-class PixelBasher
+namespace pixelbasher
 {
-public:
     // Compares two BMP images and generates a diff image based on the differences (the diff is applied to the base image)
-    static BMP compare_bmps(const BMP &original, const BMP &target, bool enable_minor_differences);
-    static BMP compare_regressions(const BMP &original, const BMP &current, BMP &previous);
-private:
-    static PixelValues compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous);
-    static PixelValues compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences);
-    static PixelValues colour_pixel(Colour colour);
+    BMP compare_bmps(const BMP &original, const BMP &target, bool enable_minor_differences);
+    BMP compare_regressions(const BMP &original, const BMP &current, BMP &previous);
+
+    PixelValues compare_pixel_regression(BMP& diff, PixelValues original, PixelValues current, PixelValues previous);
+    PixelValues compare_pixels(PixelValues original, PixelValues target, BMP &diff, int original_background_value, bool near_edge, bool vertical_edge, bool minor_differences);
+    PixelValues colour_pixel(Colour colour);
 };
 #endif
