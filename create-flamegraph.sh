@@ -31,7 +31,6 @@ rm -f flamegraph.svg
 sudo perf record -F 99 -g -- sh -c '
     find ../download/doc/ -name "*.doc" -execdir basename {} \; \
     | xargs -L1 -I{} python3 '"$mso_dir"'/diff-pdf-page-statistics.py \
-        --no_save_overlay \
         --base_file="{}" \
         --image_dump
 '
