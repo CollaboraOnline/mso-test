@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Usage: cd history && /path/to/mso/create-flamegraph.sh /path/to/mso
+# The file structure required:
+# |--- history/
+# |    |--- ext/
+# |--- download/
+# |    |--- ext/
+# |--- converted/
+# |    |--- ext/
+# To run the script, you need to be inside the history/ directory
+# To view the flamegraph, open history/flamegraph.svg in a web browser
+
 mso_dir="$1"
 
 if [ -z "$mso_dir" ]; then
