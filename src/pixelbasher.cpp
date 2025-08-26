@@ -23,9 +23,13 @@ BMP pixelbasher::compare_bmps(const BMP &original, const BMP &target,
 
     BMP diff(original);
 
-    const std::vector<bool> intersection_mask = BMP::calculate_intersection_mask(original, target);
-    const std::vector<bool> &original_vertical_edges = original.get_filtered_vertical_edge_mask();
-    const std::vector<bool> &target_vertical_edges = target.get_filtered_vertical_edge_mask();
+
+
+    // const std::vector<uint8_t> intersection_mask = BMP::calculate_intersection_mask(original, target);
+    const std::vector<uint8_t> intersection_mask = BMP::calculate_intersection_mask_simd(original, target);
+
+    const std::vector<uint8_t> &original_vertical_edges = original.get_filtered_vertical_edge_mask();
+    const std::vector<uint8_t> &target_vertical_edges = target.get_filtered_vertical_edge_mask();
 
     int original_background_value = original.get_background_value();
 
