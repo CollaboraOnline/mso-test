@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -mavx2
+CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -mavx2 -O3
 SRC_DIR = src
 OBJ_DIR = obj
 TARGET = pixelbasher
