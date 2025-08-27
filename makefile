@@ -10,7 +10,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 # Default target
 all: release
 
-debug: CXXFLAGS += -g -DDEBUG
+debug: CXXFLAGS += -g
 debug: $(TARGET)
 
 release: CXXFLAGS += -O3 -DNDEBUG
