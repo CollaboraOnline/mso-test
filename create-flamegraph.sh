@@ -55,4 +55,9 @@ sudo perf record -F 99 -g -- sh -c '
 # Process perf data
 sudo perf script > out.perf
 "$mso_dir/FlameGraph/stackcollapse-perf.pl" out.perf > out.folded
-"$mso_dir/FlameGraph/flamegraph.pl" out.folded > flamegraph.svg
+"$mso_dir/FlameGraph/flamegraph.pl" out.folded > ../converted/flamegraph.svg
+
+# Files were created with sudo, change ownership to the user, so that they can be deleted later
+sudo chown -R $USER:$USER ../converted
+sudo chown -R $USER:$USER ../download
+sudo chown -R $USER:$USER ../history
