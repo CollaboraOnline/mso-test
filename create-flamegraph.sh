@@ -12,10 +12,19 @@
 # To view the flamegraph, open history/flamegraph.svg in a web browser
 
 mso_dir="$1"
-doc_name="$2"
+ext="$2"
+doc_name="$3"
 
 if [ -z "$mso_dir" ]; then
     echo "Pass the directory for the image regression test"
+    exit 1
+fi
+
+if [ -z "$ext" ]; then
+    echo "No file extension passed, for example 'pptx', 'ppt, 'docx', 'doc'"
+    exit 1
+elif [ "$ext" != "pptx" ] && [ "$ext" != "ppt" ] && [ "$ext" != "docx" ] && [ "$ext" != "doc" ]; then
+    echo "File extension must be 'pptx', 'ppt', 'docx' or 'doc'"
     exit 1
 fi
 
@@ -37,7 +46,7 @@ rm -f flamegraph.svg
 make -C "$mso_dir" clean && make -C "$mso_dir" debug
 
 sudo perf record -F 99 -g -- sh -c '
-    find ../download/doc/ -name '"$doc_name"' -execdir basename {} \; \
+    find ../download/'"$ext"'/ -name '"$doc_name"' -execdir basename {} \; \
     | xargs -L1 -I{} python3 '"$mso_dir"'/diff-pdf-page-statistics.py \
         --base_file="{}" \
         --image_dump
