@@ -1,11 +1,20 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -g -MMD -MP -mavx2 -O3
+CXXFLAGS = -std=c++20 -Wall -MMD -MP -mavx2
 SRC_DIR = src
 OBJ_DIR = obj
 TARGET = pixelbasher
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+
+# Default target
+all: release
+
+debug: CXXFLAGS += -g -DDEBUG
+debug: $(TARGET)
+
+release: CXXFLAGS += -O3 -DNDEBUG
+release: $(TARGET)
 
 $(TARGET) : $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)

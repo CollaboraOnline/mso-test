@@ -28,6 +28,8 @@ rm -f out.perf
 rm -f out.folded
 rm -f flamegraph.svg
 
+make -C "$mso_dir" clean && make -C "$mso_dir" debug
+
 sudo perf record -F 99 -g -- sh -c '
     find ../download/doc/ -name "*.doc" -execdir basename {} \; \
     | xargs -L1 -I{} python3 '"$mso_dir"'/diff-pdf-page-statistics.py \
