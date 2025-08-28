@@ -221,7 +221,13 @@ namespace mso_test
         }
         public bool convertWithLO(ApplicationType application, string formatTo, string targetDir, string fullOrigFileName, string fullConvertedFileName)
         {
-            Process loProcess = new Process(); ;
+            if (File.Exists(fullConvertedFileName))
+                File.Delete(fullConvertedFileName);
+            string fullLockFileName = Path.Combine(targetDir, ".~lock." + Path.GetFileName(fullConvertedFileName) + "#");
+            if (File.Exists(fullLockFileName))
+                File.Delete(fullLockFileName);
+
+            Process loProcess = new Process();
             string loName, loParams;
             getLOParams(application, formatTo, targetDir, fullOrigFileName, out loName, out loParams);
             loProcess.StartInfo.FileName = loName;

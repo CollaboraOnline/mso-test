@@ -68,10 +68,19 @@ namespace mso_test
 
         public void saveFailedFileLists(DirectoryInfo baseDir, string typeName)
         {
+            string failConvertFilesName = typeName +"-failConvertFiles.txt";
+            string fullFailConvertFilesName = Path.Combine(baseDir.FullName, failConvertFilesName);
             if (failConvertFiles.ContainsKey(typeName))
-                WriteSetToFile(baseDir, typeName + "-failConvertFiles.txt", failConvertFiles[typeName]);
+                WriteSetToFile(baseDir, failConvertFilesName, failConvertFiles[typeName]);
+            else if (File.Exists(fullFailConvertFilesName))
+                File.Delete(fullFailConvertFilesName);
+
+            string failOpenConvertedFilesName = typeName + "-failOpenConvertedFiles.txt";
+            string fullFailOpenConvertedFilesName = Path.Combine(baseDir.FullName, failOpenConvertedFilesName);
             if (failOpenConvertedFiles.ContainsKey(typeName))
-                WriteSetToFile(baseDir, typeName + "-failOpenConvertedFiles.txt", failOpenConvertedFiles[typeName]);
+                WriteSetToFile(baseDir, failOpenConvertedFilesName, failOpenConvertedFiles[typeName]);
+            else if (File.Exists(fullFailOpenConvertedFilesName))
+                File.Delete(fullFailOpenConvertedFilesName);
         }
 
         public int getCurrFailOpenOriginalFilesNo(string typeName)
