@@ -378,3 +378,6 @@ unittest
 
 # Ignore dump folders
 image-dump/
+
+# Only config-sample.json is to be committed
+autobibisect/config.json

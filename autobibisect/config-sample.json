@@ -1,0 +1,10 @@
+{
+	"BibisectRepoDir" : "/cygdrive/c/bibisect/...",
+	"Reverse" : false,
+	"MsoTestDir" : "/cygdrive/c/mso-test/bin",
+	"TestFileBaseDir" : "/cygdrive/c/mso-test/download",
+	"RangeFrom" : "oldest",
+	"RangeTo" : "main",
+	"FileListFullName" : "/cygdrive/c/mso-test/testfiles.txt",
+	"ResultFileName" : "autobibisect-result.txt"
+}
