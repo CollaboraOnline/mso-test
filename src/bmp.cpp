@@ -11,6 +11,7 @@
 #include <bit>
 #include <cmath>
 #include <fstream>
+#include <immintrin.h>
 
 #include "bmp.hpp"
 

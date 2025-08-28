@@ -17,7 +17,6 @@
 #include <iostream>
 #include <optional>
 #include <vector>
-#include "immintrin.h"
 
 #include "pixel.hpp"
 
