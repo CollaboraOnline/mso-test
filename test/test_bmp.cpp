@@ -3,6 +3,14 @@
 
 using Catch::Matchers::ContainsSubstring;
 
+int count_set_bits(const std::vector<uint64_t>& mask) {
+    int total = 0;
+    for (uint64_t x : mask) {
+        total += std::popcount(x);
+    }
+    return total;
+}
+
 TEST_CASE("BMP Class Constructor", "[bmp][constructor]") {
     SECTION("Default constructor creates an empty BMP object") {
         BMP bmp;
@@ -11,21 +19,21 @@ TEST_CASE("BMP Class Constructor", "[bmp][constructor]") {
         REQUIRE(bmp.get_data().empty());
         REQUIRE(bmp.get_red_count() == 0);
         REQUIRE(bmp.get_yellow_count() == 0);
-        REQUIRE(std::count(bmp.get_blurred_edge_mask().begin(), bmp.get_blurred_edge_mask().end(), 1) == 0);
-        REQUIRE(std::count(bmp.get_filtered_vertical_edge_mask().begin(), bmp.get_filtered_vertical_edge_mask().end(), 1) == 0);
+        REQUIRE(count_set_bits(bmp.get_blurred_edge_mask()) == 0);
+        REQUIRE(count_set_bits(bmp.get_vertical_edge_mask()) == 0);
     }
 
     SECTION("Constructor with width and height initializes BMP with correct dimensions") {
         BMP bmp(100, 100);
-        std::vector<uint8_t> bmp_blurred_edge_mask = bmp.get_blurred_edge_mask();
-        std::vector<uint8_t> bmp_filtered_vertical_edge_mask = bmp.get_filtered_vertical_edge_mask();
+        std::vector<uint64_t> bmp_blurred_edge_mask = bmp.get_blurred_edge_mask();
+        std::vector<uint64_t> bmp_filtered_vertical_edge_mask = bmp.get_filtered_vertical_edge_mask();
         REQUIRE(bmp.get_width() == 100);
         REQUIRE(bmp.get_height() == 100);
         REQUIRE(bmp.get_data().size() == 100 * 100 * pixel_stride);
         REQUIRE(bmp.get_red_count() == 0);
         REQUIRE(bmp.get_yellow_count() == 0);
-        REQUIRE(std::count(bmp_blurred_edge_mask.begin(), bmp_blurred_edge_mask.end(), 1) == 0);
-        REQUIRE(std::count(bmp_filtered_vertical_edge_mask.begin(), bmp_filtered_vertical_edge_mask.end(), 1) == 0);
+        REQUIRE(count_set_bits(bmp_blurred_edge_mask) == 0);
+        REQUIRE(count_set_bits(bmp_filtered_vertical_edge_mask) == 0);
     }
 }
 
@@ -83,7 +91,10 @@ TEST_CASE("Writing BMP files", "[bmp][write]") {
 TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
     SECTION("Creates and writes a BMP with an edge_mask successfully") {
         BMP dummy_image(100, 100);
-        std::vector<uint8_t> edge_mask (100 * 100, 1);
+
+        int n_pixels = dummy_image.get_width() * dummy_image.get_height();
+        int mask_size = (n_pixels + 63) / 64;
+        std::vector<uint64_t> edge_mask (mask_size, 1);
 
         REQUIRE_NOTHROW(BMP::write_with_filter(dummy_image, "test_data/output/write-filter.bmp", edge_mask));
     }
@@ -93,14 +104,17 @@ TEST_CASE("Writing filters & masks onto BMP files", "[bmp][write]") {
         BMP dummy_image(100, 100);
         int dummy_image_red_count = BMP::calculate_colour_count(dummy_image, Colour::RED);
 
-        std::vector<uint8_t> edge_mask (100 * 100, 1);
+        int n_pixels = dummy_image.get_width() * dummy_image.get_height();
+        int mask_size = (n_pixels + 63) / 64;
+        std::vector<uint64_t> edge_mask (mask_size, 1);
+
         BMP::write_with_filter(dummy_image, bmp_path, edge_mask);
 
         BMP dummy_image_input(bmp_path);
         int dummy_image_input_red_count = BMP::calculate_colour_count(dummy_image_input, Colour::RED);
 
         REQUIRE(dummy_image_red_count == 0);
-        REQUIRE(dummy_image_input_red_count == (int)edge_mask.size());
+        REQUIRE(dummy_image_input_red_count == count_set_bits(edge_mask));
     }
 }
 
@@ -199,23 +213,23 @@ TEST_CASE("Setting the pixel data", "[bmp][set_data]") {
 TEST_CASE("Running sobel edge detection", "[bmp][pixel-analysis]") {
     SECTION("Returns no edges for solid_black.bmp") {
         BMP solid_black ("test_data/solid_black.bmp");
-        std::vector<uint8_t> sobel_edge_mask = solid_black.get_sobel_edge_mask();
+        std::vector<uint64_t> sobel_edge_mask = solid_black.get_sobel_edge_mask();
 
-        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), 1) == 0);
+        REQUIRE(count_set_bits(sobel_edge_mask) == 0);
     }
 
     SECTION("Returns that edges exist for edges.bmp") {
         BMP edges ("test_data/edges.bmp");
-        std::vector<uint8_t> sobel_edge_mask = edges.get_sobel_edge_mask();
+        std::vector<uint64_t> sobel_edge_mask = edges.get_sobel_edge_mask();
 
-        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), 1) > 0);
+        REQUIRE(count_set_bits(sobel_edge_mask) > 0);
     }
 
     SECTION("Returns that edges exist for vertical_edges.bmp") {
         BMP vertical_edges ("test_data/vertical_edges.bmp");
-        std::vector<uint8_t> sobel_edge_mask = vertical_edges.get_sobel_edge_mask();
+        std::vector<uint64_t> sobel_edge_mask = vertical_edges.get_sobel_edge_mask();
 
-        REQUIRE(std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), 1) > 0);
+        REQUIRE(count_set_bits(sobel_edge_mask) > 0);
     }
 }
 
@@ -223,11 +237,11 @@ TEST_CASE("Blurring the sobel edge mask", "[bmp][pixel-analysis]") {
     SECTION("Sobel edge count remains the same as blurred edge mask") {
         BMP solid_black ("test_data/solid_black.bmp");
 
-        std::vector<uint8_t> sobel_edge_mask = solid_black.get_sobel_edge_mask();
-        std::vector<uint8_t> blurred_edge_mask = solid_black.get_blurred_edge_mask();
+        std::vector<uint64_t> sobel_edge_mask = solid_black.get_sobel_edge_mask();
+        std::vector<uint64_t> blurred_edge_mask = solid_black.get_blurred_edge_mask();
 
-        int sobel_edge_count = std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), 1);
-        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), 1);
+        int sobel_edge_count = count_set_bits(sobel_edge_mask);
+        int blurred_edge_count = count_set_bits(blurred_edge_mask);
 
         REQUIRE(blurred_edge_count == 0); // no edges in solid black image
         REQUIRE(sobel_edge_count == blurred_edge_count);
@@ -236,11 +250,11 @@ TEST_CASE("Blurring the sobel edge mask", "[bmp][pixel-analysis]") {
     SECTION("Returns a larger edge count for blurred edge mask than sobel edge mask") {
         BMP edges ("test_data/edges.bmp");
 
-        std::vector<uint8_t> sobel_edge_mask = edges.get_sobel_edge_mask();
-        std::vector<uint8_t> blurred_edge_mask = edges.get_blurred_edge_mask();
+        std::vector<uint64_t> sobel_edge_mask = edges.get_sobel_edge_mask();
+        std::vector<uint64_t> blurred_edge_mask = edges.get_blurred_edge_mask();
 
-        int sobel_edge_count = std::count(sobel_edge_mask.begin(), sobel_edge_mask.end(), 1);
-        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), 1);
+        int sobel_edge_count = count_set_bits(sobel_edge_mask);
+        int blurred_edge_count = count_set_bits(blurred_edge_mask);
 
         REQUIRE(blurred_edge_count != 0);
         REQUIRE(blurred_edge_count > sobel_edge_count);
@@ -250,35 +264,35 @@ TEST_CASE("Blurring the sobel edge mask", "[bmp][pixel-analysis]") {
 TEST_CASE("Running vertical edge detection", "[bmp][pixel-analysis]") {
     SECTION("Returns no vertical edges for solid_black.bmp") {
         BMP solid_black ("test_data/solid_black.bmp");
-        std::vector<uint8_t> vertical_edge_mask = solid_black.get_vertical_edge_mask();
+        std::vector<uint64_t> vertical_edge_mask = solid_black.get_vertical_edge_mask();
 
-        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), 1) == 0);
+        REQUIRE(count_set_bits(vertical_edge_mask) == 0);
     }
 
     SECTION("Returns that vertical edges exist for vertical_edges.bmp") {
         BMP vertical_edges ("test_data/vertical_edges.bmp");
-        std::vector<uint8_t> vertical_edge_mask = vertical_edges.get_vertical_edge_mask();
+        std::vector<uint64_t> vertical_edge_mask = vertical_edges.get_vertical_edge_mask();
 
-        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), 1) > 0);
+        REQUIRE(count_set_bits(vertical_edge_mask) > 0);
     }
 }
 
 TEST_CASE("Running filtered vertical edge detection", "[bmp][pixel-analysis]") {
     SECTION("filtered vertical edges returns the same as vertical edges") {
         BMP solid_black ("test_data/solid_black.bmp");
-        std::vector<uint8_t> vertical_edge_mask = solid_black.get_vertical_edge_mask();
+        std::vector<uint64_t> vertical_edge_mask = solid_black.get_vertical_edge_mask();
 
-        REQUIRE(std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), 1) == 0);
+        REQUIRE(count_set_bits(vertical_edge_mask) == 0);
     }
 
     SECTION("Returns a smaller amount of vertical edges compared to total edges") {
         BMP edges ("test_data/edges.bmp");
 
-        std::vector<uint8_t> vertical_edge_mask = edges.get_vertical_edge_mask();
-        std::vector<uint8_t> blurred_edge_mask = edges.get_blurred_edge_mask();
+        std::vector<uint64_t> vertical_edge_mask = edges.get_vertical_edge_mask();
+        std::vector<uint64_t> blurred_edge_mask = edges.get_blurred_edge_mask();
 
-        int vertical_edge_count = std::count(vertical_edge_mask.begin(), vertical_edge_mask.end(), 1);
-        int blurred_edge_count = std::count(blurred_edge_mask.begin(), blurred_edge_mask.end(), 1);
+        int vertical_edge_count = count_set_bits(vertical_edge_mask);
+        int blurred_edge_count = count_set_bits(blurred_edge_mask);
 
         REQUIRE(blurred_edge_count > vertical_edge_count);
     }
@@ -287,8 +301,8 @@ TEST_CASE("Running filtered vertical edge detection", "[bmp][pixel-analysis]") {
     SECTION("Returns a positive filtered edge count") {
         BMP vertical_edges ("test_data/vertical_edges.bmp");
 
-        std::vector<uint8_t> filtered_edge_mask = vertical_edges.get_blurred_edge_mask();
-        int filtered_edge_count = std::count(filtered_edge_mask.begin(), filtered_edge_mask.end(), 1);
+        std::vector<uint64_t> filtered_edge_mask = vertical_edges.get_blurred_edge_mask();
+        int filtered_edge_count = count_set_bits(filtered_edge_mask);
 
         REQUIRE(filtered_edge_count > 0);
     }
