@@ -566,7 +566,7 @@ std::vector<uint8_t> BMP::calculate_intersection_mask(const BMP &original, const
     std::vector<uint8_t> intersection_mask(width * height, 0);
     for (int i = 0; i < width * height; i++)
     {
-        intersection_mask[i] = original_edge_map[i] && target_edge_map[i];
+        intersection_mask[i] = original_edge_map[i] & target_edge_map[i];
     }
     return intersection_mask;
 }
