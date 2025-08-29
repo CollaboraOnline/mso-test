@@ -23,9 +23,10 @@ BMP pixelbasher::compare_bmps(const BMP &original, const BMP &target,
 
     BMP diff(original);
 
-    const std::vector<uint64_t> intersection_mask = BMP::calculate_intersection_mask_simd(original, target);
-    const std::vector<uint64_t> &original_vertical_edges = original.get_filtered_vertical_edge_mask();
-    const std::vector<uint64_t> &target_vertical_edges = target.get_filtered_vertical_edge_mask();
+    const std::vector<uint8_t> intersection_mask = BMP::calculate_intersection_mask_simd(original, target);
+
+    const std::vector<uint8_t> &original_vertical_edges = original.get_filtered_vertical_edge_mask();
+    const std::vector<uint8_t> &target_vertical_edges = target.get_filtered_vertical_edge_mask();
 
     int original_background_value = original.get_background_value();
 
@@ -36,13 +37,6 @@ BMP pixelbasher::compare_bmps(const BMP &original, const BMP &target,
 
     int original_width = original.get_width();
     int target_width = target.get_width();
-
-    auto get_bit = [&](const std::vector<uint64_t>& edge_map, int index) {
-        int byte_index = index / 64;
-        int bit_index = index % 64;
-        return (intersection_mask[byte_index] >> bit_index) & 1;
-    };
-
     // Loops through the min width and height, if size of images differ slightly.
     for (int y = 0; y < min_height; y++)
     {
@@ -59,13 +53,10 @@ BMP pixelbasher::compare_bmps(const BMP &original, const BMP &target,
             PixelValues original_pixel = Pixel::get_bgra(original_row);
             PixelValues target_pixel = Pixel::get_bgra(target_row);
 
-
-            bool near_edge = get_bit(intersection_mask, mask_index);
-            bool original_vertical_edge = get_bit(original_vertical_edges, mask_index);
-            bool target_vertical_edge = get_bit(target_vertical_edges, mask_index);
+            bool near_edge = intersection_mask[mask_index];
             bool vertical_edge = false;
 
-            if (original_vertical_edge || target_vertical_edge)
+            if (original_vertical_edges[mask_index] || target_vertical_edges[mask_index])
             {
                 vertical_edge = true;
             }
