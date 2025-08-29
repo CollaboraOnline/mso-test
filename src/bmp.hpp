@@ -57,18 +57,18 @@ public:
     static BMP stamp_name(const BMP &base, const BMP &stamp);
     static void write_side_by_side(const BMP &diff, const BMP &base, const BMP &target, std::string stamp_location, std::string filename);
     static int calculate_colour_count(const BMP& base, Colour to_compare);
-    static void write_with_filter(const BMP &base, std::string filename, std::vector<uint64_t> filter_mask);
-    static std::vector<uint64_t> calculate_intersection_mask(const BMP &original, const BMP &target);
-    static std::vector<uint64_t> calculate_intersection_mask_simd(const BMP &original, const BMP &target);
+    static void write_with_filter(const BMP &base, std::string filename, std::vector<uint8_t> filter_mask);
+    static std::vector<uint8_t> calculate_intersection_mask(const BMP &original, const BMP &target);
+    static std::vector<uint8_t> calculate_intersection_mask_simd(const BMP &original, const BMP &target);
 
 
     const std::vector<std::uint8_t> &get_data() const { return m_data; }
 
     // simd versions return uint8_t vectors with 0 or 1 values
-    const std::vector<uint64_t> get_vertical_edge_mask() const;
-    const std::vector<uint64_t> get_sobel_edge_mask() const;
-    const std::vector<uint64_t>& get_filtered_vertical_edge_mask() const;
-    const std::vector<uint64_t>& get_blurred_edge_mask() const;
+    const std::vector<uint8_t> get_vertical_edge_mask() const;
+    const std::vector<uint8_t> get_sobel_edge_mask() const;
+    const std::vector<uint8_t>& get_filtered_vertical_edge_mask() const;
+    const std::vector<uint8_t>& get_blurred_edge_mask() const;
 
     int get_width() const { return m_info_header.width; }
     int get_height() const { return m_info_header.height; }
@@ -102,14 +102,14 @@ private:
     void set_data_internal(std::vector<std::uint8_t> &new_data);
 
     template <int Threshold>
-    std::vector<uint64_t> sobel_edges() const;
+    std::vector<uint8_t> sobel_edges() const;
     template <int Threshold> // compile-time constant
-    std::vector<uint64_t> get_vertical_edges() const;
+    std::vector<uint8_t> get_vertical_edges() const;
     template <int Radius> // compile-time constant
-    static void blur_pixels(int x, int y, int width, int height, std::vector<uint64_t> &mask);
+    static void blur_pixels(int x, int y, int width, int height, std::vector<uint8_t> &mask);
 
-    std::vector<uint64_t> blur_edge_mask() const;
-    std::vector<uint64_t> filter_long_vertical_edge_runs(int min_run_length)const ;
+    std::vector<uint8_t> blur_edge_mask() const;
+    std::vector<uint8_t> filter_long_vertical_edge_runs(int min_run_length)const ;
     static std::array<int, 2> get_sobel_gradients(int y, int x, const std::vector<std::uint8_t> &data, int width);
 
     int calculate_background_value() const;
@@ -124,8 +124,8 @@ private:
     int m_blue_count = 0;
     int m_green_count = 0;
 
-    mutable std::optional<std::vector<uint64_t>> m_blurred_edge_mask;
-    mutable std::optional<std::vector<uint64_t>> m_vertical_edge_mask;
+    mutable std::optional<std::vector<uint8_t>> m_blurred_edge_mask;
+    mutable std::optional<std::vector<uint8_t>> m_vertical_edge_mask;
     mutable std::optional<int> m_background_value;
     mutable std::optional<int> m_non_background_pixel_count;
 };
