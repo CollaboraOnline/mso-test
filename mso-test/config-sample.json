@@ -1,0 +1,12 @@
+{
+	"Application" : "word",
+	"BaseDir" : "",
+	"OnlineConverter" : true,
+	"OnlineConverterBaseURL" : "https://localhost:9980/",
+	"OnlineConverterTasks" : 1,
+	"DesktopConverterLocation" : "C:\\LO_dir\\program",
+	"GeneratePDF" : false,
+	"FilePeriod" : 1,
+	"FileOffset" : 0,
+	"EndWithStep" : 3
+}

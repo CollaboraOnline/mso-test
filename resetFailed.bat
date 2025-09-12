@@ -1,1 +1,0 @@
-start mso-test.exe reset-failed
