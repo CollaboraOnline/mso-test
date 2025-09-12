@@ -95,8 +95,11 @@ def adjust_range_hashes(range_from, range_to):
 def get_bibisect_hash(original_commit_hash):
     os.chdir(bibisect_repo_dir)
     result = subprocess.run(["git", "log", "--all", "--grep=" + original_commit_hash, "--format=%H"], capture_output=True, text=True, check=True)
-    result_hash = result.stdout.strip()
-    return result_hash
+    result_lines = result.stdout.strip().splitlines()
+    if len(result_lines) > 1:
+        # This can happen in win64 24.2 bibisect repo
+        print("get_bibisect_hash(): multiple bibisect hashes exist for the same original commit (" + original_commit_hash + "), using one of them")
+    return result_lines[0]
 
 # this can only handle bibisect repos where the subject line contains the hashes in the format 'source sha:<hash>'
 def get_original_hash(bibisect_commit_hash):
