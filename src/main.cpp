@@ -40,10 +40,10 @@ struct ParsedArguments
     bool ms_previous;
 };
 
-void write_stats_to_csv(const BMP &base, const BMP &current, const BMP &previous, const BMP &diff, int page_number, std::string basename,
+void write_stats_to_csv(const BMP &base, const BMP &current, const BMP &diff, const BMP &previous, int page_number, std::string basename,
                         std::string filename, bool previous_exists)
 {
-    std::ofstream csv_file(filename);
+    std::ofstream csv_file(filename, std::ios::app);
     if (!csv_file.is_open())
     {
         throw std::runtime_error("Cannot open CSV file for writing");
