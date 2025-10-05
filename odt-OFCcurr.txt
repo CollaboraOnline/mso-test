@@ -16,6 +16,8 @@ fdo56272-1.odt
 fdo57550-1.odt
 fdo60218-1.odt
 fdo60419-1.odt
+fdo61270-3.odt
+fdo61270-4.odt
 fdo64010-1.odt
 fdo66439-1.odt
 fdo66440-1.odt
