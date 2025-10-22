@@ -1,14 +1,9 @@
 abi4715-1.doc
 fdo41030-1.doc
-fdo42438-2.doc
 fdo49208-1.doc
 fdo51044-3.doc
-fdo80206-1.doc
 fdo83910-1.doc
-forum-en-11174.doc
 forum-en-14725.doc
-forum-en-4284.doc
-forum-mso-de-106026.doc
 forum-mso-de-12655.doc
 forum-mso-de-17306.doc
 forum-mso-de-22995.doc
