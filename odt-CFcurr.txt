@@ -205,7 +205,6 @@ kde206129-1.odt
 kde210633-1.odt
 kde240353-2.odt
 kde248904-1.odt
-kde271928-1.odt
 kde280711-1.odt
 kde298689-1.odt
 kde304655-2.odt
@@ -430,6 +429,7 @@ tdf130589-2.odt
 tdf130868-2.odt
 tdf131622-1.odt
 tdf133856-1.odt
+tdf134502-1.odt
 tdf135347-1.odt
 tdf137123-1.odt
 tdf137230-2.odt
@@ -442,6 +442,7 @@ tdf78664-4.odt
 tdf81792-2.odt
 tdf88257-3.odt
 tdf89615-2.odt
+tdf89783-10.odt
 tdf89783-11.odt
 tdf89783-12.odt
 tdf89783-13.odt
