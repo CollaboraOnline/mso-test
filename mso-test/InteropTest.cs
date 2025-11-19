@@ -73,8 +73,8 @@ namespace mso_test
     }
     internal class InteropTest
     {
-        static TimeSpan openTimeout = TimeSpan.FromMilliseconds(30000);
-        static TimeSpan convertTimeout = TimeSpan.FromMilliseconds(100000);
+        static TimeSpan openTimeout = TimeSpan.FromMilliseconds(90000);
+        static TimeSpan convertTimeout = TimeSpan.FromMilliseconds(200000);
 
         Configuration config = new Configuration();
         FileStatistics fileStats = new FileStatistics();
