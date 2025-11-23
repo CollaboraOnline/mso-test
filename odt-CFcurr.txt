@@ -16,7 +16,6 @@ fdo56245-1.odt
 fdo58442-1.odt
 fdo59040-1.odt
 fdo59712-1.odt
-fdo59714-1.odt
 fdo61608-1.odt
 fdo62508-1.odt
 fdo63293-1.odt
@@ -29,7 +28,6 @@ fdo73805-1.odt
 fdo76079-1.odt
 fdo76560-1.odt
 fdo76592-1.odt
-fdo76993-1.odt
 fdo77248-1.odt
 fdo78167-1.odt
 fdo78260-1.odt
@@ -429,7 +427,6 @@ tdf130589-2.odt
 tdf130868-2.odt
 tdf131622-1.odt
 tdf133856-1.odt
-tdf134502-1.odt
 tdf135347-1.odt
 tdf137123-1.odt
 tdf137230-2.odt

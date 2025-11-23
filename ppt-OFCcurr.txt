@@ -3,7 +3,6 @@ fdo58983-1.ppt
 fdo65504-1.ppt
 fdo68761-1.ppt
 fdo69351-1.ppt
-fdo85059-1.ppt
 forum-fr-18164.ppt
 forum-mso-de-22306.ppt
 forum-mso-de-38427.ppt
