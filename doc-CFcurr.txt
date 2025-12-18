@@ -7,7 +7,6 @@ fdo38575-1.doc
 fdo39505-3.doc
 fdo39587-1.doc
 fdo44194-1.doc
-fdo45394-6.doc
 fdo48132-2.doc
 fdo55185-1.doc
 fdo55196-1.doc
@@ -200,6 +199,7 @@ rhbz1046245-14.doc
 tdf104494-3.doc
 tdf104813-1.doc
 tdf135708-1.doc
+tdf136503-1.doc
 tdf46203-4.doc
 tdf61558-2.doc
 tdf78401-7.doc
