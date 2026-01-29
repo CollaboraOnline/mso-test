@@ -6,6 +6,7 @@ abi6073-3.doc
 fdo38575-1.doc
 fdo39505-3.doc
 fdo39587-1.doc
+fdo40887-2.doc
 fdo44194-1.doc
 fdo48132-2.doc
 fdo55185-1.doc
@@ -190,7 +191,6 @@ ooo74517-1.doc
 ooo74764-1.doc
 ooo75556-1.doc
 ooo80276-1.doc
-ooo82423-1.doc
 ooo83947-2.doc
 ooo87272-1.doc
 ooo89201-3.doc
