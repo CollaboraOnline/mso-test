@@ -455,9 +455,25 @@ namespace mso_test
 
                     StringBuilder csv = new StringBuilder();
                     csv.AppendLine("productVersion,productVersionHash");
-                    string productVersion = jsonResponse["productVersion"].GetValue<string>();
-                    string productVersionHash = jsonResponse["productVersionHash"].GetValue<string>();
+                    string productVersion, productVersionHash;
+                    // Kit version is more relevant, try querying that, fall back to online version when failing
+                    if (jsonResponse["productKitVersion"] != null)
+                    {
+                        productVersion = jsonResponse["productKitVersion"].GetValue<string>();
+                        productVersionHash = jsonResponse["productKitVersionHash"].GetValue<string>();
+                    }
+                    else if (jsonResponse["productVersion"] != null)
+                    {
+                        productVersion = jsonResponse["productVersion"].GetValue<string>();
+                        productVersionHash = jsonResponse["productVersionHash"].GetValue<string>();
+                    }
+                    else
+                    {
+                        productVersion = "null";
+                        productVersionHash = "null";
+                    }
                     csv.AppendLine($"{productVersion},{productVersionHash}");
+
                     File.WriteAllText(Path.Combine(config.BaseDir, @"download\version.csv"), csv.ToString());
                 }
                 catch
