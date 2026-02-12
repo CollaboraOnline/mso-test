@@ -23,8 +23,6 @@ forum-hu-1427.odp
 forum-hu-1428.odp
 kde136662-1.odp
 kde233546-1.odp
-kde274107-1.odp
-kde303587-1.odp
 lp823155-2.odp
 novell365427-1.odp
 novell480243-2.odp
@@ -35,11 +33,11 @@ ooo103896-3.odp
 ooo104146-1.odp
 ooo104518-2.odp
 ooo106595-1.odp
+ooo108097-1.odp
 ooo110320-1.odp
 ooo110691-2.odp
 ooo111928-1.odp
 ooo116334-1.odp
-ooo120768-1.odp
 ooo121086-3.odp
 ooo123732-1.odp
 ooo124383-1.odp

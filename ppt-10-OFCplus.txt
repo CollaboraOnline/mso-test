@@ -1,9 +1,6 @@
-fdo58983-1.ppt
-lp91723-1.ppt
-novell593611-1.ppt
-novell593612-1.ppt
-novell593613-1.ppt
-novell593614-1.ppt
-ooo109217-1.ppt
-ooo114420-1.ppt
-tdf128404-1.ppt
+fdo85059-1.ppt
+novell363366-1.ppt
+ooo41476-1.ppt
+ooo43208-1.ppt
+ooo57429-3.ppt
+rhbz447199-2.ppt

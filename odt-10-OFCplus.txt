@@ -1,8 +1,4 @@
-fdo61270-3.odt
-fdo84635-6.odt
-fdo84635-7.odt
-fdo84635-8.odt
-forum-fr-29175.odt
-ooo47510-1.odt
-tdf130135-1.odt
-tdf131665-1.odt
+ooo14725-6.odt
+ooo89791-2.odt
+ooo90246-1.odt
+ooo90246-2.odt

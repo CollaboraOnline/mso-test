@@ -1,4 +1,3 @@
-fdo73805-1.odt
-fdo77248-1.odt
-ooo92691-2.odt
-tdf134903-2.odt
+abi11853-1.odt
+fdo62310-1.odt
+kde271928-1.odt
