@@ -23,6 +23,9 @@ namespace mso_test
         const string failOpenOrigNameTmpSuffix = "-failOpenOriginalFiles-tmp.txt";
         const string passOpenOrigNameSuffix = "-passOpenOriginalFiles.txt";
         const string passOpenOrigNameTmpSuffix = "-passOpenOriginalFiles-tmp.txt";
+        const string failConvNameSuffix = "-failConvertFiles.txt";
+        const string failOpenConvNameSuffix = "-failOpenConvertedFiles.txt";
+        const string passOpenConvNameSuffix = "-passOpenConvertedFiles.txt";
 
         // Temporary file streams that are filled when adding new items, and deleted in the end
         private Dictionary<string, StreamWriter> failOpenOriginalFilesTemp = new Dictionary<string, StreamWriter>();
@@ -38,6 +41,7 @@ namespace mso_test
 
         private Dictionary<string, HashSet<string>> failOpenConvertedFiles = new Dictionary<string, HashSet<string>>();
         private Dictionary<string, long> timeToOpenConvertedFiles = new Dictionary<string, long>();
+        private Dictionary<string, HashSet<string>> passOpenConvertedFiles = new Dictionary<string, HashSet<string>>();
 
         public void initOpenOriginalFileLists(DirectoryInfo baseDir, string typeName)
         {
@@ -68,19 +72,26 @@ namespace mso_test
 
         public void saveFailedFileLists(DirectoryInfo baseDir, string typeName)
         {
-            string failConvertFilesName = typeName +"-failConvertFiles.txt";
+            string failConvertFilesName = typeName + failConvNameSuffix;
             string fullFailConvertFilesName = Path.Combine(baseDir.FullName, failConvertFilesName);
             if (failConvertFiles.ContainsKey(typeName))
                 WriteSetToFile(baseDir, failConvertFilesName, failConvertFiles[typeName]);
             else if (File.Exists(fullFailConvertFilesName))
                 File.Delete(fullFailConvertFilesName);
 
-            string failOpenConvertedFilesName = typeName + "-failOpenConvertedFiles.txt";
+            string failOpenConvertedFilesName = typeName + failOpenConvNameSuffix;
             string fullFailOpenConvertedFilesName = Path.Combine(baseDir.FullName, failOpenConvertedFilesName);
             if (failOpenConvertedFiles.ContainsKey(typeName))
                 WriteSetToFile(baseDir, failOpenConvertedFilesName, failOpenConvertedFiles[typeName]);
             else if (File.Exists(fullFailOpenConvertedFilesName))
                 File.Delete(fullFailOpenConvertedFilesName);
+
+            string passOpenConvertedFilesName = typeName + passOpenConvNameSuffix;
+            string fullPassOpenConvertedFilesName = Path.Combine(baseDir.FullName, passOpenConvertedFilesName);
+            if (passOpenConvertedFiles.ContainsKey(typeName))
+                WriteSetToFile(baseDir, passOpenConvertedFilesName, passOpenConvertedFiles[typeName]);
+            else if (File.Exists(fullPassOpenConvertedFilesName))
+                File.Delete(fullPassOpenConvertedFilesName);
         }
 
         public int getCurrFailOpenOriginalFilesNo(string typeName)
@@ -151,50 +162,54 @@ namespace mso_test
         {
             lock (failLock)
             {
-                if (!failConvertFiles.ContainsKey(typeName))
-                    failConvertFiles.Add(typeName, new HashSet<string> { fileName });
-                else
-                    failConvertFiles[typeName].Add(fileName);
+                if (!failConvertFiles.TryGetValue(typeName, out var fileSet))
+                {
+                    fileSet = new HashSet<string>();
+                    failConvertFiles.Add(typeName, fileSet);
+                }
+                fileSet.Add(fileName);
             }
         }
 
         public void addToFailOpenConvertedFiles(string typeName, string fileName)
         {
-            if (!failOpenConvertedFiles.ContainsKey(typeName))
-                failOpenConvertedFiles.Add(typeName, new HashSet<string> { fileName });
-            else
-                failOpenConvertedFiles[typeName].Add(fileName);
+            if (!failOpenConvertedFiles.TryGetValue(typeName, out var fileSet))
+            {
+                fileSet = new HashSet<string>();
+                failOpenConvertedFiles.Add(typeName, fileSet);
+            }
+            fileSet.Add(fileName);
+        }
+
+        public void addToPassOpenConvertedFiles(string typeName, string fileName)
+        {
+            if (!passOpenConvertedFiles.TryGetValue(typeName, out var fileSet))
+            {
+                fileSet = new HashSet<string>();
+                passOpenConvertedFiles.Add(typeName, fileSet);
+            }
+            fileSet.Add(fileName);
         }
         public bool isFailOpenOriginalFile(string typeName, string fileName)
         {
-            if (!failOpenOriginalFiles.ContainsKey(typeName))
-                return false;
-            return failOpenOriginalFiles[typeName].Contains(fileName);
+            return failOpenOriginalFiles.TryGetValue(typeName, out var fileSet) && fileSet.Contains(fileName);
         }
 
         public bool isPassOpenOriginalFile(string typeName, string fileName)
         {
-            if (!passOpenOriginalFiles.ContainsKey(typeName))
-                return false;
-            return passOpenOriginalFiles[typeName].Contains(fileName);
+            return passOpenOriginalFiles.TryGetValue(typeName, out var fileSet) && fileSet.Contains(fileName);
         }
         public int getPassOpenOriginalFilesNo(string typeName)
         {
-            if (!passOpenOriginalFiles.ContainsKey(typeName))
-                return 0;
-            return passOpenOriginalFiles[typeName].Count;
+            return passOpenOriginalFiles.TryGetValue(typeName, out var fileSet) ? fileSet.Count : 0;
         }
         public int getFailConvertFilesNo(string typeName)
         {
-            if (!failConvertFiles.ContainsKey(typeName))
-                return 0;
-            return failConvertFiles[typeName].Count;
+            return failConvertFiles.TryGetValue(typeName, out var fileSet) ? fileSet.Count : 0;
         }
         public int getFailOpenConvertedFilesNo(string typeName)
         {
-            if (!failOpenConvertedFiles.ContainsKey(typeName))
-                return 0;
-            return failOpenConvertedFiles[typeName].Count;
+            return failOpenConvertedFiles.TryGetValue(typeName, out var fileSet) ? fileSet.Count : 0;
         }
 
         public void addTimeToOpenOriginalFiles(string typeName, long timeSpanInMs)
@@ -224,23 +239,17 @@ namespace mso_test
 
         public long getTimeToOpenOriginalFiles(string typeName)
         {
-            if (!timeToOpenOriginalFiles.ContainsKey(typeName))
-                return 0;
-            return timeToOpenOriginalFiles[typeName];
+            return timeToOpenOriginalFiles.TryGetValue(typeName, out var time) ? time : 0;
         }
 
         public long getTimeToConvert(string typeName)
         {
-            if (!timeToConvert.ContainsKey(typeName))
-                return 0;
-            return timeToConvert[typeName];
+            return timeToConvert.TryGetValue(typeName, out var time) ? time : 0;
         }
 
         public long getTimeToOpenConvertedFiles(string typeName)
         {
-            if (!timeToOpenConvertedFiles.ContainsKey(@typeName))
-                return 0;
-            return timeToOpenConvertedFiles[typeName];
+            return timeToOpenConvertedFiles.TryGetValue(typeName, out var time) ? time : 0;
         }
         public static HashSet<string> ReadFileToSet(string fileName)
         {

@@ -801,6 +801,7 @@ namespace mso_test
                     continue;
                 }
                 fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
+                fileStats.addToPassOpenConvertedFiles(fileType, origFileName);
 
                 Logger.Write($"Pass; {origFileName}; {watch.ElapsedMilliseconds} ms (last step)");
             }
