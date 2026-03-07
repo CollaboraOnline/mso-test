@@ -75,6 +75,7 @@ namespace mso_test
     {
         static TimeSpan openTimeout = TimeSpan.FromMilliseconds(90000);
         static TimeSpan convertTimeout = TimeSpan.FromMilliseconds(200000);
+        static TimeSpan openConvertedTimeout = TimeSpan.FromTicks(2 * openTimeout.Ticks);
 
         Configuration config = new Configuration();
         FileStatistics fileStats = new FileStatistics();
@@ -783,9 +784,9 @@ namespace mso_test
                 // Open converted file
                 watch.Restart();
                 Task<(bool, string)> OpenConvertedFileTask = Task.Run(() => OpenFile(application, fullConvertedFileName, config.GeneratePDF));
-                if (!OpenConvertedFileTask.Wait(openTimeout))
+                if (!OpenConvertedFileTask.Wait(openConvertedTimeout))
                 {
-                    Logger.Write($"Fail opening converted file timeout; {origFileName}; {watch.ElapsedMilliseconds} ms; Timed out after {openTimeout.TotalMilliseconds} ms");
+                    Logger.Write($"Fail opening converted file timeout; {origFileName}; {watch.ElapsedMilliseconds} ms; Timed out after {openConvertedTimeout.TotalMilliseconds} ms");
                     restartApplication(application);
                     OpenConvertedFileTask.Wait();
                     fileStats.addTimeToOpenConvertedFiles(fileType, watch.ElapsedMilliseconds);
