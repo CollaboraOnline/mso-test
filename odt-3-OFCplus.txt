@@ -1,11 +1,5 @@
-fdo48011-1.odt
-fdo52080-1.odt
-forum-en-4385.odt
-forum-fr-2551.odt
-forum-fr-29175.odt
-ooo118020-1.odt
-ooo52186-3.odt
-ooo66148-1.odt
-rhbz1124898-2.odt
-tdf97129-1.odt
-tdf98458-1.odt
+fdo60881-1.odt
+forum-de3-6585.odt
+forum-it-17624.odt
+rhbz750820-1.odt
+tdf93249-1.odt

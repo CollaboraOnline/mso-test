@@ -1,5 +1,5 @@
 fdo50656-1.ppt
-fdo58983-1.ppt
+fdo60080-1.ppt
 fdo65504-1.ppt
 fdo68761-1.ppt
 fdo69351-1.ppt
@@ -18,7 +18,7 @@ lp60435-1.ppt
 lp777195-2.ppt
 lp91723-1.ppt
 lp923452-12.ppt
-lp941827-2.ppt
+novell219637-2.ppt
 novell590442-1.ppt
 novell628016-2.ppt
 novell655408-2.ppt
@@ -57,7 +57,9 @@ ooo45269-1.ppt
 ooo48469-1.ppt
 ooo49674-2.ppt
 ooo49966-1.ppt
+ooo51868-1.ppt
 ooo57618-1.ppt
+ooo58581-1.ppt
 ooo59810-3.ppt
 ooo62106-1.ppt
 ooo63525-1.ppt
@@ -82,5 +84,7 @@ tdf112721-2.ppt
 tdf120572-1.ppt
 tdf128926-1.ppt
 tdf130100-2.ppt
+tdf132955-1.ppt
+tdf87204-1.ppt
 tdf91960-1.ppt
-tdf98070-1.ppt
+tdf94590-1.ppt

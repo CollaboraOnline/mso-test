@@ -1,6 +1,4 @@
 abi4715-1.doc
-abi6073-2.doc
-abi6073-3.doc
 abi9637-2.doc
 fdo34023-2.doc
 fdo36694-1.doc
@@ -210,7 +208,6 @@ forum-mso-de-17196.doc
 forum-mso-de-17255.doc
 forum-mso-de-17268.doc
 forum-mso-de-17271.doc
-forum-mso-de-17306.doc
 forum-mso-de-17320.doc
 forum-mso-de-17387.doc
 forum-mso-de-17494.doc
@@ -1089,9 +1086,9 @@ novell636111-1.doc
 novell640023-1.doc
 novell740962-1.doc
 ooo101383-1.doc
-ooo104279-1.doc
 ooo10486-1.doc
 ooo105188-1.doc
+ooo108996-1.doc
 ooo109591-1.doc
 ooo111353-1.doc
 ooo115282-1.doc
@@ -1102,14 +1099,11 @@ ooo118377-1.doc
 ooo119485-2.doc
 ooo119689-1.doc
 ooo120595-1.doc
-ooo19882-1.doc
 ooo2288-5.doc
-ooo23501-1.doc
 ooo23512-1.doc
 ooo23512-2.doc
 ooo23561-1.doc
 ooo23564-1.doc
-ooo25518-1.doc
 ooo25598-1.doc
 ooo30959-1.doc
 ooo31239-1.doc
@@ -1119,8 +1113,6 @@ ooo33234-4.doc
 ooo33386-1.doc
 ooo34538-1.doc
 ooo39201-1.doc
-ooo40058-1.doc
-ooo40143-1.doc
 ooo40149-1.doc
 ooo45781-1.doc
 ooo45782-1.doc
@@ -1158,7 +1150,6 @@ ooo85473-2.doc
 ooo90505-1.doc
 ooo9224-10.doc
 ooo9224-9.doc
-ooo94120-1.doc
 ooo98910-1.doc
 ooo98913-2.doc
 rhbz487079-1.doc
@@ -1167,13 +1158,9 @@ tdf100844-1.doc
 tdf103010-1.doc
 tdf113871-1.doc
 tdf118928-2.doc
-tdf123380-1.doc
 tdf125338-1.doc
 tdf131642-1.doc
 tdf136445-1.doc
-tdf78401-7.doc
-tdf78401-9.doc
-tdf81922-1.doc
 tdf84543-1.doc
 tdf90397-1.doc
 tdf90397-3.doc

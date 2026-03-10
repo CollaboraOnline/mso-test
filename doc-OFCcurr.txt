@@ -1,7 +1,6 @@
 fdo42438-2.doc
 fdo49208-1.doc
 fdo61494-1.doc
-fdo83910-1.doc
 forum-en-14725.doc
 forum-mso-de-12655.doc
 forum-mso-de-17306.doc
@@ -27,18 +26,13 @@ ooo104279-1.doc
 ooo116001-1.doc
 ooo19882-1.doc
 ooo23501-1.doc
-ooo24702-1.doc
 ooo25518-1.doc
 ooo31490-1.doc
 ooo33751-1.doc
 ooo39201-1.doc
 ooo40058-1.doc
 ooo40143-1.doc
-ooo58904-1.doc
-ooo60396-1.doc
-ooo67907-1.doc
 ooo71585-2.doc
-ooo91883-1.doc
 ooo94120-1.doc
 tdf100844-1.doc
 tdf118170-1.doc

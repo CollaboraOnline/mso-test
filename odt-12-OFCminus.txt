@@ -4,6 +4,7 @@ forum-en-24820.odt
 forum-en-24822.odt
 forum-en-3943.odt
 forum-en-41087.odt
+forum-en-7387.odt
 forum-es-3572.odt
 forum-fr-6220.odt
 forum-fr-6333.odt
@@ -11,9 +12,14 @@ forum-fr-7245.odt
 forum-fr-7246.odt
 forum-it-14403.odt
 forum-pl-67.odt
+ooo107988-4.odt
+ooo14725-6.odt
 ooo59330-2.odt
 ooo74187-1.odt
 ooo82967-1.odt
+ooo89791-2.odt
+ooo90246-1.odt
+ooo90246-2.odt
 ooo94167-1.odt
 ooo96307-1.odt
 tdf101800-1.odt

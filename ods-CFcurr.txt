@@ -12,6 +12,7 @@ fdo45985-1.ods
 fdo46080-1.ods
 fdo47724-1.ods
 fdo50543-1.ods
+fdo53839-5.ods
 fdo55413-3.ods
 fdo55413-4.ods
 fdo57492-1.ods
@@ -56,7 +57,6 @@ gnome649851-6.ods
 gnome650640-1.ods
 kde115273-2.ods
 kde115273-8.ods
-kde239786-1.ods
 kde314684-2.ods
 kde321860-1.ods
 kde324885-1.ods
@@ -157,6 +157,7 @@ rhbz430636-4.ods
 rhbz430636-5.ods
 rhbz753708-1.ods
 rhbz754051-1.ods
+tdf102927-2.ods
 tdf103175-1.ods
 tdf104862-1.ods
 tdf104862-2.ods
@@ -172,7 +173,6 @@ tdf121237-3.ods
 tdf122060-1.ods
 tdf122377-1.ods
 tdf123986-2.ods
-tdf125254-1.ods
 tdf125545-4.ods
 tdf128244-1.ods
 tdf128244-2.ods
@@ -197,7 +197,9 @@ tdf89570-1.ods
 tdf91528-1.ods
 tdf91528-3.ods
 tdf91809-1.ods
+tdf92193-1.ods
 tdf92773-1.ods
+tdf93196-2.ods
 tdf93766-1.ods
 tdf94838-1.ods
 tdf96261-1.ods
