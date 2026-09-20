@@ -1,3 +1,10 @@
-fdo59714-1.odt
-fdo76993-1.odt
-tdf134502-1.odt
+abi11853-1.odt
+fdo46669-2.odt
+ooo103256-1.odt
+ooo127710-1.odt
+ooo44505-1.odt
+ooo46275-1.odt
+ooo49650-3.odt
+ooo64767-1.odt
+rhbz490395-4.odt
+tdf117174-1.odt
