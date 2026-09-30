@@ -128,6 +128,9 @@ namespace mso_test
                         wordApp = new word.Application();
                         wordApp.DisplayAlerts = word.WdAlertLevel.wdAlertsNone;
                         wordApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                        wordApp.ScreenUpdating = false;
+                        wordApp.Options.CheckSpellingAsYouType = false;
+                        wordApp.Options.CheckGrammarAsYouType = false;
                     }
 
                     if (application == ApplicationType.Excel)
@@ -135,6 +138,8 @@ namespace mso_test
                         excelApp = new excel.Application();
                         excelApp.DisplayAlerts = false;
                         excelApp.AutomationSecurity = Microsoft.Office.Core.MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+                        excelApp.ScreenUpdating = false;
+                        excelApp.EnableEvents = false;
                     }
 
                     if (application == ApplicationType.PowerPoint)
@@ -698,7 +703,7 @@ namespace mso_test
                     Task<(bool, int, string, string)> PDFTask = Task.Run(() => ConvertFile(coolClient, application, fullFileName, convertedPDFFileName, fileType, "pdf"));
                     if (!PDFTask.Result.Item1)
                     {
-                        Logger.Write($"Fail creating PDF export; {fileName}; {ConvertTask.Result.Item2} tries; {watch.ElapsedMilliseconds} ms; {ConvertTask.Result.Item4}");
+                        Logger.Write($"Fail creating PDF export; {fileName}; {PDFTask.Result.Item2} tries; {watch.ElapsedMilliseconds} ms; {PDFTask.Result.Item4}");
                         continue;
                     }
                 }
@@ -916,7 +921,7 @@ namespace mso_test
 
             try
             {
-                doc = wordApp.Documents.OpenNoRepairDialog(fileName, ReadOnly: true, Visible: false, PasswordDocument: "'");
+                doc = wordApp.Documents.OpenNoRepairDialog(fileName, AddToRecentFiles: false, ConfirmConversions: false, ReadOnly: true, Visible: false, PasswordDocument: "'");
                 if (generatePDF)
                 {
                     FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
@@ -960,7 +965,7 @@ namespace mso_test
 
             try
             {
-                wb = excelApp.Workbooks.Open(fileName, ReadOnly: true, Password: "'", UpdateLinks: false);
+                wb = excelApp.Workbooks.Open(fileName, ReadOnly: true, Password: "'", UpdateLinks: false, AddToMru: false);
                 if (generatePDF)
                 {
                     FileInfo PDFexport = new FileInfo(fileName + @"_mso.pdf");
