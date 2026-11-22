@@ -1,9 +1,1 @@
-fdo63737-1.odt
-fdo73805-1.odt
-fdo77248-1.odt
-ooo92691-2.odt
-tdf101821-1.odt
-tdf105126-2.odt
-tdf121550-1.odt
-tdf96839-1.odt
-tdf96839-2.odt
+kde271928-1.odt

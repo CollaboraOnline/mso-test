@@ -51,7 +51,6 @@ fdo72953-1.ods
 fdo73113-1.ods
 fdo74451-1.ods
 fdo74507-3.ods
-fdo74583-1.ods
 fdo76437-1.ods
 fdo76447-3.ods
 fdo76482-1.ods
@@ -70,6 +69,7 @@ fdo86019-4.ods
 fdo86166-1.ods
 fdo86575-2.ods
 fdo86577-1.ods
+fdo86737-1.ods
 kde326878-1.ods
 lp1269734-9.ods
 lp669248-4.ods
@@ -127,6 +127,7 @@ tdf106346-1.ods
 tdf108143-1.ods
 tdf108953-1.ods
 tdf112206-3.ods
+tdf113535-2.ods
 tdf115513-1.ods
 tdf116060-2.ods
 tdf117417-2.ods
@@ -143,9 +144,9 @@ tdf131548-1.ods
 tdf131914-1.ods
 tdf133303-1.ods
 tdf133923-1.ods
-tdf137420-1.ods
 tdf64499-5.ods
 tdf86321-2.ods
+tdf90435-1.ods
 tdf90616-1.ods
 tdf91220-1.ods
 tdf91931-1.ods
@@ -159,6 +160,7 @@ tdf95233-2.ods
 tdf95469-1.ods
 tdf97198-1.ods
 tdf97198-2.ods
+tdf97450-1.ods
 tdf98326-1.ods
 tdf98657-1.ods
 tdf98970-1.ods
